@@ -151,11 +151,11 @@
 <body>
 
 <video autoplay muted loop id="bg-video">
-  <source src="/ruta-al-video.mp4" type="video/mp4">
+  <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
 </video>
 
 <div class="container info-core">
-  <img src="/trabajo.jpg" alt="Imagen trabajo" class="img-trabajo">
+  <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Imagen trabajo" class="img-trabajo">
   <h1>Plataformas Core</h1>
 </div>
 
@@ -164,9 +164,10 @@
 <div class="chat-container" id="chat-container">
   <div class="header">
     <div class="d-flex align-items-center gap-2">
-      <img src="/claro-logo.png" alt="Claro Logo" class="logo"/>
+      <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro Logo" class="logo"/>
       <h2 class="m-0 fs-6">Asesor de Plataformas Core</h2>
     </div>
+
     <button id="expandir-chat" class="btn btn-sm btn-light text-danger" title="Expandir chat">⛶</button>
   </div>
 
