@@ -4,12 +4,14 @@ import pandas as pd
 import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://chatbot-claro.onrender.com"}})  # ✅ Línea clave
+
+# ✅ Habilitar CORS globalmente (mejor para evitar errores)
+CORS(app)
 
 usuarios = {}
 
-# Ruta al archivo Excel
-ruta_excel = os.path.join(os.getcwd(), "Ejemplo de alarmas CMM.xlsx")
+# ✅ Ruta robusta que funciona tanto en local como en Render
+ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
 
 if not os.path.exists(ruta_excel):
     raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
@@ -23,7 +25,6 @@ if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
 df["numero alarma"] = df["numero alarma"].astype(str).str.strip()
 df["nombre del elemento"] = df["nombre del elemento"].str.lower().str.strip()
 
-
 def menu_principal():
     return (
         "📋 Menú principal:\n"
@@ -35,11 +36,9 @@ def menu_principal():
         "6. Hablar con el administrador de la plataforma."
     )
 
-
 @app.route("/")
 def index():
     return render_template("index.html")
-
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -91,7 +90,6 @@ def chat():
         return jsonify({"response": respuesta})
 
     return jsonify({"response": "❌ Algo salió mal. Intenta de nuevo."})
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

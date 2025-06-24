@@ -11,7 +11,6 @@
       background: #f8f9fa;
       font-family: 'Segoe UI', sans-serif;
     }
-
     #bg-video {
       position: fixed;
       top: 0; left: 0;
@@ -20,7 +19,6 @@
       z-index: -1;
       opacity: 0.60;
     }
-
     .chat-container {
       position: fixed;
       bottom: 20px;
@@ -37,18 +35,15 @@
       z-index: 1000;
       transition: all 0.3s ease-in-out;
     }
-
     .chat-container.mostrar {
       display: flex;
     }
-
     .chat-container.expandido {
       width: 100%;
       max-width: 700px;
       max-height: 95vh;
       height: 95vh;
     }
-
     .burbuja-chat {
       position: fixed;
       bottom: 80px;
@@ -62,7 +57,6 @@
       box-shadow: 0 4px 8px rgba(145, 133, 133, 0.2);
       z-index: 1001;
     }
-
     .chat-box {
       padding: 1rem;
       overflow-y: auto;
@@ -72,7 +66,6 @@
       display: flex;
       flex-direction: column;
     }
-
     .user-msg, .bot-msg {
       padding: 0.5rem 0.75rem;
       border-radius: 1rem;
@@ -82,17 +75,14 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       position: relative;
     }
-
     .user-msg {
       background: #d1e7dd;
       align-self: flex-end;
     }
-
     .bot-msg {
       background: #f8d7da;
       align-self: flex-start;
     }
-
     .header {
       background-color: #dc3545;
       color: white;
@@ -102,39 +92,27 @@
       justify-content: space-between;
       gap: 10px;
     }
-
     .logo {
       width: 32px;
       height: 32px;
     }
-
     .info-core {
       text-align: center;
       padding: 3rem 1rem;
     }
-
     .img-trabajo {
       width: 350px;
       border-radius: 600px;
       margin-bottom: 1%;
     }
-
     .info-core h1 {
       color: #e6cdcf;
       font-weight: bold;
     }
-
     @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
     footer {
       position: fixed;
       bottom: 0;
@@ -167,13 +145,11 @@
       <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro Logo" class="logo"/>
       <h2 class="m-0 fs-6">Asesor de Plataformas Core</h2>
     </div>
-
     <button id="expandir-chat" class="btn btn-sm btn-light text-danger" title="Expandir chat">⛶</button>
   </div>
 
   <div class="chat-box" id="chat-box"></div>
 
-  <!-- 📝 Formulario del chat con 🎙 y ❓ adentro -->
   <form id="chat-form" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; border-top: 1px solid #dee2e6;">
     <input type="text" id="user-input" class="form-control" placeholder="Escribe tu mensaje..." autocomplete="off"/>
     <div style="display: flex; gap: 0.3rem;">
@@ -255,15 +231,16 @@
     input.value = "";
     try {
       const res = await fetch("https://chatbot-render.onrender.com/chat", {
-
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message })
       });
+      if (!res.ok) throw new Error("Respuesta inválida del servidor");
       const data = await res.json();
       mostrarMensajeBot(data.response);
     } catch (err) {
       console.error("❌ Error conectando al backend:", err);
+      mostrarMensajeBot("⚠️ No se pudo conectar con el servidor. Intenta de nuevo más tarde.");
     }
   });
 
