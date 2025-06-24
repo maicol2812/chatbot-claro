@@ -6,7 +6,8 @@ import os
 app = Flask(__name__)
 
 # ✅ Habilitar CORS globalmente (mejor para evitar errores)
-CORS(app)
+
+CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
 
 usuarios = {}
 
