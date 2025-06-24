@@ -254,7 +254,7 @@
     guardarMensaje("user-msg", message);
     input.value = "";
     try {
-      fetch("https://chatbot-render.onrender.com/chat", {
+      const res = await fetch("https://chatbot-render.onrender.com/chat", {
 
         method: "POST",
         headers: { "Content-Type": "application/json" },
