@@ -251,17 +251,17 @@
   }
 
  function mostrarAyuda() {
-  const ayuda = `
-    <div class="bot-msg">
-      🆘 <strong>Opciones rápidas:</strong><br><br>
-      <button onclick="abrirManual()" class="btn btn-sm btn-outline-primary">📄 Ver manual PDF</button>
-      <button onclick="contactarAdmin()" class="btn btn-sm btn-outline-secondary">👨‍💼 Contactar administrador</button>
-      <button onclick="enviarOpcion('1')" class="btn btn-sm btn-outline-success">🔍 Revisar alarmas</button>
-    </div>
-  `;
+  mostrarMensajeBot(
+    `<b>🆘 Opciones rápidas:</b><br>
+    📄 <a href="https://tu-pdf-hosting.com/manual.pdf" target="_blank">Ver manual PDF</a><br>
+    👨‍💼 <a href="mailto:jefe.plataformas@claro.com.co">Contactar administrador</a><br>
+    🔍 <a href="https://jefatura-url-de-alarmas.sharepoint.com">Revisar alarmas</a>`
+  );
+}
+
   chatBox.innerHTML += ayuda;
   guardarMensaje("bot-msg", ayuda);
-}
+
 function abrirManual() {
   window.open("https://tudominio.com/manual.pdf", "_blank");
 }
