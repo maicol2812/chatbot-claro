@@ -250,10 +250,31 @@
     mostrarMensajeBot("🎙 Función de voz no disponible aún.");
   }
 
-  function mostrarAyuda() {
-    mostrarMensajeBot("🆘 Opciones rápidas:\n- Ver manual PDF\n- Contactar administrador\n- Revisar alarmas.");
-  }
+ function mostrarAyuda() {
+  const ayuda = `
+    <div class="bot-msg">
+      🆘 <strong>Opciones rápidas:</strong><br><br>
+      <button onclick="abrirManual()" class="btn btn-sm btn-outline-primary">📄 Ver manual PDF</button>
+      <button onclick="contactarAdmin()" class="btn btn-sm btn-outline-secondary">👨‍💼 Contactar administrador</button>
+      <button onclick="enviarOpcion('1')" class="btn btn-sm btn-outline-success">🔍 Revisar alarmas</button>
+    </div>
+  `;
+  chatBox.innerHTML += ayuda;
+  guardarMensaje("bot-msg", ayuda);
+}
+function abrirManual() {
+  window.open("https://tudominio.com/manual.pdf", "_blank");
+}
+
+function contactarAdmin() {
+  const mensaje = "Hola, necesito ayuda con el sistema de alarmas.";
+  const correo = "mailto:admin@claro.com.co?subject=Asistencia%20Chatbot&body=" + encodeURIComponent(mensaje);
+  window.open(correo, "_blank");
+}
+
+
 </script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
