@@ -4,7 +4,7 @@ import pandas as pd
 import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://chatbot-claro.onrender.com"}})  # ✅ Línea clave
 
 usuarios = {}
 
@@ -23,6 +23,7 @@ if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
 df["numero alarma"] = df["numero alarma"].astype(str).str.strip()
 df["nombre del elemento"] = df["nombre del elemento"].str.lower().str.strip()
 
+
 def menu_principal():
     return (
         "📋 Menú principal:\n"
@@ -34,9 +35,11 @@ def menu_principal():
         "6. Hablar con el administrador de la plataforma."
     )
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -82,7 +85,6 @@ def chat():
         else:
             respuesta = "❌ No se encontró una alarma con ese número y nombre de elemento."
 
-        # Solo se agrega el menú si hubo error
         if "❌" in respuesta:
             respuesta += "\n\n" + menu_principal()
 
@@ -90,8 +92,7 @@ def chat():
 
     return jsonify({"response": "❌ Algo salió mal. Intenta de nuevo."})
 
-if __name__ == "__main__":
-   import os
-port = int(os.environ.get("PORT", 5000))
-app.run(host="0.0.0.0", port=port)
 
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
