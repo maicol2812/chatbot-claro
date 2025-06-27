@@ -4,20 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Asesor Claro</title>
-  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}" type="image/png">
+  <link rel="icon" href="/claro-logo.png" type="image/png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
 <body>
 
 <video autoplay muted loop id="bg-video">
   <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
 </video>
-
-<img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Imagen trabajo" class="img-trabajo">
-
-<img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro Logo" class="logo"/>
-
 
 <div class="container info-core">
   <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Imagen trabajo" class="img-trabajo">
@@ -37,18 +33,18 @@
 
   <div class="chat-box" id="chat-box"></div>
 
-  <form id="chat-form" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; border-top: 1px solid #dee2e6;">
+  <form id="chat-form">
     <input type="text" id="user-input" class="form-control" placeholder="Escribe tu mensaje..." autocomplete="off"/>
     <div class="acciones-extras">
-      <button type="button" title="Hablar" onclick="activarMicrofono()">🎙️</button>
-      <button type="button" title="Ayuda rápida" onclick="mostrarAyuda()">❓</button>
+      <button type="button" onclick="activarMicrofono()">🎙️</button>
+      <button type="button" onclick="mostrarAyuda()">❓</button>
     </div>
-    <button type="submit" class="btn btn-danger">Enviar</button>
+    <button type="submit">Enviar</button>
   </form>
 </div>
 
 <footer>
-  © 2025 Claro • <a href="#" style="color:#dc3545">Políticas de Privacidad</a> • <a href="#" style="color:#dc3545">Soporte</a>
+  © 2025 Claro • <a href="#">Políticas de Privacidad</a> • <a href="#">Soporte</a>
 </footer>
 
 <script>
@@ -68,8 +64,7 @@
 
   document.getElementById("expandir-chat").addEventListener("click", () => {
     chat.classList.toggle("expandido");
-    const btn = document.getElementById("expandir-chat");
-    btn.textContent = chat.classList.contains("expandido") ? "🗕" : "⛶";
+    document.getElementById("expandir-chat").textContent = chat.classList.contains("expandido") ? "🗕" : "⛶";
   });
 
   function mostrarBotonesMenu() {
@@ -95,16 +90,22 @@
     form.dispatchEvent(new Event('submit'));
   }
 
-  function guardarMensaje(tipo, texto) {
-    const historial = JSON.parse(localStorage.getItem("chatHistorial")) || [];
-    historial.push({ tipo, texto });
-    localStorage.setItem("chatHistorial", JSON.stringify(historial));
-  }
-
   function mostrarMensajeBot(respuesta) {
     chatBox.innerHTML += `<div class="bot-msg">${respuesta.replace(/\n/g, "<br>")}</div>`;
-    guardarMensaje("bot-msg", respuesta);
     chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function activarMicrofono() {
+    mostrarMensajeBot("🎙 Función de voz no disponible aún.");
+  }
+
+  function mostrarAyuda() {
+    mostrarMensajeBot(
+      `<b>🆘 Opciones rápidas:</b><br>
+      📄 <a href="https://tu-pdf-hosting.com/manual.pdf" target="_blank">Ver manual PDF</a><br>
+      👨‍💼 <a href="mailto:jefe.plataformas@claro.com.co">Contactar administrador</a><br>
+      🔍 <a href="https://jefatura-url-de-alarmas.sharepoint.com">Revisar alarmas</a>`
+    );
   }
 
   form.addEventListener("submit", async (e) => {
@@ -112,7 +113,6 @@
     const message = input.value.trim();
     if (!message) return;
     chatBox.innerHTML += `<div class="user-msg">${message}</div>`;
-    guardarMensaje("user-msg", message);
     input.value = "";
     try {
       const res = await fetch("https://chatbot-claro.onrender.com/chat", {
@@ -128,19 +128,6 @@
       mostrarMensajeBot("⚠️ No se pudo conectar con el servidor. Intenta de nuevo más tarde.");
     }
   });
-
-  function activarMicrofono() {
-    mostrarMensajeBot("🎙 Función de voz no disponible aún.");
-  }
-
-  function mostrarAyuda() {
-    mostrarMensajeBot(
-      `<b>🆘 Opciones rápidas:</b><br>
-      📄 <a href="https://tu-pdf-hosting.com/manual.pdf" target="_blank">Ver manual PDF</a><br>
-      👨‍💼 <a href="mailto:jefe.plataformas@claro.com.co">Contactar administrador</a><br>
-      🔍 <a href="https://jefatura-url-de-alarmas.sharepoint.com" target="_blank">Revisar alarmas</a>`
-    );
-  }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
