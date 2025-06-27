@@ -1,9 +1,9 @@
-# app.py
-from flask import Flask, request, jsonify, render_template, session
+from flask import Flask, request, jsonify, render_template, session, url_for
 from flask_cors import CORS
 import pandas as pd
 import os
 import uuid
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "clave-super-segura"
@@ -24,9 +24,18 @@ if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
 df["numero alarma"] = df["numero alarma"].astype(str).str.strip()
 df["nombre del elemento"] = df["nombre del elemento"].str.lower().str.strip()
 
+logs = []
+
+def registrar_log(user_id, mensaje):
+    logs.append({
+        "usuario": user_id,
+        "mensaje": mensaje,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
+
 def menu_principal():
     return (
-        "\U0001F4CB Menú principal:\n"
+        "📋 Menú principal:\n"
         "1. Alarmas de plataformas.\n"
         "2. Documentación de las plataformas.\n"
         "3. Incidentes activos.\n"
@@ -37,7 +46,17 @@ def menu_principal():
 
 @app.route("/")
 def index():
-    return render_template("detalle_alarma.html")
+    return render_template("index.html")
+
+@app.route("/estado-alarmas")
+def estado_alarmas():
+    alarmas = [
+        {"codigo": "101", "descripcion": "Nodo X fuera de servicio"},
+        {"codigo": "112", "descripcion": "Latencia elevada en plataforma Z"},
+        {"codigo": "203", "descripcion": "Caída parcial en CORE Bogotá"}
+    ]
+    fecha = datetime.now().strftime("%d/%m/%Y %H:%M")
+    return render_template("estado_alarmas.html", alarmas=alarmas, fecha=fecha)
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -52,6 +71,7 @@ def chat():
 
     estado = usuarios[user_id]["estado"]
     usuarios[user_id]["historial"].append(msg)
+    registrar_log(user_id, msg)
 
     if estado == "inicio":
         if msg in ["1", "uno", "alarmas", "ver alarmas", "quiero ver alarmas"]:
@@ -77,9 +97,9 @@ def chat():
         if not resultado.empty:
             fila = resultado.iloc[0]
             respuesta = (
-                f"\U0001F514 Alarma detectada:\n\n"
-                f"\U0001F4CB Descripción: {fila.get('descripción alarma', 'N/A')}\n"
-                f"\u26A0️ Severidad: {fila.get('severidad', 'N/A')}\n"
+                f"🔔 Alarma detectada:\n\n"
+                f"📋 Descripción: {fila.get('descripción alarma', 'N/A')}\n"
+                f"⚠️ Severidad: {fila.get('severidad', 'N/A')}\n"
                 f"🧠 Significado: {fila.get('significado', 'N/A')}\n"
                 f"🛠 Acciones: {fila.get('acciones', 'N/A')}"
             )
@@ -92,6 +112,10 @@ def chat():
         return jsonify({"response": respuesta})
 
     return jsonify({"response": "❌ Algo salió mal. Intenta de nuevo."})
+
+@app.route("/logs")
+def ver_logs():
+    return jsonify(logs)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

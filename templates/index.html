@@ -37,6 +37,9 @@
     <div class="acciones-extras">
       <button type="button" title="Hablar" onclick="activarMicrofono()">🎙️</button>
       <button type="button" title="Ayuda rápida" onclick="mostrarAyuda()">❓</button>
+      <button type="button" title="Ver manual" onclick="window.open('/static/manual_uso_chatbot.pdf', '_blank')">📄</button>
+      <button type="button" title="Contactar administrador" onclick="window.open('mailto:jefe.plataformas@claro.com.co?subject=Asistencia Chatbot', '_blank')">👨‍💼</button>
+      <button type="button" title="Revisar alarmas" onclick="window.open('/estado-alarmas', '_blank')">🔍</button>
     </div>
     <button type="submit">Enviar</button>
   </form>
@@ -56,10 +59,8 @@ const chat = document.getElementById("chat-container");
 burbuja.addEventListener("click", () => {
   chat.classList.toggle("mostrar");
   if (chat.classList.contains("mostrar")) {
-    mostrarMensajeBot("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?");
-    setTimeout(() => {
-      mostrarBotonesMenu();
-    }, 2000);
+    mostrarMensajeBot("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar hoy?");
+    setTimeout(() => mostrarBotonesMenu(), 2000);
   }
 });
 
@@ -99,7 +100,7 @@ function guardarMensaje(tipo, texto) {
 }
 
 function mostrarMensajeBot(respuesta) {
-  chatBox.innerHTML += `<div class="bot-msg">${respuesta.replace(/\n/g, "<br>")}</div>`;
+  chatBox.innerHTML += `<div class="bot-msg">${respuesta.replace(/\\n/g, "<br>")}</div>`;
   guardarMensaje("bot-msg", respuesta);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -117,25 +118,25 @@ form.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message })
     });
-    if (!res.ok) throw new Error("Respuesta inválida del servidor");
+    if (!res.ok) throw new Error("Error del servidor");
     const data = await res.json();
     mostrarMensajeBot(data.response);
   } catch (err) {
-    console.error("❌ Error conectando al backend:", err);
-    mostrarMensajeBot("⚠️ No se pudo conectar con el servidor. Intenta de nuevo más tarde.");
+    console.error("Error:", err);
+    mostrarMensajeBot("⚠️ No se pudo conectar con el servidor.");
   }
 });
 
 function activarMicrofono() {
-  mostrarMensajeBot("🎙 Función de voz no disponible aún.");
+  mostrarMensajeBot("🎙 Función de voz aún no disponible.");
 }
 
 function mostrarAyuda() {
   mostrarMensajeBot(
     `<b>🆘 Opciones rápidas:</b><br>
-    📄 <a href="#">Ver manual PDF</a><br>
+    📄 <a href="{{ url_for('static', filename='manual_uso_chatbot.pdf') }}" target="_blank">Ver manual PDF</a><br>
     👨‍💼 <a href="mailto:jefe.plataformas@claro.com.co">Contactar administrador</a><br>
-    🔍 <a href="#">Revisar alarmas</a>`
+    🔍 <a href="/estado-alarmas" target="_blank">Revisar alarmas</a>`
   );
 }
 </script>
