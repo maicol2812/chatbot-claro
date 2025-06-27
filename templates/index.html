@@ -2,127 +2,142 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Claro • Asistente Core</title>
-
-  <!-- Favicon -->
-  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}" type="image/png" />
-
-  <!-- Tailwind CDN for rapid styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- AOS (Animate On Scroll) -->
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
-
-  <!-- Custom styles for glassmorphism & scrollbar -->
-  <style>
-    /* Clases Tailwind ya incluidas: solo ajustes menores */
-    /* Ocultar scrollbar en chat */
-    .no-scrollbar::-webkit-scrollbar{display:none}
-    .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asesor Claro</title>
+  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}" type="image/png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="text-white font-sans antialiased">
+<body>
 
-  <!-- Background video -->
-  <video id="bg-video" autoplay muted loop playsinline>
-    <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4" />
-  </video>
-  <span id="overlay"></span>
+<video autoplay muted loop id="bg-video">
+  <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
+</video>
 
-  <!-- NAV -->
-  <nav class="absolute top-0 left-0 w-full flex items-center justify-between px-6 py-4 backdrop-blur-lg bg-white/10 shadow-md">
-    <div class="flex items-center gap-3">
-      <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro logo" class="w-10 h-10" />
-      <span class="text-xl font-semibold tracking-wide">Plataformas&nbsp;Core</span>
+<div class="container info-core">
+  <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Imagen trabajo" class="img-trabajo">
+  <h1>Plataformas Core</h1>
+</div>
+
+<div id="burbuja-toggle" class="burbuja-chat">💬</div>
+
+<div class="chat-container" id="chat-container">
+  <div class="header">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro Logo" class="logo"/>
+      <h2 class="m-0 fs-6">Asesor de Plataformas Core</h2>
     </div>
-    <div class="hidden md:flex gap-6 text-sm uppercase tracking-wider">
-      <a href="#features" class="hover:text-red-400 transition">Funciones</a>
-      <a href="#contact" class="hover:text-red-400 transition">Contacto</a>
-    </div>
-  </nav>
-
-  <!-- HERO -->
-    <!-- HERO -->
-  <header class="min-h-screen flex flex-col items-center justify-center text-center px-6" data-aos="fade-up">
-    <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Trabajo" class="w-48 md:w-56 rounded-full mb-6 shadow-2xl" />
-    <h1 class="text-4xl md:text-6xl font-extrabold drop-shadow-xl leading-tight">Consultas <span class="text-red-500">Core</span> al instante</h1>
-    <p class="mt-4 max-w-xl text-lg md:text-xl text-gray-200">Automatiza tus alarmas y operaciones con la potencia de nuestro asistente inteligente.</p>
-    <button id="cta" class="mt-8 px-8 py-3 bg-red-500 hover:bg-red-600 rounded-full text-lg font-semibold shadow-lg transition">¡Probar ahora!</button>
-  </header>
-
-  <!-- FEATURES -->
-  <section id="features" class="relative py-20 px-6 backdrop-blur-sm bg-white/5" data-aos="zoom-in-up">
-    <div class="max-w-5xl mx-auto grid md:grid-cols-3 gap-10">
-      <div class="p-6 rounded-2xl bg-white/10 backdrop-blur-lg shadow-lg">
-        <h3 class="text-xl font-bold mb-2">Alarmas en tiempo real</h3>
-        <p class="text-gray-200 text-sm">Consulta y filtra alarmas críticas con un clic.</p>
-      </div>
-      <div class="p-6 rounded-2xl bg-white/10 backdrop-blur-lg shadow-lg">
-        <h3 class="text-xl font-bold mb-2">Estado operativo</h3>
-        <p class="text-gray-200 text-sm">Visualiza la salud de las plataformas al instante.</p>
-      </div>
-      <div class="p-6 rounded-2xl bg-white/10 backdrop-blur-lg shadow-lg">
-        <h3 class="text-xl font-bold mb-2">Incidentes y cambios</h3>
-        <p class="text-gray-200 text-sm">Mantente al tanto de incidentes activos y ventanas de cambio.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- FLOAT CHAT BUTTON -->
-  <button id="chat-btn" class="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-xl text-3xl">💬</button>
-
-  <!-- CHAT WINDOW -->
-  <div id="chat-card" class="hidden fixed bottom-28 right-6 w-[90vw] md:w-96 h-[70vh] flex flex-col rounded-3xl overflow-hidden backdrop-blur-xl bg-white/10 shadow-2xl border border-white/20">
-    <!-- header -->
-    <div class="flex items-center gap-3 bg-red-500/80 px-4 py-3">
-      <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="logo" class="w-8 h-8" />
-      <span class="font-medium">Asesor Core</span>
-      <button id="close-chat" class="ml-auto text-xl">✕</button>
-    </div>
-    <!-- body -->
-    <div id="chat-body" class="flex-1 p-4 space-y-3 overflow-y-auto no-scrollbar"></div>
-    <!-- footer -->
-    <form id="chat-form" class="flex gap-2 p-4 backdrop-blur-lg bg-white/10">
-      <input id="user-input" type="text" placeholder="Escribe..." autocomplete="off" class="flex-1 bg-transparent border border-white/30 rounded-full px-4 py-2 text-sm focus:outline-none" />
-      <button class="px-5 py-2 bg-red-500 rounded-full hover:bg-red-600">Enviar</button>
-    </form>
+    <button id="expandir-chat" class="btn btn-sm btn-light text-danger" title="Expandir chat">⛶</button>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script>AOS.init({once:true});</script>
+  <div class="chat-box" id="chat-box"></div>
 
-  <script>
-    const chatBtn   = document.getElementById('chat-btn');
-    const chatCard  = document.getElementById('chat-card');
-    const closeChat = document.getElementById('close-chat');
-    const chatBody  = document.getElementById('chat-body');
-    const chatForm  = document.getElementById('chat-form');
-    const userInput = document.getElementById('user-input');
+  <form id="chat-form" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; border-top: 1px solid #dee2e6;">
+    <input type="text" id="user-input" class="form-control" placeholder="Escribe tu mensaje..." autocomplete="off"/>
+    <div class="acciones-extras">
+      <button type="button" title="Hablar" onclick="activarMicrofono()">🎙️</button>
+      <button type="button" title="Ayuda rápida" onclick="mostrarAyuda()">❓</button>
+    </div>
+    <button type="submit" class="btn btn-danger">Enviar</button>
+  </form>
+</div>
 
-    chatBtn.onclick = () => chatCard.classList.toggle('hidden');
-    closeChat.onclick = () => chatCard.classList.add('hidden');
+<footer>
+  © 2025 Claro • <a href="#" style="color:#dc3545">Políticas de Privacidad</a> • <a href="#" style="color:#dc3545">Soporte</a>
+</footer>
 
-    const addMsg = (txt, who) => {
-      const div = document.createElement('div');
-      div.className = `max-w-[80%] px-4 py-2 rounded-2xl text-sm ${who==='me'?'bg-red-500 ml-auto':'bg-white/20'}`;
-      div.textContent = txt;
-      chatBody.appendChild(div);
-      chatBody.scrollTop = chatBody.scrollHeight;
-    };
+<script>
+  const form = document.getElementById("chat-form");
+  const input = document.getElementById("user-input");
+  const chatBox = document.getElementById("chat-box");
+  const burbuja = document.getElementById("burbuja-toggle");
+  const chat = document.getElementById("chat-container");
 
-    chatForm.onsubmit = async e => {
-      e.preventDefault();
-      const msg = userInput.value.trim();
-      if(!msg) return;
-      addMsg(msg,'me');
-      userInput.value='';
-      try{
-        const r = await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
-        const data = await r.json();
-        addMsg(data.response,'bot');
-      }catch{ addMsg('⚠️ Error del servidor','bot'); }
-    };
-  </script>
+  burbuja.addEventListener("click", () => {
+    chat.classList.toggle("mostrar");
+    if (chat.classList.contains("mostrar")) {
+      mostrarMensajeBot("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?");
+      setTimeout(() => mostrarBotonesMenu(), 2000);
+    }
+  });
+
+  document.getElementById("expandir-chat").addEventListener("click", () => {
+    chat.classList.toggle("expandido");
+    const btn = document.getElementById("expandir-chat");
+    btn.textContent = chat.classList.contains("expandido") ? "🗕" : "⛶";
+  });
+
+  function mostrarBotonesMenu() {
+    const opciones = [
+      "1. Alarmas de plataformas",
+      "2. Documentación de las plataformas",
+      "3. Incidentes activos de las plataformas",
+      "4. Estado operativo de las plataformas",
+      "5. Cambios activos de las plataformas",
+      "6. Hablar con el administrador"
+    ];
+    let html = '<div class="bot-msg">📋 <b>Menú principal:</b><br>';
+    opciones.forEach(op => {
+      html += `<button class="btn btn-sm btn-outline-danger m-1" onclick="enviarOpcion('${op[0]}')">${op}</button><br>`;
+    });
+    html += '</div>';
+    chatBox.innerHTML += html;
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function enviarOpcion(valor) {
+    input.value = valor;
+    form.dispatchEvent(new Event('submit'));
+  }
+
+  function guardarMensaje(tipo, texto) {
+    const historial = JSON.parse(localStorage.getItem("chatHistorial")) || [];
+    historial.push({ tipo, texto });
+    localStorage.setItem("chatHistorial", JSON.stringify(historial));
+  }
+
+  function mostrarMensajeBot(respuesta) {
+    chatBox.innerHTML += `<div class="bot-msg">${respuesta.replace(/\n/g, "<br>")}</div>`;
+    guardarMensaje("bot-msg", respuesta);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+    chatBox.innerHTML += `<div class="user-msg">${message}</div>`;
+    guardarMensaje("user-msg", message);
+    input.value = "";
+    try {
+      const res = await fetch("https://chatbot-claro.onrender.com/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+      if (!res.ok) throw new Error("Respuesta inválida del servidor");
+      const data = await res.json();
+      mostrarMensajeBot(data.response);
+    } catch (err) {
+      console.error("❌ Error conectando al backend:", err);
+      mostrarMensajeBot("⚠️ No se pudo conectar con el servidor. Intenta de nuevo más tarde.");
+    }
+  });
+
+  function activarMicrofono() {
+    mostrarMensajeBot("🎙 Función de voz no disponible aún.");
+  }
+
+  function mostrarAyuda() {
+    mostrarMensajeBot(
+      `<b>🆘 Opciones rápidas:</b><br>
+      📄 <a href="https://tu-pdf-hosting.com/manual.pdf" target="_blank">Ver manual PDF</a><br>
+      👨‍💼 <a href="mailto:jefe.plataformas@claro.com.co">Contactar administrador</a><br>
+      🔍 <a href="https://jefatura-url-de-alarmas.sharepoint.com" target="_blank">Revisar alarmas</a>`
+    );
+  }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
