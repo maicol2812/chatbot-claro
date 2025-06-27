@@ -8,27 +8,19 @@
   <!-- Favicon -->
   <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}" type="image/png" />
 
-  <!-- Tailwind CSS (CDN) -->
+  <!-- Tailwind CDN for rapid styling -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- AOS (Animate On Scroll) -->
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
 
-  <!-- Custom styles -->
+  <!-- Custom styles for glassmorphism & scrollbar -->
   <style>
-    /* Video background */
-    #bg-video {
-      @apply fixed inset-0 w-full h-full object-cover -z-20;
-    }
-    /* Gradient overlay */
-    #overlay {
-      @apply fixed inset-0 bg-gradient-to-br from-black/70 via-black/40 to-black/20 backdrop-blur-md -z-10;
-    }
-    /* Hide scrollbar in chat */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    /* Clases Tailwind ya incluidas: solo ajustes menores */
+    /* Ocultar scrollbar en chat */
+    .no-scrollbar::-webkit-scrollbar{display:none}
+    .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
   </style>
 </head>
-
 <body class="text-white font-sans antialiased">
 
   <!-- Background video -->
@@ -50,17 +42,12 @@
   </nav>
 
   <!-- HERO -->
+    <!-- HERO -->
   <header class="min-h-screen flex flex-col items-center justify-center text-center px-6" data-aos="fade-up">
     <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Trabajo" class="w-48 md:w-56 rounded-full mb-6 shadow-2xl" />
-    <h1 class="text-4xl md:text-6xl font-extrabold drop-shadow-xl leading-tight">
-      Consultas <span class="text-red-500">Core</span> al instante
-    </h1>
-    <p class="mt-4 max-w-xl text-lg md:text-xl text-gray-200">
-      Automatiza tus alarmas y operaciones con la potencia de nuestro asistente inteligente.
-    </p>
-    <button id="cta" class="mt-8 px-8 py-3 bg-red-500 hover:bg-red-600 rounded-full text-lg font-semibold shadow-lg transition">
-      ¡Probar ahora!
-    </button>
+    <h1 class="text-4xl md:text-6xl font-extrabold drop-shadow-xl leading-tight">Consultas <span class="text-red-500">Core</span> al instante</h1>
+    <p class="mt-4 max-w-xl text-lg md:text-xl text-gray-200">Automatiza tus alarmas y operaciones con la potencia de nuestro asistente inteligente.</p>
+    <button id="cta" class="mt-8 px-8 py-3 bg-red-500 hover:bg-red-600 rounded-full text-lg font-semibold shadow-lg transition">¡Probar ahora!</button>
   </header>
 
   <!-- FEATURES -->
@@ -82,9 +69,7 @@
   </section>
 
   <!-- FLOAT CHAT BUTTON -->
-  <button id="chat-btn" class="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-xl text-3xl">
-    💬
-  </button>
+  <button id="chat-btn" class="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-xl text-3xl">💬</button>
 
   <!-- CHAT WINDOW -->
   <div id="chat-card" class="hidden fixed bottom-28 right-6 w-[90vw] md:w-96 h-[70vh] flex flex-col rounded-3xl overflow-hidden backdrop-blur-xl bg-white/10 shadow-2xl border border-white/20">
@@ -98,15 +83,14 @@
     <div id="chat-body" class="flex-1 p-4 space-y-3 overflow-y-auto no-scrollbar"></div>
     <!-- footer -->
     <form id="chat-form" class="flex gap-2 p-4 backdrop-blur-lg bg-white/10">
-      <input id="user-input" type="text" placeholder="Escribe..." autocomplete="off"
-             class="flex-1 bg-transparent border border-white/30 rounded-full px-4 py-2 text-sm focus:outline-none" />
+      <input id="user-input" type="text" placeholder="Escribe..." autocomplete="off" class="flex-1 bg-transparent border border-white/30 rounded-full px-4 py-2 text-sm focus:outline-none" />
       <button class="px-5 py-2 bg-red-500 rounded-full hover:bg-red-600">Enviar</button>
     </form>
   </div>
 
   <!-- Scripts -->
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script>AOS.init({ once: true });</script>
+  <script>AOS.init({once:true});</script>
 
   <script>
     const chatBtn   = document.getElementById('chat-btn');
@@ -116,37 +100,28 @@
     const chatForm  = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
 
-    /* Abrir / cerrar chat */
-    chatBtn.onclick   = () => chatCard.classList.toggle('hidden');
+    chatBtn.onclick = () => chatCard.classList.toggle('hidden');
     closeChat.onclick = () => chatCard.classList.add('hidden');
 
-    /* Agregar mensaje al chat */
     const addMsg = (txt, who) => {
       const div = document.createElement('div');
-      div.className = `max-w-[80%] px-4 py-2 rounded-2xl text-sm ${who === 'me' ? 'bg-red-500 ml-auto' : 'bg-white/20'}`;
+      div.className = `max-w-[80%] px-4 py-2 rounded-2xl text-sm ${who==='me'?'bg-red-500 ml-auto':'bg-white/20'}`;
       div.textContent = txt;
       chatBody.appendChild(div);
       chatBody.scrollTop = chatBody.scrollHeight;
     };
 
-    /* Enviar mensaje al backend */
     chatForm.onsubmit = async e => {
       e.preventDefault();
       const msg = userInput.value.trim();
-      if (!msg) return;
-      addMsg(msg, 'me');
-      userInput.value = '';
-      try {
-        const r = await fetch('/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: msg })
-        });
+      if(!msg) return;
+      addMsg(msg,'me');
+      userInput.value='';
+      try{
+        const r = await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
         const data = await r.json();
-        addMsg(data.response, 'bot');
-      } catch {
-        addMsg('⚠️ Error del servidor', 'bot');
-      }
+        addMsg(data.response,'bot');
+      }catch{ addMsg('⚠️ Error del servidor','bot'); }
     };
   </script>
 </body>
