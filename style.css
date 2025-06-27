@@ -1,4 +1,4 @@
-/* Fondo de video */
+/* 🎥 Fondo de video */
 #bg-video {
   position: fixed;
   top: 0;
@@ -10,14 +10,16 @@
   opacity: 0.60;
 }
 
+/* 🌐 Estilo base */
 body {
   font-family: 'Arial', sans-serif;
   background: transparent;
   margin: 0;
   padding: 0;
-  color: #444;
+  color: #444444;
 }
 
+/* 💬 Burbuja flotante para abrir el chat */
 .burbuja-chat {
   position: fixed;
   bottom: 20px;
@@ -28,13 +30,22 @@ body {
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   cursor: pointer;
   z-index: 1001;
-  transition: transform 0.3s ease;
 }
+.chat-container.expandido {
+  width: 95vw;
+  height: 90vh;
+  right: 2.5vw;
+  bottom: 2vh;
+  max-width: none;
+  max-height: none;
+}
+
 
 .burbuja-chat:hover {
   transform: scale(1.1);
 }
 
+/* 🧾 Contenedor del chat oculto por defecto */
 .chat-container {
   position: fixed;
   bottom: 80px;
@@ -48,11 +59,11 @@ body {
   z-index: 10;
   display: none;
 }
-
 .chat-container.mostrar {
   display: block;
 }
 
+/* 📌 Cabecera */
 .header {
   background-color: rgba(230, 0, 0, 0.85);
   color: white;
@@ -60,16 +71,15 @@ body {
   text-align: center;
   font-size: 1.3em;
   font-weight: bold;
-  display: flex;
-  gap: 1rem;
-  align-items: center;
 }
 
+/* 🖼️ Logo */
 .logo {
   height: 40px;
   margin-bottom: 10px;
 }
 
+/* 💬 Área de mensajes */
 .chat-box {
   height: 250px;
   overflow-y: auto;
@@ -77,6 +87,7 @@ body {
   background-color: #fff1f1;
 }
 
+/* 💬 Burbujas de mensajes */
 .user-msg, .bot-msg {
   margin: 10px 0;
   padding: 12px 16px;
@@ -84,28 +95,25 @@ body {
   max-width: 80%;
   word-wrap: break-word;
   font-size: 15px;
-  animation: fadeInUp 0.4s ease;
 }
-
 .user-msg {
   background-color: #da0000;
-  color: #fff;
+  color: rgb(19, 16, 16);
   align-self: flex-end;
   text-align: right;
 }
-
 .bot-msg {
   background-color: #eaeaea;
   color: #222;
   align-self: flex-start;
 }
 
+/* 🧾 Formulario */
 #chat-form {
   display: flex;
   border-top: 1px solid #ddd;
   background-color: white;
 }
-
 #user-input {
   flex-grow: 1;
   padding: 15px;
@@ -113,7 +121,6 @@ body {
   outline: none;
   font-size: 15px;
 }
-
 #chat-form button {
   background-color: #363333;
   color: white;
@@ -122,11 +129,20 @@ body {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
-
 #chat-form button:hover {
   background-color: #221f1f;
 }
 
+/* 🖼 Imagen dentro del cuadro de info-core */
+.info-core img {
+  width: 200%;
+  max-width: 400px;
+  margin-bottom: 100px;
+  border-radius: 120px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 🧱 Bloque informativo central */
 .info-core {
   position: absolute;
   top: 58%;
@@ -144,19 +160,16 @@ body {
   transition: opacity 0.6s ease, transform 0.4s ease;
   animation: fadeInUp 0.8s ease both;
 }
-
 .info-core.ocultar {
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, -50%) scale(0.95);
 }
-
 .info-core h1 {
   color: #e60000;
   font-size: 28px;
   margin-bottom: 16px;
 }
-
 .info-core p {
   font-size: 16px;
   color: #ebe3e3;
@@ -174,13 +187,16 @@ body {
   }
 }
 
+.bot-msg, .user-msg {
+  animation: fadeInUp 0.4s ease;
+}
+
 .chat-container.expandido {
   width: 100%;
   max-width: 600px;
   height: 95vh;
   max-height: 95vh;
 }
-
 #chat-form .acciones-extras {
   display: flex;
   gap: 0.3rem;
@@ -201,13 +217,4 @@ body {
   background-color: #ececec;
 }
 
-@media (max-width: 600px) {
-  .info-core {
-    padding: 20px 15px;
-    font-size: 14px;
-  }
-  .chat-container.expandido {
-    width: 95vw;
-    height: 90vh;
-  }
-}
+
