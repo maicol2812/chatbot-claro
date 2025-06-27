@@ -3,133 +3,148 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Asesor Claro</title>
-  <link rel="icon" href="/claro-logo.png" type="image/png">
+  <title>Asesor Claro • Plataformas Core</title>
+  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}" type="image/png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<video autoplay muted loop id="bg-video">
-  <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
-</video>
+  <!-- 🎥 Video de fondo -->
+  <video autoplay muted loop id="bg-video">
+    <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
+  </video>
 
-<div class="container info-core">
-  <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Imagen trabajo" class="img-trabajo">
-  <h1>Plataformas Core</h1>
-</div>
-
-<div id="burbuja-toggle" class="burbuja-chat">💬</div>
-
-<div class="chat-container" id="chat-container">
-  <div class="header">
-    <div class="d-flex align-items-center gap-2">
-      <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro Logo" class="logo"/>
-      <h2 class="m-0 fs-6">Asesor de Plataformas Core</h2>
-    </div>
-    <button id="expandir-chat" class="btn btn-sm btn-light text-danger" title="Expandir chat">⛶</button>
+  <!-- 🧠 Bloque informativo principal -->
+  <div class="container info-core">
+    <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Imagen trabajo" class="img-trabajo">
+    <h1 class="text-white fw-bold">Plataformas Core</h1>
+    <p class="text-light">Tu asistente para alarmas, documentación, estado operativo y más.</p>
   </div>
 
-  <div class="chat-box" id="chat-box"></div>
+  <!-- 💬 Botón flotante -->
+  <div id="burbuja-toggle" class="burbuja-chat" title="Abrir chat">💬</div>
 
-  <form id="chat-form">
-    <input type="text" id="user-input" class="form-control" placeholder="Escribe tu mensaje..." autocomplete="off"/>
-    <div class="acciones-extras">
-      <button type="button" onclick="activarMicrofono()">🎙️</button>
-      <button type="button" onclick="mostrarAyuda()">❓</button>
+  <!-- 💬 Contenedor del chat -->
+  <div class="chat-container" id="chat-container">
+    <div class="header d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro Logo" class="logo"/>
+        <h2 class="m-0 fs-6">Asesor de Plataformas Core</h2>
+      </div>
+      <button id="expandir-chat" class="btn btn-sm btn-light text-danger" title="Expandir chat">⛶</button>
     </div>
-    <button type="submit">Enviar</button>
-  </form>
-</div>
 
-<footer>
-  © 2025 Claro • <a href="#">Políticas de Privacidad</a> • <a href="#">Soporte</a>
-</footer>
+    <div class="chat-box" id="chat-box"></div>
 
-<script>
-  const form = document.getElementById("chat-form");
-  const input = document.getElementById("user-input");
-  const chatBox = document.getElementById("chat-box");
-  const burbuja = document.getElementById("burbuja-toggle");
-  const chat = document.getElementById("chat-container");
+    <form id="chat-form" class="p-2 border-top d-flex align-items-center gap-2">
+      <input type="text" id="user-input" class="form-control" placeholder="Escribe tu mensaje..." autocomplete="off"/>
+      <div class="acciones-extras">
+        <button type="button" title="Hablar" onclick="activarMicrofono()">🎙️</button>
+        <button type="button" title="Ayuda rápida" onclick="mostrarAyuda()">❓</button>
+      </div>
+      <button type="submit" class="btn btn-danger">Enviar</button>
+    </form>
+  </div>
 
-  burbuja.addEventListener("click", () => {
-    chat.classList.toggle("mostrar");
-    if (chat.classList.contains("mostrar")) {
-      mostrarMensajeBot("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?");
-      setTimeout(() => mostrarBotonesMenu(), 2000);
-    }
-  });
+  <!-- 🦶 Footer -->
+  <footer>
+    © 2025 Claro • <a href="#" class="text-danger">Políticas de Privacidad</a> • <a href="#" class="text-danger">Soporte</a>
+  </footer>
 
-  document.getElementById("expandir-chat").addEventListener("click", () => {
-    chat.classList.toggle("expandido");
-    document.getElementById("expandir-chat").textContent = chat.classList.contains("expandido") ? "🗕" : "⛶";
-  });
+  <!-- 🔧 Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("user-input");
+    const chatBox = document.getElementById("chat-box");
+    const burbuja = document.getElementById("burbuja-toggle");
+    const chat = document.getElementById("chat-container");
 
-  function mostrarBotonesMenu() {
-    const opciones = [
-      "1. Alarmas de plataformas",
-      "2. Documentación de las plataformas",
-      "3. Incidentes activos de las plataformas",
-      "4. Estado operativo de las plataformas",
-      "5. Cambios activos de las plataformas",
-      "6. Hablar con el administrador"
-    ];
-    let html = '<div class="bot-msg">📋 <b>Menú principal:</b><br>';
-    opciones.forEach(op => {
-      html += `<button class="btn btn-sm btn-outline-danger m-1" onclick="enviarOpcion('${op[0]}')">${op}</button><br>`;
+    burbuja.addEventListener("click", () => {
+      chat.classList.toggle("mostrar");
+      if (chat.classList.contains("mostrar")) {
+        mostrarMensajeBot("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar hoy?");
+        setTimeout(mostrarBotonesMenu, 2000);
+      }
     });
-    html += '</div>';
-    chatBox.innerHTML += html;
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
 
-  function enviarOpcion(valor) {
-    input.value = valor;
-    form.dispatchEvent(new Event('submit'));
-  }
+    document.getElementById("expandir-chat").addEventListener("click", () => {
+      chat.classList.toggle("expandido");
+      const btn = document.getElementById("expandir-chat");
+      btn.textContent = chat.classList.contains("expandido") ? "🗕" : "⛶";
+    });
 
-  function mostrarMensajeBot(respuesta) {
-    chatBox.innerHTML += `<div class="bot-msg">${respuesta.replace(/\n/g, "<br>")}</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
-  function activarMicrofono() {
-    mostrarMensajeBot("🎙 Función de voz no disponible aún.");
-  }
-
-  function mostrarAyuda() {
-    mostrarMensajeBot(
-      `<b>🆘 Opciones rápidas:</b><br>
-      📄 <a href="https://tu-pdf-hosting.com/manual.pdf" target="_blank">Ver manual PDF</a><br>
-      👨‍💼 <a href="mailto:jefe.plataformas@claro.com.co">Contactar administrador</a><br>
-      🔍 <a href="https://jefatura-url-de-alarmas.sharepoint.com">Revisar alarmas</a>`
-    );
-  }
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const message = input.value.trim();
-    if (!message) return;
-    chatBox.innerHTML += `<div class="user-msg">${message}</div>`;
-    input.value = "";
-    try {
-      const res = await fetch("https://chatbot-claro.onrender.com/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
+    function mostrarBotonesMenu() {
+      const opciones = [
+        "1. Alarmas de plataformas",
+        "2. Documentación de las plataformas",
+        "3. Incidentes activos",
+        "4. Estado operativo",
+        "5. Cambios activos",
+        "6. Hablar con el administrador"
+      ];
+      let html = '<div class="bot-msg">📋 <b>Menú principal:</b><br>';
+      opciones.forEach(op => {
+        html += `<button class="btn btn-sm btn-outline-danger m-1" onclick="enviarOpcion('${op[0]}')">${op}</button><br>`;
       });
-      if (!res.ok) throw new Error("Respuesta inválida del servidor");
-      const data = await res.json();
-      mostrarMensajeBot(data.response);
-    } catch (err) {
-      console.error("❌ Error conectando al backend:", err);
-      mostrarMensajeBot("⚠️ No se pudo conectar con el servidor. Intenta de nuevo más tarde.");
+      html += '</div>';
+      chatBox.innerHTML += html;
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
-  });
-</script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    function enviarOpcion(valor) {
+      input.value = valor;
+      form.dispatchEvent(new Event('submit'));
+    }
+
+    function guardarMensaje(tipo, texto) {
+      const historial = JSON.parse(localStorage.getItem("chatHistorial")) || [];
+      historial.push({ tipo, texto });
+      localStorage.setItem("chatHistorial", JSON.stringify(historial));
+    }
+
+    function mostrarMensajeBot(respuesta) {
+      chatBox.innerHTML += `<div class="bot-msg">${respuesta.replace(/\n/g, "<br>")}</div>`;
+      guardarMensaje("bot-msg", respuesta);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
+      if (!message) return;
+      chatBox.innerHTML += `<div class="user-msg">${message}</div>`;
+      guardarMensaje("user-msg", message);
+      input.value = "";
+      try {
+        const res = await fetch("https://chatbot-claro.onrender.com/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message })
+        });
+        if (!res.ok) throw new Error("Respuesta inválida del servidor");
+        const data = await res.json();
+        mostrarMensajeBot(data.response);
+      } catch (err) {
+        console.error("❌ Error conectando al backend:", err);
+        mostrarMensajeBot("⚠️ No se pudo conectar con el servidor. Intenta de nuevo más tarde.");
+      }
+    });
+
+    function activarMicrofono() {
+      mostrarMensajeBot("🎙 Función de voz no disponible aún.");
+    }
+
+    function mostrarAyuda() {
+      mostrarMensajeBot(
+        `<b>🆘 Opciones rápidas:</b><br>
+        📄 <a href="https://tu-pdf-hosting.com/manual.pdf" target="_blank">Ver manual PDF</a><br>
+        👨‍💼 <a href="mailto:jefe.plataformas@claro.com.co">Contactar administrador</a><br>
+        🔍 <a href="https://jefatura-url-de-alarmas.sharepoint.com">Revisar alarmas</a>`
+      );
+    }
+  </script>
+
 </body>
 </html>
