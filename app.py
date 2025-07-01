@@ -4,15 +4,22 @@ import pandas as pd
 import os
 
 app = Flask(__name__)
+
+# ✅ Habilitar CORS globalmente (mejor para evitar errores)
+
 CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
 
 usuarios = {}
+
+# ✅ Ruta robusta que funciona tanto en local como en Render
 ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
+
 if not os.path.exists(ruta_excel):
     raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
 
 df = pd.read_excel(ruta_excel, engine="openpyxl")
 df.columns = df.columns.str.strip().str.lower()
+
 if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
     raise KeyError("❌ Las columnas necesarias no existen en el archivo Excel.")
 
@@ -86,5 +93,6 @@ def chat():
     return jsonify({"response": "❌ Algo salió mal. Intenta de nuevo."})
 
 if __name__ == "__main__":
+    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
