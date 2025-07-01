@@ -7,14 +7,12 @@ app = Flask(__name__)
 CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
 
 usuarios = {}
-
 ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
 if not os.path.exists(ruta_excel):
     raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
 
 df = pd.read_excel(ruta_excel, engine="openpyxl")
 df.columns = df.columns.str.strip().str.lower()
-
 if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
     raise KeyError("❌ Las columnas necesarias no existen en el archivo Excel.")
 
