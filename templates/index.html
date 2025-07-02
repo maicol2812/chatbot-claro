@@ -3,130 +3,197 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chatbot Claro</title>
+  <title>Asesor Claro</title>
 
-  <!-- Hoja de estilos global -->
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Tu hoja de estilo -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <!-- Bootstrap (solo utilidades) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
 
-  <!-- ░░░ Video de fondo ░░░ -->
+<body>
+  <!-- ── FONDO ─────────────────────────────────── -->
   <video autoplay muted loop id="bg-video">
     <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
   </video>
   <div class="overlay"></div>
 
-  <!-- ░░░ Logo Claro (esquina) ░░░ -->
-  <img src="{{ url_for('static', filename='claro-logo.png') }}" class="logo-top" alt="Logo Claro">
+  <!-- ── LOGO ───────────────────────────────────── -->
+  <img src="{{ url_for('static', filename='claro-logo.png') }}" class="logo" alt="Logo Claro">
 
-  <!-- ░░░ Tarjeta de bienvenida ░░░ -->
-  <section class="hero-card">
-    <img src="{{ url_for('static', filename='trabajo.jpg') }}" class="hero-img" alt="Equipo de trabajo">
-    <div class="hero-text">
-      <h1 class="fw-bold mb-1">Bienvenido al <span class="text-danger">Asesor Claro</span></h1>
-      <p class="m-0">Tu asistente de plataformas core.<br>Haz clic en el botón de chat para comenzar.</p>
-    </div>
+  <!-- ── BIENVENIDA ─────────────────────────────── -->
+  <section class="welcome text-center text-white">
+    <h1 class="fw-bold">Bienvenido al <span class="text-danger">Asesor Claro</span></h1>
+    <p class="lead">Tu asistente de plataformas core. Haz clic en el botón de chat para comenzar.</p>
   </section>
 
-  <!-- ░░░ Burbuja flotante ░░░ -->
-  <button id="bubble" class="bubble">💬</button>
+  <!-- ── BURBUJA FLOTANTE ───────────────────────── -->
+  <button id="chat-bubble" class="burbuja-chat" aria-label="Abrir chat">
+    <i data-lucide="message-circle"></i>
+  </button>
 
-  <!-- ░░░ Contenedor de chat ░░░ -->
-  <aside id="chat" class="chat">
-    <header class="chat-header">
-      <strong>Asesor Claro</strong>
-      <button id="close-chat" class="btn-close btn-close-white" aria-label="Cerrar"></button>
-    </header>
+  <!-- ── VENTANA DE CHAT ─────────────────────────── -->
+  <aside id="chat-container" class="chat-container">
+    <!-- header -->
+    <div class="chat-header d-flex align-items-center justify-content-between">
+      <span class="fw-bold">
+        <i data-lucide="bot"></i>  Asesor Claro
+      </span>
 
+      <div class="d-flex gap-2">
+        <button id="resize-btn" class="btn-icon" aria-label="Expandir / contraer">
+          <i data-lucide="maximize-2"></i>
+        </button>
+        <button id="close-btn"  class="btn-icon" aria-label="Cerrar">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- mensajes -->
     <div id="chat-box" class="chat-box"></div>
 
+    <!-- input -->
     <form id="chat-form" class="chat-input">
-      <input id="user-input" class="form-control" placeholder="Escribe tu mensaje…" autocomplete="off">
-      <button class="btn btn-danger">Enviar</button>
+      <input id="user-input" type="text" class="form-control"
+             placeholder="Escribe tu mensaje...">
+
+      <input id="file-input" type="file" hidden />
+
+      <button type="button" id="attach-btn" class="btn-icon" title="Adjuntar">
+        <i data-lucide="paperclip"></i>
+      </button>
+
+      <button type="button" id="mic-btn" class="btn-icon" title="Hablar">
+        <i data-lucide="mic"></i>
+      </button>
+
+      <button type="submit" class="btn btn-danger px-3">Enviar</button>
     </form>
   </aside>
 
-  <!-- ░░░ Footer ░░░ -->
-  <footer>© 2025 Claro • <a href="#">Políticas de Privacidad</a> • <a href="#">Soporte</a></footer>
-
+  <!-- ── SCRIPTS ─────────────────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    /* Elementos */
-    const bubble      = document.getElementById('bubble');
-    const chatAside   = document.getElementById('chat');
-    const closeBtn    = document.getElementById('close-chat');
-    const chatBox     = document.getElementById('chat-box');
-    const chatForm    = document.getElementById('chat-form');
-    const userInput   = document.getElementById('user-input');
+    lucide.createIcons();
 
-    /* Abrir / cerrar */
-    bubble.onclick = () => openChat();
-    closeBtn.onclick = () => chatAside.classList.remove('show');
+    /* ELEMENTOS DOM */
+    const bubble      = document.getElementById("chat-bubble");
+    const container   = document.getElementById("chat-container");
+    const closeBtn    = document.getElementById("close-btn");
+    const resizeBtn   = document.getElementById("resize-btn");
+    const chatBox     = document.getElementById("chat-box");
+    const chatForm    = document.getElementById("chat-form");
+    const chatInput   = document.getElementById("user-input");
+    const micBtn      = document.getElementById("mic-btn");
+    const attachBtn   = document.getElementById("attach-btn");
+    const fileInput   = document.getElementById("file-input");
 
-    function openChat(){
-      chatAside.classList.add('show');
-      if (!chatBox.dataset.started){
-        chatBox.dataset.started = 'yes';
-        botMsg('Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?');
+    /* ── TOGGLE CHAT ─────────────────────────────── */
+    bubble.onclick  = () => openChat();
+    closeBtn.onclick = () => container.classList.remove("show");
+    function openChat() {
+      container.classList.toggle("show");
+      if (container.classList.contains("show") && chatBox.innerHTML === "") {
+        bot("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar hoy?");
         setTimeout(showMainMenu, 5000);
       }
     }
 
-    /* Enviar mensaje */
-    chatForm.addEventListener('submit', async e => {
+    /* ── MENÚ PRINCIPAL (botones) ────────────────── */
+    function showMainMenu() {
+      const opciones = [
+        ["1","Alarmas de plataformas"],
+        ["2","Documentación de plataformas"],
+        ["3","Incidentes activos"],
+        ["4","Estado operativo"],
+        ["5","Cambios activos"],
+        ["6","Hablar con el administrador"]
+      ];
+      let html = '<div class="bot-msg"><b>📋 Menú principal:</b><br>';
+      opciones.forEach(([val,text])=>{
+        html += `<button class="btn btn-outline-danger btn-sm m-1"
+                          onclick="sendOption('${val}')">${text}</button>`;
+      });
+      html += "</div>";
+      chatBox.insertAdjacentHTML("beforeend", html);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    window.sendOption = (val)=> {
+      chatInput.value = val;
+      chatForm.dispatchEvent(new Event("submit"));
+    };
+
+    /* ── ENVÍO AL SERVIDOR ───────────────────────── */
+    chatForm.addEventListener("submit", async e=>{
       e.preventDefault();
-      const text = userInput.value.trim();
-      if(!text) return;
-      userMsg(text);
-      userInput.value = '';
+      const msg = chatInput.value.trim();
+      if(!msg) return;
+      user(msg); chatInput.value="";
       try{
-        const r = await fetch('/chat', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({message: text})
+        const res = await fetch("/chat",{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body:JSON.stringify({ message: msg })
         });
-        const data = await r.json();
-        botMsg(data.response);
-      }catch{
-        botMsg('❌ Error al contactar el servidor.');
-      }
+        const data = await res.json();
+        bot(data.response);
+      }catch(err){ bot("❌ Error de conexión."); }
     });
 
-    /* Helpers de UI */
-    function userMsg(t){ appendBubble(t,'user-msg'); }
-    function botMsg(t){ appendBubble(t,'bot-msg'); }
-    function appendBubble(text, cls){
-      const d = document.createElement('div');
-      d.className = cls;
-      d.innerHTML = text;
-      chatBox.append(d);
+    /* ── FUNCIONES HELPERS ───────────────────────── */
+    function bot(text){ addMsg("bot-msg",text); }
+    function user(text){ addMsg("user-msg",text); }
+    function addMsg(cls,text){
+      const div=document.createElement("div");
+      div.className=cls;
+      div.innerHTML=text.replace(/\n/g,"<br>");
+      chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    /* Menú principal */
-    function showMainMenu(){
-      const opciones = [
-        {txt:'1. Alarmas de plataformas', val:'1'},
-        {txt:'2. Documentación de las plataformas', val:'2'},
-        {txt:'3. Incidentes activos', val:'3'},
-        {txt:'4. Estado operativo', val:'4'},
-        {txt:'5. Cambios activos', val:'5'},
-        {txt:'6. Hablar con el administrador', val:'6'}
-      ];
-      let html = '<b>📋 Menú principal:</b><br>';
-      opciones.forEach(o=>{
-        html += `<button class="menu-btn" onclick="quickSend('${o.val}')">${o.txt}</button><br>`;
-      });
-      html += '<hr><b>Acciones rápidas:</b><br>';
-      ['Arreglar alerta','Configurar alerta','Solución de alerta'].forEach(a=>{
-        html += `<button class="quick-btn" onclick="quickSend('${a}')">${a}</button> `;
-      });
-      botMsg(html);
+    /* ── REDIMENSIONAR VENTANA ───────────────────── */
+    resizeBtn.onclick = ()=> {
+      container.classList.toggle("expand");
+      const icon = resizeBtn.querySelector("svg");
+      icon.setAttribute("data-lucide",
+            container.classList.contains("expand") ? "minimize-2" : "maximize-2");
+      lucide.createIcons();
+    };
+
+    /* ── ENTRADA POR VOZ (Web Speech API) ────────── */
+    let recognition;
+    if ("webkitSpeechRecognition" in window) {
+      recognition = new webkitSpeechRecognition();
+      recognition.lang = "es-ES";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      micBtn.onclick = ()=>{
+        recognition.start();
+        micBtn.classList.add("listening");
+      };
+      recognition.onresult = e=>{
+        const text = e.results[0][0].transcript;
+        chatInput.value = text;
+        micBtn.classList.remove("listening");
+      };
+      recognition.onerror = ()=> micBtn.classList.remove("listening");
+    } else {
+      micBtn.disabled = true;
+      micBtn.title = "No soportado en este navegador";
     }
-    /* Disparar valor */
-    window.quickSend = function(v){
-      userInput.value = v;
-      chatForm.dispatchEvent(new Event('submit'));
+
+    /* ── ADJUNTAR ARCHIVOS ───────────────────────── */
+    attachBtn.onclick = ()=> fileInput.click();
+    fileInput.onchange = ()=>{
+      if(fileInput.files.length){
+        user(`📎 Archivo adjunto: ${fileInput.files[0].name}`);
+        bot("Archivo recibido. Nuestro equipo lo revisará.");
+      }
     };
   </script>
 </body>
