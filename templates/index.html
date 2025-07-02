@@ -3,106 +3,131 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Asesor Claro</title>
+  <title>Chatbot Claro</title>
+
+  <!-- Hoja de estilos global -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Bootstrap (solo utilidades) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 
-<video autoplay muted loop id="bg-video">
-  <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
-</video>
-<div class="overlay"></div>
-<img src="{{ url_for('static', filename='claro-logo.png') }}" class="logo" alt="Logo Claro">
-<div class="info-core">
-  <img src="{{ url_for('static', filename='trabajo.jpg') }}" class="img-trabajo" alt="Imagen trabajo">
-  <h1>Bienvenido al Asesor Claro</h1>
-  <p>Tu asistente de plataformas core. Haz clic en el botón de chat para comenzar.</p>
-</div>
+  <!-- ░░░ Video de fondo ░░░ -->
+  <video autoplay muted loop id="bg-video">
+    <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
+  </video>
+  <div class="overlay"></div>
 
-<div class="burbuja-chat" onclick="toggleChat()">
-  💬
-</div>
-<div class="chat-container" id="chat-container">
-  <div class="chat-header">
-    <div class="d-flex align-items-center gap-2">
-      <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo" height="30">
-      <span>Asesor Claro</span>
+  <!-- ░░░ Logo Claro (esquina) ░░░ -->
+  <img src="{{ url_for('static', filename='claro-logo.png') }}" class="logo-top" alt="Logo Claro">
+
+  <!-- ░░░ Tarjeta de bienvenida ░░░ -->
+  <section class="hero-card">
+    <img src="{{ url_for('static', filename='trabajo.jpg') }}" class="hero-img" alt="Equipo de trabajo">
+    <div class="hero-text">
+      <h1 class="fw-bold mb-1">Bienvenido al <span class="text-danger">Asesor Claro</span></h1>
+      <p class="m-0">Tu asistente de plataformas core.<br>Haz clic en el botón de chat para comenzar.</p>
     </div>
-    <button id="expandir-chat" class="btn-expandir" title="Expandir chat">⛶</button>
-  </div>
-  <div class="chat-box" id="chat-box"></div>
-  <form id="chat-form" class="chat-input">
-    <input type="text" id="user-input" class="form-control" placeholder="Escribe tu mensaje...">
-    <button class="btn btn-danger">Enviar</button>
-  </form>
-</div>
+  </section>
 
-<script>
-  const chatBox = document.getElementById("chat-box");
-  const chatForm = document.getElementById("chat-form");
-  const chatInput = document.getElementById("user-input");
-  const chatContainer = document.getElementById("chat-container");
-  const expandirBtn = document.getElementById("expandir-chat");
+  <!-- ░░░ Burbuja flotante ░░░ -->
+  <button id="bubble" class="bubble">💬</button>
 
-  function toggleChat() {
-    chatContainer.classList.toggle("mostrar");
-    if (chatContainer.classList.contains("mostrar")) {
-      mostrarMensajeBot("📋 <b>Menú principal:</b><br>" +
-        "<button class='btn btn-sm btn-outline-danger menu-btn' onclick=\"enviarOpcion('1')\">1. Alarmas de plataformas</button>" +
-        "<button class='btn btn-sm btn-outline-danger menu-btn' onclick=\"enviarOpcion('2')\">2. Documentación de las plataformas</button>" +
-        "<button class='btn btn-sm btn-outline-danger menu-btn' onclick=\"enviarOpcion('3')\">3. Incidentes activos</button>" +
-        "<button class='btn btn-sm btn-outline-danger menu-btn' onclick=\"enviarOpcion('4')\">4. Estado operativo</button>" +
-        "<button class='btn btn-sm btn-outline-danger menu-btn' onclick=\"enviarOpcion('5')\">5. Cambios activos</button>" +
-        "<button class='btn btn-sm btn-outline-danger menu-btn' onclick=\"enviarOpcion('6')\">6. Hablar con el administrador</button>");
+  <!-- ░░░ Contenedor de chat ░░░ -->
+  <aside id="chat" class="chat">
+    <header class="chat-header">
+      <strong>Asesor Claro</strong>
+      <button id="close-chat" class="btn-close btn-close-white" aria-label="Cerrar"></button>
+    </header>
+
+    <div id="chat-box" class="chat-box"></div>
+
+    <form id="chat-form" class="chat-input">
+      <input id="user-input" class="form-control" placeholder="Escribe tu mensaje…" autocomplete="off">
+      <button class="btn btn-danger">Enviar</button>
+    </form>
+  </aside>
+
+  <!-- ░░░ Footer ░░░ -->
+  <footer>© 2025 Claro • <a href="#">Políticas de Privacidad</a> • <a href="#">Soporte</a></footer>
+
+  <script>
+    /* Elementos */
+    const bubble      = document.getElementById('bubble');
+    const chatAside   = document.getElementById('chat');
+    const closeBtn    = document.getElementById('close-chat');
+    const chatBox     = document.getElementById('chat-box');
+    const chatForm    = document.getElementById('chat-form');
+    const userInput   = document.getElementById('user-input');
+
+    /* Abrir / cerrar */
+    bubble.onclick = () => openChat();
+    closeBtn.onclick = () => chatAside.classList.remove('show');
+
+    function openChat(){
+      chatAside.classList.add('show');
+      if (!chatBox.dataset.started){
+        chatBox.dataset.started = 'yes';
+        botMsg('Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?');
+        setTimeout(showMainMenu, 5000);
+      }
     }
-  }
 
-  expandirBtn.addEventListener("click", () => {
-    chatContainer.classList.toggle("expandido");
-    expandirBtn.textContent = chatContainer.classList.contains("expandido") ? "🗕" : "⛶";
-  });
+    /* Enviar mensaje */
+    chatForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const text = userInput.value.trim();
+      if(!text) return;
+      userMsg(text);
+      userInput.value = '';
+      try{
+        const r = await fetch('/chat', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({message: text})
+        });
+        const data = await r.json();
+        botMsg(data.response);
+      }catch{
+        botMsg('❌ Error al contactar el servidor.');
+      }
+    });
 
-  function mostrarMensajeBot(texto) {
-    const msg = document.createElement("div");
-    msg.className = "bot-msg";
-    msg.innerHTML = texto;
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
+    /* Helpers de UI */
+    function userMsg(t){ appendBubble(t,'user-msg'); }
+    function botMsg(t){ appendBubble(t,'bot-msg'); }
+    function appendBubble(text, cls){
+      const d = document.createElement('div');
+      d.className = cls;
+      d.innerHTML = text;
+      chatBox.append(d);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-  function mostrarMensajeUsuario(texto) {
-    const msg = document.createElement("div");
-    msg.className = "user-msg";
-    msg.textContent = texto;
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
-  function enviarOpcion(valor) {
-    chatInput.value = valor;
-    chatForm.dispatchEvent(new Event('submit'));
-  }
-
-  chatForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const texto = chatInput.value.trim();
-    if (!texto) return;
-    mostrarMensajeUsuario(texto);
-    chatInput.value = "";
-    try {
-      const res = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: texto })
+    /* Menú principal */
+    function showMainMenu(){
+      const opciones = [
+        {txt:'1. Alarmas de plataformas', val:'1'},
+        {txt:'2. Documentación de las plataformas', val:'2'},
+        {txt:'3. Incidentes activos', val:'3'},
+        {txt:'4. Estado operativo', val:'4'},
+        {txt:'5. Cambios activos', val:'5'},
+        {txt:'6. Hablar con el administrador', val:'6'}
+      ];
+      let html = '<b>📋 Menú principal:</b><br>';
+      opciones.forEach(o=>{
+        html += `<button class="menu-btn" onclick="quickSend('${o.val}')">${o.txt}</button><br>`;
       });
-      const data = await res.json();
-      mostrarMensajeBot(data.response);
-    } catch (err) {
-      mostrarMensajeBot("❌ Error al contactar el servidor.");
+      html += '<hr><b>Acciones rápidas:</b><br>';
+      ['Arreglar alerta','Configurar alerta','Solución de alerta'].forEach(a=>{
+        html += `<button class="quick-btn" onclick="quickSend('${a}')">${a}</button> `;
+      });
+      botMsg(html);
     }
-  });
-</script>
-
+    /* Disparar valor */
+    window.quickSend = function(v){
+      userInput.value = v;
+      chatForm.dispatchEvent(new Event('submit'));
+    };
+  </script>
 </body>
 </html>
