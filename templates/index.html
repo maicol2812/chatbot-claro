@@ -28,8 +28,10 @@
 <div class="chat-container" id="chat-container">
   <div class="chat-header d-flex justify-content-between align-items-center">
     <span>Asistente Claro</span>
-    <button id="expandir-chat" class="btn btn-sm btn-light text-danger">⛶</button>
-    <button id="cerrar-chat" class="btn btn-sm btn-light text-danger">✖</button>
+    <div>
+      <button id="expandir-chat" class="btn btn-sm btn-light text-danger">⛶</button>
+      <button id="cerrar-chat" class="btn btn-sm btn-light text-danger">✖</button>
+    </div>
   </div>
   <div class="chat-box" id="chat-box"></div>
   <form id="chat-form" class="chat-input">
@@ -46,18 +48,17 @@
   const chatForm = document.getElementById("chat-form");
   const chatInput = document.getElementById("user-input");
   const chatContainer = document.getElementById("chat-container");
-  const cerrarChat = document.getElementById("cerrar-chat");
+  const cerrarBtn = document.getElementById("cerrar-chat");
 
   function toggleChat() {
-    chatContainer.classList.add("mostrar");
-    if (!chatContainer.dataset.bienvenidaMostrada) {
+    chatContainer.classList.toggle("mostrar");
+    if (chatContainer.classList.contains("mostrar")) {
       mostrarMensajeBot("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?");
       setTimeout(() => showMainMenu(), 5000);
-      chatContainer.dataset.bienvenidaMostrada = true;
     }
   }
 
-  cerrarChat.addEventListener("click", () => {
+  cerrarBtn.addEventListener("click", () => {
     chatContainer.classList.remove("mostrar");
   });
 
