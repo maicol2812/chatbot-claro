@@ -2,110 +2,112 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Asesor Claro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asesor Claro - Plataformas Core</title>
 
-  <!-- 1️⃣ CSS global -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <!-- 2️⃣ Bootstrap -->
+  <!-- Bootstrap y Fuentes -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    #bg-video {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      object-fit: cover;
+      z-index: -3;
+    }
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: -2;
+    }
+    .hero {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+      padding: 2rem;
+    }
+    .hero img {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #fff;
+      box-shadow: 0 0 15px rgba(255,255,255,0.2);
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-top: 1rem;
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .hero p {
+      color: #ddd;
+      font-size: 1rem;
+    }
+    .chat-button {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #e60000;
+      color: #fff;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      font-size: 26px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #ccc;
+      font-size: 0.8rem;
+    }
+  </style>
 </head>
 <body>
-
-  <!-- 🎬 Video de fondo -->
   <video autoplay muted loop id="bg-video">
     <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
   </video>
-  <div class="bg-overlay"></div><!-- oscurece el video para contrastar texto -->
+  <div class="overlay"></div>
 
-  <!-- ░░░ Hero ░░░ -->
-  <div class="container info-core">
-    <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Imagen trabajo" class="img-trabajo">
-    <h1 class="fw-bold text-white">Plataformas Core</h1>
-    <p class="lead text-white-50">Consulta alarmas, documentación e incidencias en segundos.</p>
+  <div class="hero">
+    <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Equipo">
+    <h1>Plataformas Core</h1>
+    <p>Consulta alarmas, documentación e incidencias en segundos.</p>
   </div>
 
-  <!-- 💬 Burbuja -->
-  <div id="burbuja-toggle" class="burbuja-chat">💬</div>
+  <button class="chat-button" id="burbuja-toggle">💬</button>
 
-  <!-- ░░░ Chat ░░░ -->
-  <div class="chat-container" id="chat-container">
-    <div class="header">
-      <div class="d-flex align-items-center gap-2">
-        <!--  🔹 Sólo la imagen del logo -->
-        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro Logo" class="logo">
-        <h2 class="m-0 fs-6">Asesor de Plataformas Core</h2>
-      </div>
-      <button id="expandir-chat" class="btn btn-sm btn-light text-danger" title="Expandir chat">⛶</button>
-    </div>
-
-    <div class="chat-box" id="chat-box"></div>
-
-    <form id="chat-form" class="d-flex align-items-center gap-2 p-2 border-top">
-      <input id="user-input" class="form-control" placeholder="Escribe tu mensaje…" autocomplete="off">
-      <button type="button" class="btn btn-light" title="Hablar" onclick="activarMicrofono()">🎙️</button>
-      <button type="button" class="btn btn-light" title="Ayuda"  onclick="mostrarAyuda()">❓</button>
-      <button type="submit" class="btn btn-danger px-3">Enviar</button>
-    </form>
-  </div>
-
-  <!-- ░░░ Footer ░░░ -->
   <footer>
-    © 2025 Claro • <a href="#" class="link-danger">Políticas de Privacidad</a> • <a href="#" class="link-danger">Soporte</a>
+    © 2025 Claro • <a href="#" style="color:#fff;text-decoration:underline;">Políticas</a> • <a href="#" style="color:#fff;text-decoration:underline;">Soporte</a>
   </footer>
 
-  <!--  Scripts ================================================== -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    /* Nodos */
-    const form   = document.getElementById("chat-form");
-    const input  = document.getElementById("user-input");
-    const chat   = document.getElementById("chat-container");
-    const chatBox= document.getElementById("chat-box");
-    const burbuja= document.getElementById("burbuja-toggle");
-
-    /* Mostrar / ocultar chat */
-    burbuja.onclick = () =>{
-      chat.classList.toggle("mostrar");
-      if(chat.classList.contains("mostrar")){
-        mostrarBot("¡Hola! ¿Sobre qué plataforma necesitas información?");
-        setTimeout(menuPrincipal,900);
-      }
-    };
-
-    document.getElementById("expandir-chat").onclick = () =>{
-      chat.classList.toggle("expandido");
-      this.textContent = chat.classList.contains("expandido") ? "🗕" : "⛶";
-    };
-
-    /* Helpers */
-    function mostrarBot(txt){
-      chatBox.insertAdjacentHTML("beforeend",`<div class="bot-msg">${txt}</div>`);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-    function menuPrincipal(){
-      const ops=["1. Alarmas","2. Documentación","3. Incidentes","4. Estado","5. Cambios","6. Administrador"];
-      let html='<div class="bot-msg"><b>📋 Menú:</b><br>';
-      ops.forEach((o,i)=>html+=`<button class="btn btn-sm btn-outline-danger m-1" onclick="enviarOp('${i+1}')">${o}</button>`);
-      chatBox.insertAdjacentHTML("beforeend",html+"</div>");
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-    function enviarOp(v){input.value=v;form.dispatchEvent(new Event("submit"));}
-    function activarMicrofono(){mostrarBot("🎙️ Función de voz no disponible todavía.");}
-    function mostrarAyuda(){mostrarBot("<b>🆘 Rápidos:</b><br>PDF manual – Contacto – Alarmas");}
-
-    /* Enviar al backend */
-    form.onsubmit = async e=>{
-      e.preventDefault();
-      const msg=input.value.trim();
-      if(!msg) return;
-      chatBox.insertAdjacentHTML("beforeend",`<div class="user-msg">${msg}</div>`);
-      input.value="";
-      try{
-        const r=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:msg})});
-        const d=await r.json();mostrarBot(d.response);
-      }catch{mostrarBot("⚠️ Sin conexión. Intenta luego.");}
-    };
+    document.getElementById('burbuja-toggle').addEventListener('click', () => {
+      window.location.href = '/chat';
+    });
   </script>
 </body>
 </html>
