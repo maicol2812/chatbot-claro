@@ -1,160 +1,143 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ================== RESET BÁSICO ================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;font-family:"Segoe UI",sans-serif;overflow-x:hidden;background:#f8f9fa}
+
+/* ================== VIDEO DE FONDO ================== */
+#bg-video{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  z-index:-2;
+  opacity:.65;
+}
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:-1;
 }
 
-body {
-  font-family: 'Segoe UI', sans-serif;
-  overflow-x: hidden;
-  background-color: #000;
+/* ================== LOGO SUPERIOR IZQ. ================== */
+.logo{
+  position:fixed;
+  top:18px;left:18px;
+  width:56px;height:auto;
+  z-index:5;
 }
 
-/* Video de fondo */
-#bg-video {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -2;
+/* ================== TARJETA CENTRAL ================== */
+.info-core{
+  position:absolute;
+  top:52%;left:50%;
+  transform:translate(-50%,-50%);
+  width:92%;max-width:420px;
+  padding:40px 32px;
+  background:rgba(255,255,255,.15);
+  backdrop-filter:blur(10px);
+  border-radius:24px;
+  text-align:center;
+  animation:fadeInUp .9s ease both;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+.info-core h1{
+  color:#ffffff;
+  text-shadow:0 2px 6px rgba(0,0,0,.4);
+  font-weight:700;
+  margin-bottom:12px;
+}
+.info-core p{color:#f3f3f3;font-size:1.05rem}
+.img-trabajo{
+  width:240px;height:auto;
+  border-radius:120px;
+  margin-bottom:22px;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);
 }
 
-/* Filtro oscuro encima del video */
-.overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: -1;
+/* ================== BURBUJA FLOTANTE ================== */
+.burbuja-chat{
+  position:fixed;
+  bottom:24px;right:24px;
+  width:68px;height:68px;
+  background:#d41528;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;color:#fff;
+  cursor:pointer;user-select:none;
+  box-shadow:0 6px 16px rgba(0,0,0,.3);
+  transition:transform .25s ease;
+  z-index:11;
+}
+.burbuja-chat:hover{transform:scale(1.08)}
+
+/* ================== CONTENEDOR DEL CHAT ================== */
+.chat-container{
+  position:fixed;
+  bottom:102px;right:24px;
+  width:360px;max-height:82vh;
+  background:#ffffff;
+  border-radius:18px;
+  box-shadow:0 0 24px rgba(0,0,0,.25);
+  display:none;flex-direction:column;
+  overflow:hidden;z-index:12;
+}
+.chat-container.mostrar{display:flex}
+.chat-container.expandido{
+  bottom:4%;right:4%;
+  width:92vw;height:90vh;max-height:90vh;
 }
 
-/* Logo */
-.logo {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  width: 60px;
-  height: auto;
-  z-index: 2;
+/* Header del chat */
+.chat-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;
+  background:#d41528;color:#fff;
+  font-weight:600;
 }
-
-/* Bienvenida */
-.welcome {
-  position: absolute;
-  top: 30%;
-  left: 50%;
-  transform: translate(-50%, -30%);
-  color: white;
-  text-align: center;
-  z-index: 1;
-  animation: fadeIn 1.5s ease-in;
-}
-
-.welcome h1 {
-  font-size: 3rem;
-  font-weight: bold;
-}
-
-.welcome p {
-  font-size: 1.2rem;
-  margin-top: 1rem;
-}
-
-/* Botón burbuja de chat */
-.burbuja-chat {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #d41528;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  transition: transform 0.3s ease;
-  z-index: 10;
-}
-
-.burbuja-chat:hover {
-  transform: scale(1.1);
-}
-
-/* Contenedor del chat */
-.chat-container {
-  position: fixed;
-  bottom: 90px;
-  right: 20px;
-  width: 360px;
-  max-height: 80vh;
-  background: white;
-  border-radius: 16px;
-  display: none;
-  flex-direction: column;
-  box-shadow: 0 0 20px rgba(0,0,0,0.2);
-  overflow: hidden;
-  z-index: 11;
-}
-
-.chat-container.mostrar {
-  display: flex;
-}
-
-/* Encabezado del chat */
-.chat-header {
-  background: #d41528;
-  color: white;
-  padding: 10px 16px;
-  font-weight: bold;
+.chat-header img{width:30px;height:auto;margin-right:8px}
+.btn-expandir{
+  background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;
 }
 
 /* Área de mensajes */
-.chat-box {
-  flex-grow: 1;
-  padding: 12px;
-  overflow-y: auto;
-  background: #f8f8f8;
+.chat-box{
+  flex-grow:1;
+  padding:16px;
+  overflow-y:auto;
+  background:#fafafa;
+  scroll-behavior:smooth;
+}
+.user-msg,.bot-msg{
+  max-width:78%;padding:10px 14px;margin-bottom:12px;border-radius:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.12);font-size:.95rem;line-height:1.35
+}
+.user-msg{background:#d1e7dd;align-self:flex-end}
+.bot-msg{background:#f8d7da;align-self:flex-start}
+
+/* Input + botones */
+.chat-input{
+  display:flex;gap:8px;align-items:center;
+  padding:12px 14px;border-top:1px solid #e2e2e2;background:#fff
+}
+.chat-input input{
+  flex:1;border:1px solid #ced4da;border-radius:8px;padding:10px 12px;font-size:.95rem
+}
+.chat-input button{
+  border:none;border-radius:8px;padding:10px 16px;font-size:.95rem;
+  background:#d41528;color:#fff;cursor:pointer;transition:opacity .2s
+}
+.chat-input button:hover{opacity:.9}
+
+/* Botones de menú dentro del chat */
+.menu-btn{
+  margin:4px 2px 4px 0 !important;
+  padding:6px 10px !important;
+  font-size:.8rem !important;
+  border-radius:12px !important;
 }
 
-/* Mensajes */
-.user-msg, .bot-msg {
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 16px;
-  max-width: 80%;
-}
-
-.user-msg {
-  background: #d1e7dd;
-  align-self: flex-end;
-}
-
-.bot-msg {
-  background: #f8d7da;
-  align-self: flex-start;
-}
-
-/* Input */
-.chat-input {
-  display: flex;
-  gap: 8px;
-  padding: 10px;
-  border-top: 1px solid #ddd;
-  background: white;
-}
-
-.chat-input input {
-  flex: 1;
-}
-
-/* Animación */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Animaciones */
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
 }
