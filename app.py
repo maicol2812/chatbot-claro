@@ -2,33 +2,38 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import pandas as pd
 import os
+import difflib
+from datetime import datetime
+import locale
 
 app = Flask(__name__)
-
-# ✅ Habilitar CORS globalmente (mejor para evitar errores)
-
 CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
 
 usuarios = {}
 
-# ✅ Ruta robusta que funciona tanto en local como en Render
+# Cargar Excel
 ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
-
 if not os.path.exists(ruta_excel):
-    raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
+    raise FileNotFoundError(f"Archivo no encontrado en: {ruta_excel}")
 
 df = pd.read_excel(ruta_excel, engine="openpyxl")
 df.columns = df.columns.str.strip().str.lower()
-
-if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
-    raise KeyError("❌ Las columnas necesarias no existen en el archivo Excel.")
-
 df["numero alarma"] = df["numero alarma"].astype(str).str.strip()
 df["nombre del elemento"] = df["nombre del elemento"].str.lower().str.strip()
 
+# Palabras claves para corrección
+comandos_validos = ["1", "2", "3", "4", "5", "6", "arreglar alerta", "configurar alerta", "solucion alerta"]
+
+# Corrección inteligente
+def corregir_input(texto):
+    if texto in comandos_validos:
+        return texto
+    match = difflib.get_close_matches(texto, comandos_validos, n=1, cutoff=0.6)
+    return match[0] if match else texto
+
 def menu_principal():
     return (
-        "📋 Menú principal:\n"
+        "\n📋 Menú principal:\n"
         "1. Alarmas de plataformas.\n"
         "2. Documentación de las plataformas.\n"
         "3. Incidentes activos de las plataformas.\n"
@@ -44,12 +49,21 @@ def index():
 @app.route("/chat", methods=["POST"])
 def chat():
     msg = request.json.get("message", "").strip().lower()
+    msg = corregir_input(msg)
     user_id = "usuario1"
 
     if user_id not in usuarios:
         usuarios[user_id] = {"estado": "inicio"}
 
     estado = usuarios[user_id]["estado"]
+
+    if msg in ["arreglar alerta", "configurar alerta", "solucion alerta"]:
+        respuestas = {
+            "arreglar alerta": "🔧 Para arreglar una alerta, asegúrate de validar los logs y reiniciar el proceso afectado.",
+            "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. Indícame el tipo de alerta a configurar.",
+            "solucion alerta": "💡 Una solución típica a las alertas es verificar conectividad, servicios activos y uso de CPU/RAM."
+        }
+        return jsonify({"response": respuestas[msg]})
 
     if estado == "inicio":
         if msg == "1":
@@ -93,6 +107,5 @@ def chat():
     return jsonify({"response": "❌ Algo salió mal. Intenta de nuevo."})
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
