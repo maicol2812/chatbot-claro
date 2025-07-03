@@ -21,8 +21,8 @@ video#bg-video {
   height: 100vh;
   object-fit: cover;
   z-index: -1;
-  opacity: 0.3;
-  filter: brightness(50%);
+  opacity: 0.25;
+  filter: brightness(50%) blur(1px) contrast(110%);
 }
 
 .logo {
@@ -31,6 +31,7 @@ video#bg-video {
   left: 20px;
   width: 90px;
   z-index: 10;
+  filter: drop-shadow(0 0 10px #d41528);
 }
 
 .overlay {
@@ -54,10 +55,19 @@ video#bg-video {
 .welcome h1 {
   font-size: 3rem;
   font-weight: bold;
+  text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
+  animation: fadeIn 1s ease-in-out;
 }
 
 .welcome p {
   font-size: 1.25rem;
+  text-shadow: 1px 1px 6px rgba(0,0,0,0.6);
+  animation: fadeIn 1.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .burbuja-chat {
@@ -76,11 +86,12 @@ video#bg-video {
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   z-index: 10;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .burbuja-chat:hover {
   transform: scale(1.1);
+  box-shadow: 0 0 20px #d41528;
 }
 
 .chat-container {
@@ -101,6 +112,12 @@ video#bg-video {
 
 .chat-container.mostrar {
   display: flex;
+  animation: popup 0.3s ease-out;
+}
+
+@keyframes popup {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .chat-container.expandido {
@@ -119,6 +136,7 @@ video#bg-video {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .chat-box {
@@ -135,6 +153,12 @@ video#bg-video {
   border-radius: 16px;
   max-width: 85%;
   word-wrap: break-word;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .bot-msg {
@@ -142,6 +166,7 @@ video#bg-video {
   align-self: flex-start;
   color: #333;
   border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 .user-msg {
@@ -149,6 +174,7 @@ video#bg-video {
   color: white;
   align-self: flex-end;
   margin-left: auto;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 .chat-input {
@@ -156,6 +182,7 @@ video#bg-video {
   padding: 10px;
   gap: 5px;
   background: #fff;
+  border-top: 1px solid #ccc;
 }
 
 .chat-input input {
@@ -163,6 +190,7 @@ video#bg-video {
   border-radius: 10px;
   padding: 8px 12px;
   border: 1px solid #ccc;
+  font-family: 'Inter', sans-serif;
 }
 
 .chat-input button {
@@ -171,6 +199,12 @@ video#bg-video {
   color: white;
   border: none;
   padding: 0 12px;
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease;
+}
+
+.chat-input button:hover {
+  background-color: #a40f1e;
 }
 
 @media screen and (max-width: 480px) {
