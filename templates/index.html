@@ -144,6 +144,11 @@
       mostrarMensajeBot("❌ Error al contactar el servidor.");
     }
   });
+  document.querySelector(".btn-close-chat").addEventListener("click", () => {
+  document.querySelector(".chat-box").innerHTML = "";
+  document.querySelector(".chat-container").classList.remove("mostrar");
+});
+
 
   document.getElementById("expandir-chat").addEventListener("click", () => {
     chatContainer.classList.toggle("expandido");
