@@ -1,160 +1,165 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chatbot Claro</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asesor Claro</title>
+
+  <!--  Favicon  -->
+  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}" type="image/png">
+
+  <!--  Fuentes & librerías  -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+
+  <!--  Tu hoja de estilos  -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<video autoplay muted loop id="bg-video">
-  <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
-</video>
-<div class="overlay"></div>
-<img src="{{ url_for('static', filename='claro-logo.png') }}" class="logo" alt="Logo Claro">
-<div class="welcome" data-aos="fade-up">
-  <h1>Bienvenido al Asesor Claro</h1>
-  <p>Tu asistente de plataformas core. Haz clic en el botón de chat para comenzar.</p>
-</div>
-<div class="burbuja-chat" onclick="toggleChat()">💬</div>
-<div class="chat-container" id="chat-container">
-  <div class="chat-header d-flex justify-content-between align-items-center">
-    <span>Asistente Claro</span>
-    <button id="expandir-chat" class="btn btn-sm btn-light text-danger">⛶</button>
-    <button id="cerrar-chat" class="btn btn-sm btn-light text-danger">✖</button>
-  </div>
-  <div class="chat-box" id="chat-box"></div>
-  <form id="chat-form" class="chat-input">
-    <input type="text" id="user-input" class="form-control" placeholder="Escribe tu mensaje...">
-    <button class="btn btn-light" type="button" onclick="activarMicrofono()">🎙️</button>
-    <button class="btn btn-danger">Enviar</button>
-  </form>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-<script>
-  AOS.init();
 
-  const chatBox = document.getElementById("chat-box");
-  const chatForm = document.getElementById("chat-form");
-  const chatInput = document.getElementById("user-input");
-  const chatContainer = document.getElementById("chat-container");
-  const cerrarChat = document.getElementById("cerrar-chat");
+  <!-- ░░ Video de fondo ░░ -->
+  <video id="bg-video" autoplay muted loop>
+    <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
+  </video>
+  <div class="overlay"></div>
 
-  function toggleChat() {
-    chatContainer.classList.add("mostrar");
-    if (!chatContainer.dataset.bienvenidaMostrada) {
-      mostrarMensajeBot("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?");
-      setTimeout(() => showMainMenu(), 5000);
-      chatContainer.dataset.bienvenidaMostrada = true;
+  <!-- ░░ Logo fijo ░░ -->
+  <img class="logo" src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo Claro">
+
+  <!-- ░░ Bienvenida ░░ -->
+  <section class="welcome animate__animated animate__fadeInUp">
+    <h1>Plataformas Core</h1>
+    <p>Buen día, hablemos de nuestras plataformas de Core.<br>
+       ¿Qué te gustaría consultar hoy?</p>
+  </section>
+
+  <!-- ░░ Burbuja de chat ░░ -->
+  <div id="burbuja-chat" class="burbuja-chat" title="Abrir chat">💬</div>
+
+  <!-- ░░ Ventana de chat ░░ -->
+  <aside id="chat-container" class="chat-container">
+      <!-- header -->
+      <div class="chat-header d-flex justify-content-between align-items-center">
+        <span>Asesor Core</span>
+        <span id="expand-toggle" style="cursor:pointer;font-size:1.2rem;">🗖</span>
+      </div>
+
+      <!-- mensajes -->
+      <div id="chat-box" class="chat-box"></div>
+
+      <!-- entrada -->
+      <form id="chat-form" class="chat-input">
+        <input id="chat-input" class="form-control" placeholder="Escribe tu mensaje…" autocomplete="off">
+        <button type="button" class="btn btn-light" title="Ayuda" onclick="showQuickHelp()">❓</button>
+        <button type="submit" class="btn btn-danger">Enviar</button>
+      </form>
+  </aside>
+
+  <!-- ░░ Script principal ░░ -->
+  <script>
+    /* ─── Referencias DOM ─── */
+    const bubble    = document.getElementById("burbuja-chat");
+    const chatBox   = document.getElementById("chat-box");
+    const chatCont  = document.getElementById("chat-container");
+    const chatForm  = document.getElementById("chat-form");
+    const chatInput = document.getElementById("chat-input");
+    const expandBtn = document.getElementById("expand-toggle");
+
+    /* ─── Modo nocturno auto (19-7h) ─── */
+    (()=>{
+      const h = new Date().getHours();
+      if (h >= 19 || h < 7) document.body.classList.add("night-mode");
+    })();
+
+    /* ─── Abrir / Cerrar chat ─── */
+    bubble.onclick = () =>{
+      chatCont.classList.toggle("mostrar");
+      if(chatCont.classList.contains("mostrar")){
+        greetAndMenu();
+      }else{
+        chatBox.innerHTML="";              // limpia historial visual
+        localStorage.removeItem("history");// borra cache local
+      }
+    };
+
+    /* ─── Expandir / Restaurar ─── */
+    expandBtn.onclick = ()=>{
+      chatCont.classList.toggle("expandido");
+      expandBtn.textContent = chatCont.classList.contains("expandido") ? "🗗" : "🗖";
+    };
+
+    /* ─── Saludo + Menú tras 5 s ─── */
+    function greetAndMenu(){
+      bot("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar?");
+      setTimeout(showMainMenu, 5000);
     }
-  }
 
-  cerrarChat.addEventListener("click", () => {
-    chatContainer.classList.remove("mostrar");
-  });
+    /* ─── Plantilla de botones de menú ─── */
+    function showMainMenu(){
+      const opts=[
+        ["1","Alarmas de plataformas"],
+        ["2","Documentación de plataformas"],
+        ["3","Incidentes activos"],
+        ["4","Estado operativo"],
+        ["5","Cambios activos"],
+        ["6","Hablar con el administrador"],
+        ["arreglar alerta","🔧 Arreglar alerta"],
+        ["configurar alerta","⚙️ Configurar alerta"],
+        ["solucion alerta","💡 Solución alerta"]
+      ];
+      let html='<div class="bot-msg"><b>📋 Menú principal:</b><br>';
+      opts.forEach(([v,t])=>{
+        html+=`<button class="btn btn-outline-danger btn-sm m-1" onclick="sendOption('${v}')">${t}</button>`;
+      });
+      html+='</div>';
+      chatBox.insertAdjacentHTML("beforeend",html);
+      chatBox.scrollTop=chatBox.scrollHeight;
+    }
 
-  function mostrarMensajeBot(texto) {
-    const msg = document.createElement("div");
-    msg.className = "bot-msg";
-    msg.innerHTML = texto;
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
-    speechSynthesis.speak(new SpeechSynthesisUtterance(texto));
-  }
+    /* ─── Quick help sin consultar backend ─── */
+    function showQuickHelp(){
+      bot(`🆘 Opciones rápidas:<br>
+           📄 <a href="#" target="_blank">Manual PDF</a><br>
+           👨‍💼 <a href="mailto:jefe.plataformas@claro.com.co">Contactar administrador</a>`);
+    }
 
-  function mostrarMensajeUsuario(texto) {
-    const msg = document.createElement("div");
-    msg.className = "user-msg";
-    msg.textContent = texto;
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
+    /* ─── Helpers de mensaje ─── */
+    function bot(txt){
+      chatBox.insertAdjacentHTML("beforeend",`<div class="bot-msg">${txt}</div>`);
+      chatBox.scrollTop=chatBox.scrollHeight;
+    }
+    function user(txt){
+      chatBox.insertAdjacentHTML("beforeend",`<div class="user-msg">${txt}</div>`);
+      chatBox.scrollTop=chatBox.scrollHeight;
+    }
 
-  function showMainMenu() {
-    const opciones = [
-      ["1", "Alarmas de plataformas"],
-      ["2", "Documentación de plataformas"],
-      ["3", "Incidentes activos"],
-      ["4", "Estado operativo"],
-      ["5", "Cambios activos"],
-      ["6", "Hablar con el administrador"],
-      ["arreglar alerta", "🔧 Arreglar alerta"],
-      ["configurar alerta", "⚙️ Configurar alerta"],
-      ["solucion alerta", "💡 Solución de alerta"]
-    ];
-    let html = '<div class="bot-msg"><b>📋 Menú principal:</b><br>';
-    opciones.forEach(([val,text]) => {
-      html += `<button class="btn btn-outline-danger btn-sm m-1" onclick="sendOption('${val}')">${text}</button>`;
-    });
-    html += "</div>";
-    chatBox.insertAdjacentHTML("beforeend", html);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
-  function sendOption(val) {
-    chatInput.value = val;
-    chatForm.dispatchEvent(new Event("submit"));
-  }
-
-  function activarMicrofono() {
-    const reconocimiento = new(window.SpeechRecognition || window.webkitSpeechRecognition)();
-    reconocimiento.lang = 'es-ES';
-    reconocimiento.start();
-    reconocimiento.onresult = e => {
-      const texto = e.results[0][0].transcript;
-      chatInput.value = texto;
+    /* ─── Envío programático de opción ─── */
+    window.sendOption = val =>{
+      chatInput.value = val;
       chatForm.dispatchEvent(new Event("submit"));
     };
-  }
 
-  chatForm.addEventListener("submit", async e => {
-    e.preventDefault();
-    const msg = chatInput.value.trim();
-    if (!msg) return;
-    mostrarMensajeUsuario(msg);
-    chatInput.value = "";
+    /* ─── Envío al backend / Autocorrección incluida ─── */
+    chatForm.addEventListener("submit",async e=>{
+      e.preventDefault();
+      const msg = chatInput.value.trim();
+      if(!msg) return;
+      user(msg); chatInput.value="";
 
-    const respuestas = {
-      "arreglar alerta": "🔧 Para arreglar una alerta, asegúrate de validar los logs y reiniciar el proceso afectado.",
-      "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. Indícame el tipo de alerta a configurar.",
-      "solucion alerta": "💡 Una solución típica a las alertas es verificar conectividad, servicios activos y uso de CPU/RAM."
-    };
-    if (respuestas[msg]) {
-      mostrarMensajeBot(respuestas[msg]);
-      return;
-    }
-
-    try {
-      const res = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg })
-      });
-      const data = await res.json();
-      mostrarMensajeBot(data.response);
-    } catch (err) {
-      mostrarMensajeBot("❌ Error al contactar el servidor.");
-    }
-  });
-  document.querySelector(".btn-close-chat").addEventListener("click", () => {
-  document.querySelector(".chat-box").innerHTML = "";
-  document.querySelector(".chat-container").classList.remove("mostrar");
-});
-
-
-  document.getElementById("expandir-chat").addEventListener("click", () => {
-    chatContainer.classList.toggle("expandido");
-    const btn = document.getElementById("expandir-chat");
-    btn.textContent = chatContainer.classList.contains("expandido") ? "🗕" : "⛶";
-  });
-</script>
+      try{
+        const r = await fetch("/chat",{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({message: msg})
+        });
+        const data = await r.json();
+        bot(data.response);
+      }catch(err){
+        bot("⚠️ No se pudo conectar al servidor.");
+        console.error(err);
+      }
+    });
+  </script>
 </body>
 </html>
