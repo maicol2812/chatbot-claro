@@ -17,19 +17,19 @@ video#bg-video {
   position: fixed;
   top: 0;
   left: 0;
-  min-width: 100%;
-  min-height: 100%;
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
   z-index: -1;
-  opacity: 0.4;
-  filter: brightness(60%);
+  opacity: 0.3;
+  filter: brightness(50%);
 }
 
 .logo {
   position: fixed;
   top: 20px;
   left: 20px;
-  width: 100px;
+  width: 90px;
   z-index: 10;
 }
 
@@ -116,6 +116,9 @@ video#bg-video {
   padding: 10px 15px;
   font-weight: bold;
   font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .chat-box {
@@ -164,6 +167,10 @@ video#bg-video {
 
 .chat-input button {
   border-radius: 10px;
+  background-color: #d41528;
+  color: white;
+  border: none;
+  padding: 0 12px;
 }
 
 @media screen and (max-width: 480px) {
