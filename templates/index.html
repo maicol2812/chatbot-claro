@@ -3,46 +3,72 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chatbot Claro</title>
+  <meta name="theme-color" content="#d41528" />
+  <link rel="manifest" href="/static/manifest.json" />
   <link rel="stylesheet" href="/static/style.css" />
-  <link rel="manifest" href="/static/manifest.json">
-  <link rel="icon" href="/static/claro-logo.png" type="image/png">
+  <link rel="icon" href="/static/claro-logo.png" type="image/png" />
+  <title>Asesor Claro</title>
 </head>
 <body>
   <video autoplay muted loop id="bg-video">
-    <source src="/static/bg.mp4" type="video/mp4" />
+    <source src="/static/ruta-al-video.mp4" type="video/mp4" />
   </video>
-
   <div class="overlay"></div>
-
-  <img src="/static/claro-logo.png" alt="Claro Logo" class="logo" />
+  <img src="/static/claro-logo.png" alt="Logo Claro" class="logo" />
 
   <div class="welcome">
-    <h1>Asesor Claro 🤖</h1>
-    <p>Bienvenido, ¿en qué podemos ayudarte hoy?</p>
+    <h1>Asesor Claro</h1>
+    <p>Tu asistente experto en plataformas de Core</p>
   </div>
 
-  <div class="burbuja-chat" onclick="toggleChat()">💬</div>
+  <div class="burbuja-chat">💬</div>
 
-  <div id="chat-container" class="chat-container">
+  <div class="chat-container">
     <div class="chat-header">
-      Chat Asesor Claro
-      <button onclick="toggleExpand()">🔳</button>
+      ChatBot Asesor Claro
+      <button class="expand-chat">⤢</button>
     </div>
-    <div id="chat-box" class="chat-box"></div>
-    <form id="chat-form" class="chat-input">
-      <input type="text" id="chat-input" placeholder="Escribe un mensaje..." autocomplete="off" />
+    <div class="chat-box"></div>
+    <form class="chat-input" id="chat-form">
+      <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." />
       <button type="submit">Enviar</button>
-      <button type="button" id="mic-btn">🎤</button>
     </form>
   </div>
 
   <script src="/static/main.js"></script>
   <script>
-    // Registrar service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/static/service-worker.js');
-    }
+    document.getElementById("chat-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      const input = document.getElementById("chat-input");
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      const chatBox = document.querySelector(".chat-box");
+      chatBox.insertAdjacentHTML("beforeend", `<div class='user-msg'>${msg}</div>`);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      input.value = "";
+
+      const respuestasRapidas = {
+        "arreglar alerta": "🔧 Para arreglar una alerta, asegúrate de validar los logs y reiniciar el proceso afectado.",
+        "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. Indícame el tipo de alerta a configurar.",
+        "solucion alerta": "💡 Una solución típica a las alertas es verificar conectividad, servicios activos y uso de CPU/RAM."
+      };
+
+      if (respuestasRapidas[msg.toLowerCase()]) {
+        chatBox.insertAdjacentHTML("beforeend", `<div class='bot-msg'>${respuestasRapidas[msg.toLowerCase()]}</div>`);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return;
+      }
+
+      const resp = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg })
+      });
+      const data = await resp.json();
+      chatBox.insertAdjacentHTML("beforeend", `<div class='bot-msg'>${data.response}</div>`);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
   </script>
 </body>
 </html>

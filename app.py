@@ -2,38 +2,37 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import pandas as pd
 import os
-from difflib import get_close_matches
 
 app = Flask(__name__)
-CORS(app, resources={r"/chat": {"origins": "*"}})
+CORS(app)
 
-usuarios = {}
-
+# Ruta dinámica al archivo Excel
 ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
 if not os.path.exists(ruta_excel):
-    raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
+    raise FileNotFoundError(f"No se encontró el archivo: {ruta_excel}")
 
+# Cargar y preparar los datos del Excel
 df = pd.read_excel(ruta_excel, engine="openpyxl")
 df.columns = df.columns.str.strip().str.lower()
 
 if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
-    raise KeyError("❌ Las columnas necesarias no existen en el archivo Excel.")
+    raise KeyError("El archivo Excel debe tener las columnas 'numero alarma' y 'nombre del elemento'")
 
 df["numero alarma"] = df["numero alarma"].astype(str).str.strip()
 df["nombre del elemento"] = df["nombre del elemento"].str.lower().str.strip()
 
+# Estados de usuario
+usuarios = {}
+
 def menu_principal():
     return (
-        "📋 Menú principal:\n"
+        "\n📋 Menú principal:\n"
         "1. Alarmas de plataformas.\n"
         "2. Documentación de las plataformas.\n"
         "3. Incidentes activos de las plataformas.\n"
         "4. Estado operativo de las plataformas.\n"
         "5. Cambios activos de las plataformas.\n"
-        "6. Hablar con el administrador de la plataforma.\n"
-        "🔧 Arreglar alerta\n"
-        "⚙️ Configurar alerta\n"
-        "💡 Solución de alerta"
+        "6. Hablar con el administrador de la plataforma."
     )
 
 @app.route("/")
@@ -50,14 +49,13 @@ def chat():
 
     estado = usuarios[user_id]["estado"]
 
-    respuestas_rapidas = {
-        "arreglar alerta": "🔧 Para arreglar una alerta, asegúrate de validar los logs y reiniciar el proceso afectado.",
-        "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. Indícame el tipo de alerta a configurar.",
-        "solucion alerta": "💡 Una solución típica a las alertas es verificar conectividad, servicios activos y uso de CPU/RAM."
-    }
-
-    if msg in respuestas_rapidas:
-        return jsonify({"response": respuestas_rapidas[msg]})
+    if msg in ["arreglar alerta", "configurar alerta", "solucion alerta"]:
+        respuestas = {
+            "arreglar alerta": "🔧 Para arreglar una alerta, valida los logs y reinicia el proceso afectado.",
+            "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. Indica el tipo de alerta.",
+            "solucion alerta": "💡 Solución típica: verificar conectividad, servicios activos y uso de CPU/RAM."
+        }
+        return jsonify({"response": respuestas[msg]})
 
     if estado == "inicio":
         if msg == "1":
@@ -73,14 +71,16 @@ def chat():
 
     elif estado == "espera_elemento":
         numero = usuarios[user_id]["numero_alarma"]
-        elemento = msg
+        elemento = msg.strip().lower()
         usuarios[user_id]["estado"] = "inicio"
 
-        df["distancia"] = df["nombre del elemento"].apply(lambda x: similarity(x, elemento))
-        resultado = df[(df["numero alarma"] == numero) & (df["distancia"] > 0.6)]
+        resultado = df[
+            (df["numero alarma"] == numero) &
+            (df["nombre del elemento"] == elemento)
+        ]
 
         if not resultado.empty:
-            fila = resultado.sort_values("distancia", ascending=False).iloc[0]
+            fila = resultado.iloc[0]
             respuesta = (
                 f"🔔 Alarma detectada:\n\n"
                 f"📋 Descripción: {fila.get('descripción alarma', 'N/A')}\n"
@@ -91,15 +91,12 @@ def chat():
         else:
             respuesta = "❌ No se encontró una alarma con ese número y nombre de elemento."
 
-        return jsonify({"response": respuesta + "\n\n" + menu_principal()})
+        if "❌" in respuesta:
+            respuesta += "\n\n" + menu_principal()
+
+        return jsonify({"response": respuesta})
 
     return jsonify({"response": "❌ Algo salió mal. Intenta de nuevo."})
-
-def similarity(a, b):
-    return max([similarity_ratio(a, x) for x in get_close_matches(b, [a], n=1, cutoff=0)]) if a and b else 0
-
-def similarity_ratio(a, b):
-    return len(set(a.split()) & set(b.split())) / max(len(set(a.split())), 1)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

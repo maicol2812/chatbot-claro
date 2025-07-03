@@ -1,12 +1,13 @@
+
 // static/main.js
 
 // Detectar modo nocturno automático
-window.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
   const hour = new Date().getHours();
   if (hour < 6 || hour > 18) document.body.classList.add("night-mode");
 
-  // Mostrar saludo inicial y luego menú principal
   const chatBox = document.querySelector(".chat-box");
+
   setTimeout(() => {
     const saludo = `<div class="bot-msg">👋 Buen día, hablemos de nuestras plataformas de Core.<br>¡¿Qué te gustaría consultar hoy?</div>`;
     chatBox.insertAdjacentHTML("beforeend", saludo);
@@ -46,14 +47,42 @@ function showMainMenu() {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Mostrar/ocultar chat
+// Mostrar/ocultar chat y expandir
 const burbuja = document.querySelector(".burbuja-chat");
 const contenedor = document.querySelector(".chat-container");
+let expandido = false;
+
 burbuja.addEventListener("click", () => {
   contenedor.classList.toggle("mostrar");
+  expandido = false;
 });
+
+const expandBtn = document.querySelector(".expand-chat");
+if (expandBtn) {
+  expandBtn.addEventListener("click", () => {
+    contenedor.classList.toggle("expandido");
+    expandido = !expandido;
+  });
+}
 
 // Cerrar y limpiar al recargar
 window.addEventListener("beforeunload", () => {
   localStorage.clear();
+});
+
+// Detectar alerta crítica y parpadeo
+function detectarCritico(mensaje) {
+  if (mensaje.toLowerCase().includes("crítico")) {
+    document.body.classList.add("alerta-critica");
+    setTimeout(() => {
+      document.body.classList.remove("alerta-critica");
+    }, 6000);
+  }
+}
+
+// Mutar mensajes del bot para detectar críticos
+document.addEventListener("DOMNodeInserted", e => {
+  if (e.target.classList?.contains("bot-msg")) {
+    detectarCritico(e.target.textContent);
+  }
 });
