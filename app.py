@@ -3,6 +3,7 @@ from flask_cors import CORS
 import pandas as pd
 import os
 from difflib import get_close_matches
+from deep_translator import GoogleTranslator
 
 app = Flask(__name__)
 CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
@@ -28,6 +29,12 @@ mensajes_personalizados = {
     "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. Indícame el tipo de alerta a configurar.",
     "solucion alerta": "💡 Una solución típica a las alertas es verificar conectividad, servicios activos y uso de CPU/RAM."
 }
+
+def traducir(texto):
+    try:
+        return GoogleTranslator(source='auto', target='es').translate(texto)
+    except:
+        return texto
 
 def menu_principal():
     return (
@@ -87,10 +94,10 @@ def chat():
             fila = resultado.iloc[0]
             respuesta = (
                 f"🔔 Alarma detectada:\n\n"
-                f"📋 Descripción: {fila.get('descripción alarma', 'N/A')}\n"
-                f"⚠️ Severidad: {fila.get('severidad', 'N/A')}\n"
-                f"🧠 Significado: {fila.get('significado', 'N/A')}\n"
-                f"🛠 Acciones: {fila.get('acciones', 'N/A')}"
+                f"📋 Descripción: {traducir(str(fila.get('descripción alarma', 'N/A')))}\n"
+                f"⚠️ Severidad: {traducir(str(fila.get('severidad', 'N/A')))}\n"
+                f"🧠 Significado: {traducir(str(fila.get('significado', 'N/A')))}\n"
+                f"🛠 Acciones: {traducir(str(fila.get('acciones', 'N/A')))}"
             )
         else:
             respuesta = "❌ No se encontró una alarma con ese número y nombre de elemento."
