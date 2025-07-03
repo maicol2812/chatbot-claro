@@ -2,31 +2,36 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import pandas as pd
 import os
+from difflib import get_close_matches
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
 
-# Ruta dinámica al archivo Excel
+usuarios = {}
+
 ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
-if not os.path.exists(ruta_excel):
-    raise FileNotFoundError(f"No se encontró el archivo: {ruta_excel}")
 
-# Cargar y preparar los datos del Excel
+if not os.path.exists(ruta_excel):
+    raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
+
 df = pd.read_excel(ruta_excel, engine="openpyxl")
 df.columns = df.columns.str.strip().str.lower()
 
 if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
-    raise KeyError("El archivo Excel debe tener las columnas 'numero alarma' y 'nombre del elemento'")
+    raise KeyError("❌ Las columnas necesarias no existen en el archivo Excel.")
 
 df["numero alarma"] = df["numero alarma"].astype(str).str.strip()
 df["nombre del elemento"] = df["nombre del elemento"].str.lower().str.strip()
 
-# Estados de usuario
-usuarios = {}
+mensajes_personalizados = {
+    "arreglar alerta": "🔧 Para arreglar una alerta, asegúrate de validar los logs y reiniciar el proceso afectado.",
+    "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. Indícame el tipo de alerta a configurar.",
+    "solucion alerta": "💡 Una solución típica a las alertas es verificar conectividad, servicios activos y uso de CPU/RAM."
+}
 
 def menu_principal():
     return (
-        "\n📋 Menú principal:\n"
+        "📋 Menú principal:\n"
         "1. Alarmas de plataformas.\n"
         "2. Documentación de las plataformas.\n"
         "3. Incidentes activos de las plataformas.\n"
@@ -44,18 +49,13 @@ def chat():
     msg = request.json.get("message", "").strip().lower()
     user_id = "usuario1"
 
+    if msg in mensajes_personalizados:
+        return jsonify({"response": mensajes_personalizados[msg]})
+
     if user_id not in usuarios:
         usuarios[user_id] = {"estado": "inicio"}
 
     estado = usuarios[user_id]["estado"]
-
-    if msg in ["arreglar alerta", "configurar alerta", "solucion alerta"]:
-        respuestas = {
-            "arreglar alerta": "🔧 Para arreglar una alerta, valida los logs y reinicia el proceso afectado.",
-            "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. Indica el tipo de alerta.",
-            "solucion alerta": "💡 Solución típica: verificar conectividad, servicios activos y uso de CPU/RAM."
-        }
-        return jsonify({"response": respuestas[msg]})
 
     if estado == "inicio":
         if msg == "1":
@@ -73,6 +73,10 @@ def chat():
         numero = usuarios[user_id]["numero_alarma"]
         elemento = msg.strip().lower()
         usuarios[user_id]["estado"] = "inicio"
+
+        posibles = get_close_matches(elemento, df["nombre del elemento"], n=1, cutoff=0.6)
+        if posibles:
+            elemento = posibles[0]
 
         resultado = df[
             (df["numero alarma"] == numero) &
@@ -99,5 +103,6 @@ def chat():
     return jsonify({"response": "❌ Algo salió mal. Intenta de nuevo."})
 
 if __name__ == "__main__":
+    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
