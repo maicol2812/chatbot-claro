@@ -1,165 +1,48 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Asesor Claro</title>
-
-  <!--  Favicon  -->
-  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}" type="image/png">
-
-  <!--  Fuentes & librerías  -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
-
-  <!--  Tu hoja de estilos  -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatbot Claro</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="icon" href="/static/claro-logo.png" type="image/png">
 </head>
 <body>
-
-  <!-- ░░ Video de fondo ░░ -->
-  <video id="bg-video" autoplay muted loop>
-    <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
+  <video autoplay muted loop id="bg-video">
+    <source src="/static/bg.mp4" type="video/mp4" />
   </video>
+
   <div class="overlay"></div>
 
-  <!-- ░░ Logo fijo ░░ -->
-  <img class="logo" src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo Claro">
+  <img src="/static/claro-logo.png" alt="Claro Logo" class="logo" />
 
-  <!-- ░░ Bienvenida ░░ -->
-  <section class="welcome animate__animated animate__fadeInUp">
-    <h1>Plataformas Core</h1>
-    <p>Buen día, hablemos de nuestras plataformas de Core.<br>
-       ¿Qué te gustaría consultar hoy?</p>
-  </section>
+  <div class="welcome">
+    <h1>Asesor Claro 🤖</h1>
+    <p>Bienvenido, ¿en qué podemos ayudarte hoy?</p>
+  </div>
 
-  <!-- ░░ Burbuja de chat ░░ -->
-  <div id="burbuja-chat" class="burbuja-chat" title="Abrir chat">💬</div>
+  <div class="burbuja-chat" onclick="toggleChat()">💬</div>
 
-  <!-- ░░ Ventana de chat ░░ -->
-  <aside id="chat-container" class="chat-container">
-      <!-- header -->
-      <div class="chat-header d-flex justify-content-between align-items-center">
-        <span>Asesor Core</span>
-        <span id="expand-toggle" style="cursor:pointer;font-size:1.2rem;">🗖</span>
-      </div>
+  <div id="chat-container" class="chat-container">
+    <div class="chat-header">
+      Chat Asesor Claro
+      <button onclick="toggleExpand()">🔳</button>
+    </div>
+    <div id="chat-box" class="chat-box"></div>
+    <form id="chat-form" class="chat-input">
+      <input type="text" id="chat-input" placeholder="Escribe un mensaje..." autocomplete="off" />
+      <button type="submit">Enviar</button>
+      <button type="button" id="mic-btn">🎤</button>
+    </form>
+  </div>
 
-      <!-- mensajes -->
-      <div id="chat-box" class="chat-box"></div>
-
-      <!-- entrada -->
-      <form id="chat-form" class="chat-input">
-        <input id="chat-input" class="form-control" placeholder="Escribe tu mensaje…" autocomplete="off">
-        <button type="button" class="btn btn-light" title="Ayuda" onclick="showQuickHelp()">❓</button>
-        <button type="submit" class="btn btn-danger">Enviar</button>
-      </form>
-  </aside>
-
-  <!-- ░░ Script principal ░░ -->
+  <script src="/static/main.js"></script>
   <script>
-    /* ─── Referencias DOM ─── */
-    const bubble    = document.getElementById("burbuja-chat");
-    const chatBox   = document.getElementById("chat-box");
-    const chatCont  = document.getElementById("chat-container");
-    const chatForm  = document.getElementById("chat-form");
-    const chatInput = document.getElementById("chat-input");
-    const expandBtn = document.getElementById("expand-toggle");
-
-    /* ─── Modo nocturno auto (19-7h) ─── */
-    (()=>{
-      const h = new Date().getHours();
-      if (h >= 19 || h < 7) document.body.classList.add("night-mode");
-    })();
-
-    /* ─── Abrir / Cerrar chat ─── */
-    bubble.onclick = () =>{
-      chatCont.classList.toggle("mostrar");
-      if(chatCont.classList.contains("mostrar")){
-        greetAndMenu();
-      }else{
-        chatBox.innerHTML="";              // limpia historial visual
-        localStorage.removeItem("history");// borra cache local
-      }
-    };
-
-    /* ─── Expandir / Restaurar ─── */
-    expandBtn.onclick = ()=>{
-      chatCont.classList.toggle("expandido");
-      expandBtn.textContent = chatCont.classList.contains("expandido") ? "🗗" : "🗖";
-    };
-
-    /* ─── Saludo + Menú tras 5 s ─── */
-    function greetAndMenu(){
-      bot("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar?");
-      setTimeout(showMainMenu, 5000);
+    // Registrar service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/service-worker.js');
     }
-
-    /* ─── Plantilla de botones de menú ─── */
-    function showMainMenu(){
-      const opts=[
-        ["1","Alarmas de plataformas"],
-        ["2","Documentación de plataformas"],
-        ["3","Incidentes activos"],
-        ["4","Estado operativo"],
-        ["5","Cambios activos"],
-        ["6","Hablar con el administrador"],
-        ["arreglar alerta","🔧 Arreglar alerta"],
-        ["configurar alerta","⚙️ Configurar alerta"],
-        ["solucion alerta","💡 Solución alerta"]
-      ];
-      let html='<div class="bot-msg"><b>📋 Menú principal:</b><br>';
-      opts.forEach(([v,t])=>{
-        html+=`<button class="btn btn-outline-danger btn-sm m-1" onclick="sendOption('${v}')">${t}</button>`;
-      });
-      html+='</div>';
-      chatBox.insertAdjacentHTML("beforeend",html);
-      chatBox.scrollTop=chatBox.scrollHeight;
-    }
-
-    /* ─── Quick help sin consultar backend ─── */
-    function showQuickHelp(){
-      bot(`🆘 Opciones rápidas:<br>
-           📄 <a href="#" target="_blank">Manual PDF</a><br>
-           👨‍💼 <a href="mailto:jefe.plataformas@claro.com.co">Contactar administrador</a>`);
-    }
-
-    /* ─── Helpers de mensaje ─── */
-    function bot(txt){
-      chatBox.insertAdjacentHTML("beforeend",`<div class="bot-msg">${txt}</div>`);
-      chatBox.scrollTop=chatBox.scrollHeight;
-    }
-    function user(txt){
-      chatBox.insertAdjacentHTML("beforeend",`<div class="user-msg">${txt}</div>`);
-      chatBox.scrollTop=chatBox.scrollHeight;
-    }
-
-    /* ─── Envío programático de opción ─── */
-    window.sendOption = val =>{
-      chatInput.value = val;
-      chatForm.dispatchEvent(new Event("submit"));
-    };
-
-    /* ─── Envío al backend / Autocorrección incluida ─── */
-    chatForm.addEventListener("submit",async e=>{
-      e.preventDefault();
-      const msg = chatInput.value.trim();
-      if(!msg) return;
-      user(msg); chatInput.value="";
-
-      try{
-        const r = await fetch("/chat",{
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({message: msg})
-        });
-        const data = await r.json();
-        bot(data.response);
-      }catch(err){
-        bot("⚠️ No se pudo conectar al servidor.");
-        console.error(err);
-      }
-    });
   </script>
 </body>
 </html>

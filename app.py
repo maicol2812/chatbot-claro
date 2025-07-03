@@ -6,34 +6,38 @@ import difflib
 from datetime import datetime
 import locale
 
+# Intentar establecer el locale
+try:
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+except locale.Error:
+    pass
+
 app = Flask(__name__)
 CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
-
 usuarios = {}
 
-# Cargar Excel
 ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
 if not os.path.exists(ruta_excel):
-    raise FileNotFoundError(f"Archivo no encontrado en: {ruta_excel}")
+    raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
 
 df = pd.read_excel(ruta_excel, engine="openpyxl")
 df.columns = df.columns.str.strip().str.lower()
+
+if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
+    raise KeyError("❌ Las columnas necesarias no existen en el archivo Excel.")
+
 df["numero alarma"] = df["numero alarma"].astype(str).str.strip()
 df["nombre del elemento"] = df["nombre del elemento"].str.lower().str.strip()
 
-# Palabras claves para corrección
-comandos_validos = ["1", "2", "3", "4", "5", "6", "arreglar alerta", "configurar alerta", "solucion alerta"]
-
-# Corrección inteligente
-def corregir_input(texto):
-    if texto in comandos_validos:
-        return texto
-    match = difflib.get_close_matches(texto, comandos_validos, n=1, cutoff=0.6)
-    return match[0] if match else texto
+acciones = {
+    "arreglar alerta": "🔧 Para arreglar una alerta, valida los logs y reinicia el proceso afectado.",
+    "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. ¿Qué tipo deseas configurar?",
+    "solucion alerta": "💡 Verifica conectividad, servicios activos y uso de CPU/RAM para solucionarlo."
+}
 
 def menu_principal():
     return (
-        "\n📋 Menú principal:\n"
+        "📋 Menú principal:\n"
         "1. Alarmas de plataformas.\n"
         "2. Documentación de las plataformas.\n"
         "3. Incidentes activos de las plataformas.\n"
@@ -49,21 +53,12 @@ def index():
 @app.route("/chat", methods=["POST"])
 def chat():
     msg = request.json.get("message", "").strip().lower()
-    msg = corregir_input(msg)
-    user_id = "usuario1"
-
-    if user_id not in usuarios:
-        usuarios[user_id] = {"estado": "inicio"}
-
+    user_id = request.remote_addr or "anon"
+    usuarios[user_id] = usuarios.get(user_id, {"estado": "inicio"})
     estado = usuarios[user_id]["estado"]
 
-    if msg in ["arreglar alerta", "configurar alerta", "solucion alerta"]:
-        respuestas = {
-            "arreglar alerta": "🔧 Para arreglar una alerta, asegúrate de validar los logs y reiniciar el proceso afectado.",
-            "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. Indícame el tipo de alerta a configurar.",
-            "solucion alerta": "💡 Una solución típica a las alertas es verificar conectividad, servicios activos y uso de CPU/RAM."
-        }
-        return jsonify({"response": respuestas[msg]})
+    if msg in acciones:
+        return jsonify({"response": acciones[msg]})
 
     if estado == "inicio":
         if msg == "1":
@@ -78,14 +73,26 @@ def chat():
         return jsonify({"response": "Ingresa ahora el nombre del elemento asociado a la alarma."})
 
     elif estado == "espera_elemento":
-        numero = usuarios[user_id]["numero_alarma"]
-        elemento = msg.strip().lower()
+        numero = usuarios[user_id].get("numero_alarma")
+        elemento = msg
         usuarios[user_id]["estado"] = "inicio"
 
         resultado = df[
             (df["numero alarma"] == numero) &
             (df["nombre del elemento"] == elemento)
         ]
+
+        if resultado.empty:
+            posibles_elementos = df[df["numero alarma"] == numero]["nombre del elemento"].tolist()
+            sugerido = difflib.get_close_matches(elemento, posibles_elementos, n=1)
+            if sugerido:
+                resultado = df[
+                    (df["numero alarma"] == numero) &
+
+
+                    
+                    (df["nombre del elemento"] == sugerido[0])
+                ]
 
         if not resultado.empty:
             fila = resultado.iloc[0]
@@ -97,10 +104,7 @@ def chat():
                 f"🛠 Acciones: {fila.get('acciones', 'N/A')}"
             )
         else:
-            respuesta = "❌ No se encontró una alarma con ese número y nombre de elemento."
-
-        if "❌" in respuesta:
-            respuesta += "\n\n" + menu_principal()
+            respuesta = "❌ No se encontró una alarma con ese número y nombre de elemento.\n\n" + menu_principal()
 
         return jsonify({"response": respuesta})
 

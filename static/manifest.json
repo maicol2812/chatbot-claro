@@ -1,0 +1,11 @@
+{
+  "name": "Chatbot Claro",
+  "short_name": "Asesor Core",
+  "icons": [
+    { "src": "/static/claro-logo.png", "sizes": "192x192", "type": "image/png" }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#d41528",
+  "background_color": "#000"
+}
