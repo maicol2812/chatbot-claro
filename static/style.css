@@ -327,6 +327,8 @@ video#bg-video.intenso {
   box-shadow: 
     0 25px 50px rgba(0, 0, 0, 0.5),
     0 0 30px rgba(0, 255, 136, 0.3);
+
+
 }
 
 /* === CABECERA DE CHAT MEJORADA === */
@@ -342,6 +344,7 @@ video#bg-video.intenso {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transition: left 0.5s;
 }
+
 
 .chat-header:hover::before {
   left: 100%;
@@ -764,15 +767,18 @@ video#bg-video.intenso {
 }
 
 .chat-header {
+  position: sticky;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* fondo oscuro semi-transparente */
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  padding: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #d41528;
-  padding: 10px;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 
 
 /* === ANIMACIONES ADICIONALES === */
