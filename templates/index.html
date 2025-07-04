@@ -4,71 +4,250 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#d41528" />
+  <meta name="description" content="Asesor Claro - Asistente IA avanzado para plataformas Core" />
   <link rel="manifest" href="/static/manifest.json" />
   <link rel="stylesheet" href="/static/style.css" />
   <link rel="icon" href="/static/claro-logo.png" type="image/png" />
-  <title>Asesor Claro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Asesor Claro - IA Avanzada</title>
 </head>
 <body>
+  <!-- Video de fondo -->
   <video autoplay muted loop id="bg-video">
     <source src="/static/ruta-al-video.mp4" type="video/mp4" />
   </video>
+  
+  <!-- Overlay con efectos -->
   <div class="overlay"></div>
+  
+  <!-- Partículas flotantes -->
+  <div class="particles" id="particles"></div>
+  
+  <!-- Logo mejorado -->
   <img src="/static/claro-logo.png" alt="Logo Claro" class="logo" />
-
-  <div class="welcome">
-    <h1>Asesor Claro</h1>
-    <p>Tu asistente experto en plataformas de Core</p>
+  
+  <!-- Indicador de estado del sistema -->
+  <div class="estado-sistema">
+    <div class="estado-indicador" id="estado-indicador"></div>
+    <span id="estado-texto">Sistema Operativo</span>
   </div>
 
-  <div class="burbuja-chat">💬</div>
+  <!-- Pantalla de bienvenida -->
+  <div class="welcome">
+    <h1>Asesor Claro</h1>
+    <p>Asistente IA avanzado para plataformas Core</p>
+    <div class="sparkle" style="top: 20%; left: 30%;"></div>
+    <div class="sparkle" style="top: 60%; right: 20%;"></div>
+  </div>
 
-  <div class="chat-container">
+  <!-- Notificaciones -->
+  <div id="notificaciones-container"></div>
+
+  <!-- Burbuja de chat mejorada -->
+  <div class="burbuja-chat" id="burbuja-chat">💬</div>
+
+  <!-- Contenedor de chat avanzado -->
+  <div class="chat-container" id="chat-container">
     <div class="chat-header">
-      ChatBot Asesor Claro
-      <button class="expand-chat">⤢</button>
+      <div class="estado-chat">
+        <div class="indicador-ia" id="indicador-ia"></div>
+        <span>Asesor IA Claro</span>
+      </div>
+      <button class="expand-chat" id="expand-chat">⤢</button>
     </div>
-    <div class="chat-box"></div>
+    
+    <div class="chat-box" id="chat-box">
+      <div class="bot-msg">
+        🤖 <strong>Asesor Claro IA activado</strong><br>
+        Sistema de análisis predictivo en línea.<br>
+        ¿En qué puedo ayudarte hoy?
+      </div>
+    </div>
+    
+    <!-- Acciones rápidas -->
+    <div class="acciones-rapidas">
+      <button class="accion-btn" onclick="enviarAccionRapida('estado sistema')">📊 Estado</button>
+      <button class="accion-btn" onclick="enviarAccionRapida('emergencia')">🚨 Emergencia</button>
+      <button class="accion-btn" onclick="enviarAccionRapida('dashboard')">📈 Dashboard</button>
+      <button class="accion-btn" onclick="enviarAccionRapida('análisis predictivo')">🔮 IA</button>
+    </div>
+    
     <form class="chat-input" id="chat-form">
-      <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." />
-      <button type="submit">Enviar</button>
+      <input type="text" id="chat-input" placeholder="Escribe tu mensaje o comando..." autocomplete="off" />
+      <button type="submit" id="send-btn">Enviar</button>
     </form>
   </div>
 
-  <script src="/static/main.js"></script>
+  <!-- Panel de métricas -->
+  <div class="metricas-overlay" id="metricas-overlay">
+    <div class="metricas-panel">
+      <h2>📊 Métricas del Sistema</h2>
+      <div id="metricas-content"></div>
+      <button onclick="cerrarMetricas()" style="margin-top: 20px; padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 10px; cursor: pointer;">Cerrar</button>
+    </div>
+  </div>
+
   <script>
-    document.getElementById("chat-form").addEventListener("submit", async e => {
-      e.preventDefault();
-      const input = document.getElementById("chat-input");
-      const msg = input.value.trim();
-      if (!msg) return;
+    // === VARIABLES GLOBALES ===
+    let chatAbierto = false;
+    let escribiendo = false;
+    let userId = 'user_' + Math.random().toString(36).substr(2, 9);
+    let modoIA = false;
+    let ultimaActividad = Date.now();
+    let contadorMensajes = 0;
+    let metricas = {
+      mensajes: 0,
+      tiempoSesion: 0,
+      satisfaccion: 0
+    };
 
-      const chatBox = document.querySelector(".chat-box");
-      chatBox.insertAdjacentHTML("beforeend", `<div class='user-msg'>${msg}</div>`);
-      chatBox.scrollTop = chatBox.scrollHeight;
-      input.value = "";
+    // === ELEMENTOS DOM ===
+    const burbujaChat = document.getElementById('burbuja-chat');
+    const chatContainer = document.getElementById('chat-container');
+    const chatBox = document.getElementById('chat-box');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const expandBtn = document.getElementById('expand-chat');
+    const indicadorIA = document.getElementById('indicador-ia');
+    const estadoIndicador = document.getElementById('estado-indicador');
+    const estadoTexto = document.getElementById('estado-texto');
+    const notificacionesContainer = document.getElementById('notificaciones-container');
 
-      const respuestasRapidas = {
-        "arreglar alerta": "🔧 Para arreglar una alerta, asegúrate de validar los logs y reiniciar el proceso afectado.",
-        "configurar alerta": "⚙️ Las alertas se configuran desde el módulo de monitoreo. Indícame el tipo de alerta a configurar.",
-        "solucion alerta": "💡 Una solución típica a las alertas es verificar conectividad, servicios activos y uso de CPU/RAM."
-      };
-
-      if (respuestasRapidas[msg.toLowerCase()]) {
-        chatBox.insertAdjacentHTML("beforeend", `<div class='bot-msg'>${respuestasRapidas[msg.toLowerCase()]}</div>`);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        return;
-      }
-
-      const resp = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg })
-      });
-      const data = await resp.json();
-      chatBox.insertAdjacentHTML("beforeend", `<div class='bot-msg'>${data.response}</div>`);
-      chatBox.scrollTop = chatBox.scrollHeight;
+    // === INICIALIZACIÓN ===
+    document.addEventListener('DOMContentLoaded', function() {
+      inicializarSistema();
+      crearParticulas();
+      iniciarMonitoreoSistema();
+      configurarEventListeners();
     });
-  </script>
-</body>
-</html>
+
+    function inicializarSistema() {
+      console.log('🚀 Sistema Asesor Claro iniciado');
+      actualizarEstadoSistema('operativo');
+      mostrarNotificacion('Sistema iniciado correctamente', 'success');
+    }
+
+    function configurarEventListeners() {
+      // Chat toggle
+      burbujaChat.addEventListener('click', toggleChat);
+      
+      // Expandir chat
+      expandBtn.addEventListener('click', toggleExpandChat);
+      
+      // Envío de mensajes
+      chatForm.addEventListener('submit', enviarMensaje);
+      
+      // Detectar escritura
+      chatInput.addEventListener('input', detectarEscritura);
+      
+      // Doble clic para métricas
+      burbujaChat.addEventListener('dblclick', mostrarMetricas);
+      
+      // Atajos de teclado
+      document.addEventListener('keydown', manejarAtajos);
+    }
+
+    // === FUNCIONES DE CHAT ===
+    function toggleChat() {
+      chatAbierto = !chatAbierto;
+      chatContainer.classList.toggle('mostrar', chatAbierto);
+      
+      if (chatAbierto) {
+        chatInput.focus();
+        burbujaChat.style.display = 'none';
+        actualizarIndicadorIA('activo');
+      } else {
+        burbujaChat.style.display = 'flex';
+        actualizarIndicadorIA('inactivo');
+      }
+    }
+
+    function toggleExpandChat() {
+      chatContainer.classList.toggle('expandido');
+      expandBtn.textContent = chatContainer.classList.contains('expandido') ? '⤡' : '⤢';
+    }
+
+    async function enviarMensaje(e) {
+      e.preventDefault();
+      const mensaje = chatInput.value.trim();
+      if (!mensaje) return;
+
+      // Agregar mensaje del usuario
+      agregarMensaje(mensaje, 'user');
+      chatInput.value = '';
+      contadorMensajes++;
+      
+      // Mostrar indicador de escritura
+      mostrarEscribiendo();
+      
+      // Detectar comandos especiales
+      if (manejarComandosEspeciales(mensaje)) return;
+      
+      try {
+        // Enviar a la API
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            message: mensaje,
+            user_id: userId,
+            timestamp: Date.now()
+          })
+        });
+        
+        const data = await response.json();
+        
+        // Remover indicador de escritura
+        removerEscribiendo();
+        
+        // Agregar respuesta del bot
+        agregarMensaje(data.response, 'bot', data.tipo);
+        
+        // Actualizar estado según respuesta
+        actualizarEstadoSegunRespuesta(data.tipo);
+        
+      } catch (error) {
+        console.error('Error en chat:', error);
+        removerEscribiendo();
+        agregarMensaje('❌ Error de conexión. Intenta nuevamente.', 'bot', 'error');
+      }
+    }
+
+    function agregarMensaje(mensaje, tipo, categoria = null) {
+      const mensajeDiv = document.createElement('div');
+      mensajeDiv.className = `${tipo}-msg`;
+      
+      if (categoria) {
+        mensajeDiv.classList.add(categoria);
+      }
+      
+      // Formatear mensaje con markdown básico
+      const mensajeFormateado = formatearMensaje(mensaje);
+      mensajeDiv.innerHTML = mensajeFormateado;
+      
+      chatBox.appendChild(mensajeDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      
+      // Efectos especiales según categoría
+      if (categoria === 'emergencia') {
+        activarModoEmergencia();
+      } else if (categoria === 'ia_avanzada') {
+        activarModoIA();
+      }
+    }
+
+    function formatearMensaje(mensaje) {
+      return mensaje
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/━+/g, '<hr style="border: 1px solid rgba(255,255,255,0.2); margin: 10px 0;">')
+        .replace(/\n/g, '<br>');
+    }
+
+    function mostrarEscribiendo() {
+      const escribiendoDiv = document.createElement('div');
+      escribiendoDiv.className = 'escribiendo';
+      escribiendoDiv.id = 'escribiendo';}
