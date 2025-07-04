@@ -1,57 +1,75 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const burbuja = document.getElementById('burbuja-chat');
-  const chat = document.getElementById('chat-container');
-  const expand = document.getElementById('expand-chat');
-  const chatBox = document.getElementById('chat-box');
-  const chatForm = document.getElementById('chat-form');
+  // === Referencias DOM ===
+  const burbuja   = document.getElementById('burbuja-chat');
+  const chat      = document.getElementById('chat-container');
+  const expand    = document.getElementById('expand-chat');
+  const chatBox   = document.getElementById('chat-box');
+  const chatForm  = document.getElementById('chat-form');
   const chatInput = document.getElementById('chat-input');
 
-  let abierto = false;
+  // === Estado ===
+  let chatAbierto = false;
 
+  /* ─────────────────────────────────────────
+     Función para mostrar el menú principal  */
+  function mostrarMenu() {
+    const menuHTML = `
+      📋 <strong>Opciones disponibles:</strong><br>
+      1️⃣ Alarmas de plataformas.<br>
+      2️⃣ Documentación de las plataformas.<br>
+      3️⃣ Incidentes activos de las plataformas.<br>
+      4️⃣ Estado operativo de las plataformas.<br>
+      5️⃣ Cambios activos en las plataformas.<br>
+      6️⃣ Hablar con el administrador de la plataforma.
+    `;
+    agregarMensaje(menuHTML, 'bot', 'menu');
+  }
+
+  /* ─────────────────────────────────────────
+     Abrir / cerrar el chat                 */
   function toggleChat() {
-    abierto = !abierto;
-    chat.classList.toggle('mostrar', abierto);
-    burbuja.style.display = abierto ? 'none' : 'flex';
-    if (abierto) chatInput.focus();
+    chatAbierto = !chatAbierto;
+    chat.classList.toggle('mostrar', chatAbierto);
+    burbuja.style.display = chatAbierto ? 'none' : 'flex';
+    if (chatAbierto) {
+      chatInput.focus();
+      // Muestra el menú después de 5 s cada vez que se abre el chat
+      setTimeout(mostrarMenu, 5000);
+    }
   }
-  setTimeout(() => {
-  if (chatAbierto) {
-    agregarMensaje(`📋 <strong>Opciones disponibles:</strong><br>
-    1️⃣ Alarmas de plataformas<br>
-    2️⃣ Documentación de las plataformas<br>
-    3️⃣ Incidentes activos de las plataformas<br>
-    4️⃣ Estado operativo de las plataformas<br>
-    5️⃣ Cambios activos en las plataformas<br>
-    6️⃣ Hablar con el administrador de la plataforma`, 'bot', 'menu');
-  }
-}, 5000);
 
-
+  /* ─────────────────────────────────────────
+     Expandir / minimizar el contenedor      */
   function toggleExpand() {
     chat.classList.toggle('expandido');
     expand.textContent = chat.classList.contains('expandido') ? '⤡' : '⤢';
   }
 
-  function agregarMensaje(msg, clase = 'bot') {
+  /* ─────────────────────────────────────────
+     Agrega mensaje al chat                  */
+  function agregarMensaje(msg, tipo = 'bot', extraClass = '') {
     const div = document.createElement('div');
-    div.className = clase + '-msg';
+    div.className = `${tipo}-msg${extraClass ? ' ' + extraClass : ''}`;
     div.innerHTML = msg.replace(/\n/g, '<br>');
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
+  /* ─────────────────────────────────────────
+     Envía mensaje al backend Flask          */
   async function enviarMensaje(e) {
     e.preventDefault();
     const texto = chatInput.value.trim();
     if (!texto) return;
+
     agregarMensaje(texto, 'user');
     chatInput.value = '';
 
     try {
-      const res = await fetch('/chat', {
-        method: 'POST',
+      const res  = await fetch('/chat', {
+        method : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: texto })
+        body   : JSON.stringify({ message: texto })
       });
       const data = await res.json();
       agregarMensaje(data.response, 'bot');
@@ -60,14 +78,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /* ─────────────────────────────────────────
+     Acciones rápidas                        */
   function enviarAccionRapida(texto) {
     chatInput.value = texto;
     chatForm.dispatchEvent(new Event('submit'));
   }
 
-  // Eventos
+  // === Eventos ===
   burbuja.addEventListener('click', toggleChat);
   expand.addEventListener('click', toggleExpand);
   chatForm.addEventListener('submit', enviarMensaje);
+
+  // Exponer al global para los botones rápidos
   window.enviarAccionRapida = enviarAccionRapida;
 });
