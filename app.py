@@ -16,7 +16,7 @@ from email.mime.multipart import MIMEMultipart
 import sqlite3
 import hashlib
 import jwt
-from functools import wraps
+from functools import wraps 
 
 app = Flask(__name__)
 CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
