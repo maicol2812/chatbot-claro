@@ -14,6 +14,18 @@ document.addEventListener('DOMContentLoaded', () => {
     burbuja.style.display = abierto ? 'none' : 'flex';
     if (abierto) chatInput.focus();
   }
+  setTimeout(() => {
+  if (chatAbierto) {
+    agregarMensaje(`📋 <strong>Opciones disponibles:</strong><br>
+    1️⃣ Alarmas de plataformas<br>
+    2️⃣ Documentación de las plataformas<br>
+    3️⃣ Incidentes activos de las plataformas<br>
+    4️⃣ Estado operativo de las plataformas<br>
+    5️⃣ Cambios activos en las plataformas<br>
+    6️⃣ Hablar con el administrador de la plataforma`, 'bot', 'menu');
+  }
+}, 5000);
+
 
   function toggleExpand() {
     chat.classList.toggle('expandido');

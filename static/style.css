@@ -404,16 +404,15 @@ video#bg-video.intenso {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
+  max-height: 65vh; /* Ajuste máximo visible */
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.1));
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: var(--primary-color) transparent;
-
-  max-height: 60vh;
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
+
 
 .chat-box::-webkit-scrollbar {
   width: 6px;
@@ -674,7 +673,8 @@ video#bg-video.intenso {
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
-  max-height: 80vh;
+  height: 80vh;
+  max-height: 90vh;
   transition: all 0.3s ease-in-out;
 }
 
