@@ -18,24 +18,16 @@
   <video autoplay muted loop id="bg-video">
     <source src="/static/ruta-al-video.mp4" type="video/mp4" />
   </video>
-  <div class="burbuja-chat" onclick="abrirChat()">
-  💬
- </div>
 
- <div class="chat-container oculto">
-  <!-- chat aquí -->
- </div>
-
-  
   <!-- Overlay con efectos -->
   <div class="overlay"></div>
-  
+
   <!-- Partículas flotantes -->
   <div class="particles" id="particles"></div>
-  
+
   <!-- Logo mejorado -->
   <img src="/static/claro-logo.png" alt="Logo Claro" class="logo" />
-  
+
   <!-- Indicador de estado del sistema -->
   <div class="estado-sistema">
     <div class="estado-indicador" id="estado-indicador"></div>
@@ -53,7 +45,7 @@
   <!-- Notificaciones -->
   <div id="notificaciones-container"></div>
 
-  <!-- Burbuja de chat mejorada -->
+  <!-- Burbuja de chat -->
   <div class="burbuja-chat" id="burbuja-chat">💬</div>
 
   <!-- Contenedor de chat avanzado -->
@@ -65,7 +57,7 @@
       </div>
       <button class="expand-chat" id="expand-chat">⤢</button>
     </div>
-    
+
     <div class="chat-box" id="chat-box">
       <div class="bot-msg">
         🤖 <strong>Asesor Claro IA activado</strong><br>
@@ -73,7 +65,7 @@
         ¿En qué puedo ayudarte hoy?
       </div>
     </div>
-    
+
     <!-- Acciones rápidas -->
     <div class="acciones-rapidas">
       <button class="accion-btn" onclick="enviarAccionRapida('estado sistema')">📊 Estado</button>
@@ -81,7 +73,7 @@
       <button class="accion-btn" onclick="enviarAccionRapida('dashboard')">📈 Dashboard</button>
       <button class="accion-btn" onclick="enviarAccionRapida('análisis predictivo')">🔮 IA</button>
     </div>
-    
+
     <form class="chat-input" id="chat-form">
       <input type="text" id="chat-input" placeholder="Escribe tu mensaje o comando..." autocomplete="off" />
       <button type="submit" id="send-btn">Enviar</button>
@@ -96,6 +88,11 @@
       <button onclick="cerrarMetricas()" style="margin-top: 20px; padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 10px; cursor: pointer;">Cerrar</button>
     </div>
   </div>
+
+  <!-- Tu script JS aquí -->
+  <script src="/static/main.js"></script>
+</body>
+</html>
 
   <script>
     // === VARIABLES GLOBALES ===
@@ -259,3 +256,7 @@
       const escribiendoDiv = document.createElement('div');
       escribiendoDiv.className = 'escribiendo';
       escribiendoDiv.id = 'escribiendo';}
+      
+
+
+
