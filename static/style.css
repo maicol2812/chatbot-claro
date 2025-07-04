@@ -408,6 +408,11 @@ video#bg-video.intenso {
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: var(--primary-color) transparent;
+
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .chat-box::-webkit-scrollbar {
@@ -665,19 +670,30 @@ video#bg-video.intenso {
 /* === MODO RESPONSIVE MEJORADO === */
 @media screen and (max-width: 768px) {
   .chat-container {
-    right: 15px;
-    bottom: 90px;
-    width: calc(100vw - 30px);
-    max-width: none;
-  }
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  max-height: 80vh;
+  transition: all 0.3s ease-in-out;
+}
+
+.chat-container.mostrar {
+  opacity: 1;
+  pointer-events: auto;
+  bottom: 20px;
+}
+
   
   .chat-container.expandido {
-    width: 95vw;
-    height: 90vh;
-    bottom: 5vh;
-    right: 2.5vw;
-  }
-  
+  width: 90vw !important;
+  height: 90vh !important;
+  max-height: 90vh;
+  bottom: 5vh;
+  right: 5vw;
+  border-radius: 20px;
+}
+
   .burbuja-chat {
     bottom: 20px;
     right: 20px;
