@@ -1,88 +1,61 @@
-
-// static/main.js
-
-// Detectar modo nocturno automático
 document.addEventListener('DOMContentLoaded', () => {
-  const hour = new Date().getHours();
-  if (hour < 6 || hour > 18) document.body.classList.add("night-mode");
+  const burbuja = document.getElementById('burbuja-chat');
+  const chat = document.getElementById('chat-container');
+  const expand = document.getElementById('expand-chat');
+  const chatBox = document.getElementById('chat-box');
+  const chatForm = document.getElementById('chat-form');
+  const chatInput = document.getElementById('chat-input');
 
-  const chatBox = document.querySelector(".chat-box");
+  let abierto = false;
 
-  setTimeout(() => {
-    const saludo = `<div class="bot-msg">👋 Buen día, hablemos de nuestras plataformas de Core.<br>¡¿Qué te gustaría consultar hoy?</div>`;
-    chatBox.insertAdjacentHTML("beforeend", saludo);
+  function toggleChat() {
+    abierto = !abierto;
+    chat.classList.toggle('mostrar', abierto);
+    burbuja.style.display = abierto ? 'none' : 'flex';
+    if (abierto) chatInput.focus();
+  }
+
+  function toggleExpand() {
+    chat.classList.toggle('expandido');
+    expand.textContent = chat.classList.contains('expandido') ? '⤡' : '⤢';
+  }
+
+  function agregarMensaje(msg, clase = 'bot') {
+    const div = document.createElement('div');
+    div.className = clase + '-msg';
+    div.innerHTML = msg.replace(/\n/g, '<br>');
+    chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
-  }, 1000);
-
-  setTimeout(() => {
-    showMainMenu();
-  }, 5000);
-});
-
-// Enviar opción rápida
-window.sendOption = (val) => {
-  document.querySelector("#chat-input").value = val;
-  document.querySelector("#chat-form").dispatchEvent(new Event("submit"));
-};
-
-function showMainMenu() {
-  const opciones = [
-    ["1","Alarmas de plataformas"],
-    ["2","Documentación de plataformas"],
-    ["3","Incidentes activos"],
-    ["4","Estado operativo"],
-    ["5","Cambios activos"],
-    ["6","Hablar con el administrador"],
-    ["arreglar alerta", "🔧 Arreglar alerta"],
-    ["configurar alerta", "⚙️ Configurar alerta"],
-    ["solucion alerta", "💡 Solución de alerta"]
-  ];
-  const chatBox = document.querySelector(".chat-box");
-  let html = '<div class="bot-msg"><b>📋 Menú principal:</b><br>';
-  opciones.forEach(([val,text]) => {
-    html += `<button class="btn btn-outline-danger btn-sm m-1" onclick="sendOption('${val}')">${text}</button>`;
-  });
-  html += '</div>';
-  chatBox.insertAdjacentHTML("beforeend", html);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// Mostrar/ocultar chat y expandir
-const burbuja = document.querySelector(".burbuja-chat");
-const contenedor = document.querySelector(".chat-container");
-let expandido = false;
-
-burbuja.addEventListener("click", () => {
-  contenedor.classList.toggle("mostrar");
-  expandido = false;
-});
-
-const expandBtn = document.querySelector(".expand-chat");
-if (expandBtn) {
-  expandBtn.addEventListener("click", () => {
-    contenedor.classList.toggle("expandido");
-    expandido = !expandido;
-  });
-}
-
-// Cerrar y limpiar al recargar
-window.addEventListener("beforeunload", () => {
-  localStorage.clear();
-});
-
-// Detectar alerta crítica y parpadeo
-function detectarCritico(mensaje) {
-  if (mensaje.toLowerCase().includes("crítico")) {
-    document.body.classList.add("alerta-critica");
-    setTimeout(() => {
-      document.body.classList.remove("alerta-critica");
-    }, 6000);
   }
-}
 
-// Mutar mensajes del bot para detectar críticos
-document.addEventListener("DOMNodeInserted", e => {
-  if (e.target.classList?.contains("bot-msg")) {
-    detectarCritico(e.target.textContent);
+  async function enviarMensaje(e) {
+    e.preventDefault();
+    const texto = chatInput.value.trim();
+    if (!texto) return;
+    agregarMensaje(texto, 'user');
+    chatInput.value = '';
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: texto })
+      });
+      const data = await res.json();
+      agregarMensaje(data.response, 'bot');
+    } catch (err) {
+      agregarMensaje('❌ Error de conexión', 'bot');
+    }
   }
+
+  function enviarAccionRapida(texto) {
+    chatInput.value = texto;
+    chatForm.dispatchEvent(new Event('submit'));
+  }
+
+  // Eventos
+  burbuja.addEventListener('click', toggleChat);
+  expand.addEventListener('click', toggleExpand);
+  chatForm.addEventListener('submit', enviarMensaje);
+  window.enviarAccionRapida = enviarAccionRapida;
 });
