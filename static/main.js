@@ -1,111 +1,103 @@
-document.addEventListener('DOMContentLoaded', () => {
-  /* ─────────────────────────────────────────
-     Referencias DOM y estado                */
-  const burbuja   = document.getElementById('burbuja-chat');
-  const chat      = document.getElementById('chat-container');
-  const expand    = document.getElementById('expand-chat');
-  const chatBox   = document.getElementById('chat-box');
-  const chatForm  = document.getElementById('chat-form');
-  const chatInput = document.getElementById('chat-input');
+// main.js optimizado para Asesor Claro (mejorado sin cambiar tu estructura)
 
-  /* ①  Mantén SIEMPRE el mismo userId en
-        todos los fetch → se genera sólo una vez */
-  const userId = localStorage.getItem('asesorClaroUserId') ||
-                 (() => {
-                   const id = 'user_' + Math.random().toString(36).slice(2, 10);
-                   localStorage.setItem('asesorClaroUserId', id);
-                   return id;
-                 })();
+// Espera a que cargue el DOM
+window.addEventListener('DOMContentLoaded', () => {
+  // === Referencias DOM ===
+  const burbujaChat  = document.getElementById('burbuja-chat');
+  const chatContainer = document.getElementById('chat-container');
+  const chatBox      = document.getElementById('chat-box');
+  const chatForm     = document.getElementById('chat-form');
+  const chatInput    = document.getElementById('chat-input');
+  const expandBtn    = document.getElementById('expand-chat');
+  const sendBtn      = document.getElementById('send-btn');
 
-  let chatAbierto     = false;
-  let timeoutMenuId   = null;   // ← para limpiar el timer
+  // === Estado ===
+  let chatAbierto = false;
+  const userId = 'user_' + Math.random().toString(36).substr(2, 9);
 
-  /* ────────────────────────────────
-     Menú principal (HTML)           */
-  const menuHtml = `
-    📋 <strong>Opciones disponibles:</strong><br>
-    1️⃣ Alarmas de plataformas.<br>
-    2️⃣ Documentación de las plataformas.<br>
-    3️⃣ Incidentes activos de las plataformas.<br>
-    4️⃣ Estado operativo de las plataformas.<br>
-    5️⃣ Cambios activos en las plataformas.<br>
-    6️⃣ Hablar con el administrador de la plataforma.
-  `;
-
+  // === Mostrar menú automático 5s después de abrir ===
   function mostrarMenu() {
-    agregarMensaje(menuHtml, 'bot', 'menu');
+    const opciones = `
+      📋 <strong>Opciones disponibles:</strong><br>
+      1️⃣ Alarmas de plataformas.<br>
+      2️⃣ Documentación de las plataformas.<br>
+      3️⃣ Incidentes activos de las plataformas.<br>
+      4️⃣ Estado operativo de las plataformas.<br>
+      5️⃣ Cambios activos en las plataformas.<br>
+      6️⃣ Hablar con el administrador de la plataforma.
+    `;
+    agregarMensaje(opciones, 'bot');
   }
 
-  /* ────────────────────────────────
-     Abrir / cerrar chat             */
+  // === Alternar visibilidad del chat ===
   function toggleChat() {
     chatAbierto = !chatAbierto;
-    chat.classList.toggle('mostrar', chatAbierto);
-    burbuja.style.display = chatAbierto ? 'none' : 'flex';
+    chatContainer.classList.toggle('mostrar', chatAbierto);
+    burbujaChat.style.display = chatAbierto ? 'none' : 'flex';
 
-    /* Limpia cualquier temporizador pendiente
-       y arranca uno nuevo sólo cuando se abre */
-    clearTimeout(timeoutMenuId);
     if (chatAbierto) {
       chatInput.focus();
-      timeoutMenuId = setTimeout(mostrarMenu, 5000);
+      setTimeout(() => {
+        if (!chatBox.innerText.trim()) mostrarMenu();
+      }, 5000);
     }
   }
 
-  /* ────────────────────────────────
-     Expandir / minimizar contenedor */
-  function toggleExpand() {
-    chat.classList.toggle('expandido');
-    expand.textContent = chat.classList.contains('expandido') ? '⤡' : '⤢';
+  // === Expandir o minimizar chat ===
+  function toggleExpandChat() {
+    chatContainer.classList.toggle('expandido');
+    expandBtn.textContent = chatContainer.classList.contains('expandido') ? '⤡' : '⤢';
   }
 
-  /* ────────────────────────────────
-     Agrega mensaje al chat          */
-  function agregarMensaje(msg, tipo = 'bot', extra = '') {
+  // === Agregar mensaje ===
+  function agregarMensaje(mensaje, tipo = 'bot') {
     const div = document.createElement('div');
-    div.className = `${tipo}-msg${extra ? ' ' + extra : ''}`;
-    div.innerHTML = msg;
+    div.className = `${tipo}-msg`;
+    div.innerHTML = mensaje.replace(/\n/g, '<br>');
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  /* ────────────────────────────────
-     Envía mensaje al backend        */
+  // === Enviar mensaje al backend ===
   async function enviarMensaje(e) {
     e.preventDefault();
     const texto = chatInput.value.trim();
     if (!texto) return;
 
-    agregarMensaje(texto.replace(/\n/g, '<br>'), 'user');
+    agregarMensaje(texto, 'user');
     chatInput.value = '';
+    sendBtn.disabled = true;
 
     try {
-      const res  = await fetch('/chat', {
-        method : 'POST',
+      const res = await fetch('/chat', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({
-          message  : texto,
-          user_id  : userId,      // ② SIEMPRE envía el mismo id
+        body: JSON.stringify({
+          message: texto,
+          user_id: userId,
           timestamp: Date.now()
         })
       });
       const data = await res.json();
-      agregarMensaje(data.response.replace(/\n/g, '<br>'), 'bot');
-    } catch {
-      agregarMensaje('❌ Error de conexión', 'bot');
+      agregarMensaje(data.response, 'bot');
+    } catch (error) {
+      agregarMensaje('❌ Error de conexión.', 'bot');
+    } finally {
+      sendBtn.disabled = false;
     }
   }
 
-  /* ────────────────────────────────
-     Acciones rápidas                */
+  // === Enviar opción rápida ===
   function enviarAccionRapida(texto) {
     chatInput.value = texto;
     chatForm.dispatchEvent(new Event('submit'));
   }
 
-  // Eventos
-  burbuja.addEventListener('click', toggleChat);
-  expand.addEventListener('click',  toggleExpand);
+  // === Eventos ===
+  burbujaChat.addEventListener('click', toggleChat);
+  expandBtn.addEventListener('click', toggleExpandChat);
   chatForm.addEventListener('submit', enviarMensaje);
+
+  // === Exportar función rápida global ===
   window.enviarAccionRapida = enviarAccionRapida;
 });
