@@ -1,8 +1,6 @@
 // main.js optimizado para Asesor Claro (mejorado sin cambiar tu estructura)
 
-// Espera a que cargue el DOM
 window.addEventListener('DOMContentLoaded', () => {
-  // === Referencias DOM ===
   const burbujaChat  = document.getElementById('burbuja-chat');
   const chatContainer = document.getElementById('chat-container');
   const chatBox      = document.getElementById('chat-box');
@@ -11,11 +9,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const expandBtn    = document.getElementById('expand-chat');
   const sendBtn      = document.getElementById('send-btn');
 
-  // === Estado ===
   let chatAbierto = false;
   const userId = 'user_' + Math.random().toString(36).substr(2, 9);
 
-  // === Mostrar menú automático 5s después de abrir ===
   function mostrarMenu() {
     const opciones = `
       📋 <strong>Opciones disponibles:</strong><br>
@@ -29,7 +25,6 @@ window.addEventListener('DOMContentLoaded', () => {
     agregarMensaje(opciones, 'bot');
   }
 
-  // === Alternar visibilidad del chat ===
   function toggleChat() {
     chatAbierto = !chatAbierto;
     chatContainer.classList.toggle('mostrar', chatAbierto);
@@ -43,13 +38,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // === Expandir o minimizar chat ===
   function toggleExpandChat() {
     chatContainer.classList.toggle('expandido');
     expandBtn.textContent = chatContainer.classList.contains('expandido') ? '⤡' : '⤢';
   }
 
-  // === Agregar mensaje ===
   function agregarMensaje(mensaje, tipo = 'bot') {
     const div = document.createElement('div');
     div.className = `${tipo}-msg`;
@@ -58,7 +51,6 @@ window.addEventListener('DOMContentLoaded', () => {
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  // === Enviar mensaje al backend ===
   async function enviarMensaje(e) {
     e.preventDefault();
     const texto = chatInput.value.trim();
@@ -84,20 +76,18 @@ window.addEventListener('DOMContentLoaded', () => {
       agregarMensaje('❌ Error de conexión.', 'bot');
     } finally {
       sendBtn.disabled = false;
+      setTimeout(() => chatInput.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
     }
   }
 
-  // === Enviar opción rápida ===
   function enviarAccionRapida(texto) {
     chatInput.value = texto;
     chatForm.dispatchEvent(new Event('submit'));
   }
 
-  // === Eventos ===
   burbujaChat.addEventListener('click', toggleChat);
   expandBtn.addEventListener('click', toggleExpandChat);
   chatForm.addEventListener('submit', enviarMensaje);
 
-  // === Exportar función rápida global ===
   window.enviarAccionRapida = enviarAccionRapida;
 });
