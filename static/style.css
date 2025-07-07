@@ -836,3 +836,21 @@ video#bg-video.intenso {
   90% { opacity: 1; }
   100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
 }
+
+/* --- Botón flotante para bajar al final --- */
+#scroll-bottom-btn{
+  position: fixed;
+  right: 22px;
+  bottom: 120px;
+  background: var(--primary-color);
+  color:#fff;
+  border:none;
+  border-radius:50%;
+  width:42px;height:42px;
+  display:none;              /* solo se muestra al hacer scroll en chat */
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  z-index:1002;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
+}

@@ -5,7 +5,39 @@ document.addEventListener('DOMContentLoaded', () => {
   const expand    = document.getElementById('expand-chat');
   const chatBox   = document.getElementById('chat-box');
   const chatForm  = document.getElementById('chat-form');
-  const chatInput = document.getElementById('chat-input');
+  /// --- NUEVAS VARIABLES
+const scrollBtn = document.createElement('button');
+scrollBtn.id = 'scroll-bottom-btn';
+scrollBtn.innerHTML = '⬇';
+document.body.appendChild(scrollBtn);
+
+/// --- OBSERVADOR DE SCROLL
+chatBox.addEventListener('scroll', () => {
+  // si no estamos al fondo, se muestra el botón
+  const resto = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight;
+  scrollBtn.style.display = resto > 150 ? 'flex' : 'none';
+});
+scrollBtn.onclick = () => {
+  chatBox.scrollTo({top: chatBox.scrollHeight, behavior:'smooth'});
+};
+
+/// --- GUARDA / CARGA HISTORIAL
+function saveHist() {
+  localStorage.setItem('histChat', chatBox.innerHTML);
+}
+function loadHist(){
+  const h = localStorage.getItem('histChat');
+  if (h) chatBox.innerHTML = h;
+}
+loadHist();
+
+function agregarMensaje(msg, clase='bot'){
+  /* …tu código… */
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  saveHist();
+}
+
 
   // === Estado ===
   let chatAbierto = false;
