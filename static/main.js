@@ -5,45 +5,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const expand    = document.getElementById('expand-chat');
   const chatBox   = document.getElementById('chat-box');
   const chatForm  = document.getElementById('chat-form');
-  /// --- NUEVAS VARIABLES
-const scrollBtn = document.createElement('button');
-scrollBtn.id = 'scroll-bottom-btn';
-scrollBtn.innerHTML = '⬇';
-document.body.appendChild(scrollBtn);
-
-/// --- OBSERVADOR DE SCROLL
-chatBox.addEventListener('scroll', () => {
-  // si no estamos al fondo, se muestra el botón
-  const resto = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight;
-  scrollBtn.style.display = resto > 150 ? 'flex' : 'none';
-});
-scrollBtn.onclick = () => {
-  chatBox.scrollTo({top: chatBox.scrollHeight, behavior:'smooth'});
-};
-
-/// --- GUARDA / CARGA HISTORIAL
-function saveHist() {
-  localStorage.setItem('histChat', chatBox.innerHTML);
-}
-function loadHist(){
-  const h = localStorage.getItem('histChat');
-  if (h) chatBox.innerHTML = h;
-}
-loadHist();
-
-function agregarMensaje(msg, clase='bot'){
-  /* …tu código… */
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
-  saveHist();
-}
-
+  const chatInput = document.getElementById('chat-input');
 
   // === Estado ===
   let chatAbierto = false;
+  // ⬇️  ID único para mantener la sesión en el servidor
+  const userId = 'user_' + Math.random().toString(36).substr(2, 9);
 
-  /* ─────────────────────────────────────────
-     Función para mostrar el menú principal  */
+  /* ────────────────────────────────
+     Muestra el menú principal       */
   function mostrarMenu() {
     const menuHTML = `
       📋 <strong>Opciones disponibles:</strong><br>
@@ -57,28 +27,28 @@ function agregarMensaje(msg, clase='bot'){
     agregarMensaje(menuHTML, 'bot', 'menu');
   }
 
-  /* ─────────────────────────────────────────
-     Abrir / cerrar el chat                 */
+  /* ────────────────────────────────
+     Abrir / cerrar chat             */
   function toggleChat() {
     chatAbierto = !chatAbierto;
     chat.classList.toggle('mostrar', chatAbierto);
     burbuja.style.display = chatAbierto ? 'none' : 'flex';
     if (chatAbierto) {
       chatInput.focus();
-      // Muestra el menú después de 5 s cada vez que se abre el chat
+      // Muestra el menú 5 s después de abrir
       setTimeout(mostrarMenu, 5000);
     }
   }
 
-  /* ─────────────────────────────────────────
-     Expandir / minimizar el contenedor      */
+  /* ────────────────────────────────
+     Expandir / minimizar contenedor */
   function toggleExpand() {
     chat.classList.toggle('expandido');
     expand.textContent = chat.classList.contains('expandido') ? '⤡' : '⤢';
   }
 
-  /* ─────────────────────────────────────────
-     Agrega mensaje al chat                  */
+  /* ────────────────────────────────
+     Agrega mensaje al chat          */
   function agregarMensaje(msg, tipo = 'bot', extraClass = '') {
     const div = document.createElement('div');
     div.className = `${tipo}-msg${extraClass ? ' ' + extraClass : ''}`;
@@ -87,8 +57,8 @@ function agregarMensaje(msg, clase='bot'){
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  /* ─────────────────────────────────────────
-     Envía mensaje al backend Flask          */
+  /* ────────────────────────────────
+     Envía mensaje a Flask           */
   async function enviarMensaje(e) {
     e.preventDefault();
     const texto = chatInput.value.trim();
@@ -101,7 +71,11 @@ function agregarMensaje(msg, clase='bot'){
       const res  = await fetch('/chat', {
         method : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ message: texto })
+        body   : JSON.stringify({
+          message : texto,
+          user_id : userId,        // 💡 ahora se envía el user_id
+          timestamp: Date.now()
+        })
       });
       const data = await res.json();
       agregarMensaje(data.response, 'bot');
@@ -110,8 +84,8 @@ function agregarMensaje(msg, clase='bot'){
     }
   }
 
-  /* ─────────────────────────────────────────
-     Acciones rápidas                        */
+  /* ────────────────────────────────
+     Acciones rápidas                */
   function enviarAccionRapida(texto) {
     chatInput.value = texto;
     chatForm.dispatchEvent(new Event('submit'));
@@ -122,6 +96,6 @@ function agregarMensaje(msg, clase='bot'){
   expand.addEventListener('click', toggleExpand);
   chatForm.addEventListener('submit', enviarMensaje);
 
-  // Exponer al global para los botones rápidos
+  // Exponer global
   window.enviarAccionRapida = enviarAccionRapida;
 });
