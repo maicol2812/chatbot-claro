@@ -286,18 +286,16 @@ video#bg-video.intenso {
 /* === CONTENEDOR DE CHAT AVANZADO === */
 .chat-container {
   position: fixed;
-  bottom: 110px;
-  right: 30px;
+  bottom: 20px;
+  right: 20px;
   width: 400px;
-  max-height: 600px;
+  max-height: 80vh; /* Limitar el alto para que no salga de la pantalla */
   background: linear-gradient(135deg, var(--glass-bg), rgba(0, 0, 0, 0.9));
   backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
   border-radius: 25px;
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
-  display: none;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 20;
@@ -661,7 +659,7 @@ video#bg-video.intenso {
 
 .chat-box {
   flex: 1;
-  padding: 20px;
+  padding: 15px;
   overflow-y: auto;
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.1));
   scroll-behavior: smooth;
@@ -733,9 +731,14 @@ video#bg-video.intenso {
 
 @media screen and (max-width: 480px) {
   .chat-input {
-    padding: 15px;
-    gap: 8px;
-  }
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2));
+  padding: 15px;
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
   
   .chat-input input {
   flex: 1;
