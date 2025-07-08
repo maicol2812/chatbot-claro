@@ -1,6 +1,5 @@
-// main.js optimizado para Asesor Claro (mejorado - menú inmediato y botón siempre visible)
-
 window.addEventListener('DOMContentLoaded', () => {
+  
   const burbujaChat  = document.getElementById('burbuja-chat');
   const chatContainer = document.getElementById('chat-container');
   const chatBox      = document.getElementById('chat-box');
@@ -8,7 +7,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const chatInput    = document.getElementById('chat-input');
   const expandBtn    = document.getElementById('expand-chat');
   const sendBtn      = document.getElementById('send-btn');
-
+  sendBtn.addEventListener('click', () => {
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+  
   let chatAbierto = false;
   let menuMostrado = false;
   const userId = 'user_' + Math.random().toString(36).substr(2, 9);
@@ -16,7 +18,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function mostrarMenu() {
     if (menuMostrado) return; // Evitar duplicados
     
-    const opciones = `
+    const opciones = ` 
       📋 <strong>Opciones disponibles:</strong><br>
       1️⃣ Alarmas de plataformas.<br>
       2️⃣ Documentación de las plataformas.<br>
@@ -107,6 +109,12 @@ window.addEventListener('DOMContentLoaded', () => {
       chatBox.removeChild(escribiendo);
       
       agregarMensaje(data.response, 'bot');
+
+      // Mostrar las opciones después de 5 segundos
+      setTimeout(() => {
+        mostrarMenu();
+      }, 5000);
+
     } catch (error) {
       // Remover indicador de escritura
       if (chatBox.contains(escribiendo)) {

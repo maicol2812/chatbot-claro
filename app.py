@@ -38,45 +38,57 @@ predicciones_ia        = {}
 # 3. Base de datos SQLite
 # ────────────────────────────
 def init_db():
-    conn = sqlite3.connect('chatbot.db')
-    c   = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS conversaciones(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          usuario_id TEXT,
-          mensaje TEXT,
-          respuesta TEXT,
-          timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-          sentimiento TEXT,
-          categoria TEXT
-        )
-    ''')
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS metricas(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          fecha DATE,
-          consultas_totales INTEGER,
-          tiempo_respuesta_promedio REAL,
-          satisfaccion_promedio REAL
-        )
-    ''')
-    conn.commit(); conn.close()
-init_db()
+    try:
+        conn = sqlite3.connect('chatbot.db')
+        c = conn.cursor()
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS conversaciones(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              usuario_id TEXT,
+              mensaje TEXT,
+              respuesta TEXT,
+              timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+              sentimiento TEXT,
+              categoria TEXT
+            )
+        ''')
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS metricas(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              fecha DATE,
+              consultas_totales INTEGER,
+              tiempo_respuesta_promedio REAL,
+              satisfaccion_promedio REAL
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+    except sqlite3.Error as e:
+        logger.error(f"Error en la base de datos SQLite: {str(e)}")
+        raise
 
 # ────────────────────────────
 # 4. Carga del Excel
 # ────────────────────────────
+# Carga del Excel con manejo de errores
 ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
-if not os.path.exists(ruta_excel):
-    raise FileNotFoundError(f"⚠️ Archivo no encontrado: {ruta_excel}")
+try:
+    if not os.path.exists(ruta_excel):
+        raise FileNotFoundError(f"⚠️ Archivo no encontrado: {ruta_excel}")
 
-df = pd.read_excel(ruta_excel, engine='openpyxl')
-df.columns = df.columns.str.strip().str.lower()
-if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
-    raise KeyError("❌ Falta una de las columnas requeridas")
+    df = pd.read_excel(ruta_excel, engine='openpyxl')
+    df.columns = df.columns.str.strip().str.lower()
+    if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
+        raise KeyError("❌ Falta una de las columnas requeridas")
 
-df["numero alarma"]     = df["numero alarma"].astype(str).str.strip()
-df["nombre del elemento"] = df["nombre del elemento"].str.strip().str.lower()
+    df["numero alarma"] = df["numero alarma"].astype(str).str.strip()
+    df["nombre del elemento"] = df["nombre del elemento"].str.strip().str.lower()
+
+except (FileNotFoundError, KeyError, ValueError) as e:
+    logger.error(f"Error al cargar el archivo Excel: {str(e)}")
+    raise
+
 
 # ────────────────────────────
 # 5. Funciones de ayuda (idénticas a las tuyas, solo compactadas)
@@ -143,10 +155,18 @@ def obtener_metricas():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    t0  = datetime.datetime.now()
-    data = request.get_json(force=True)
-    msg  = (data.get("message") or "").strip()
-    uid  = data.get("user_id","usuario1")
+    try:
+        data = request.get_json(force=True)
+        msg = (data.get("message") or "").strip()
+        if not msg:
+            return jsonify({"response": "⚠️ Por favor, ingrese un mensaje.", "tipo": "error"})
+
+        uid = data.get("user_id", "usuario1")
+        # Lógica del chat aquí...
+        
+    except Exception as e:
+        logger.error(f"Error en el procesamiento del mensaje: {str(e)}")
+        return jsonify({"response": "❌ Hubo un error al procesar tu mensaje. Intenta nuevamente.", "tipo": "error"})
 
     # ── Registro de usuario ─────────────────
     if uid not in usuarios:
