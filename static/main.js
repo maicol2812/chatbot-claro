@@ -1,16 +1,16 @@
 window.addEventListener('DOMContentLoaded', () => {
-  
-  const burbujaChat  = document.getElementById('burbuja-chat');
+  const burbujaChat = document.getElementById('burbuja-chat');
   const chatContainer = document.getElementById('chat-container');
-  const chatBox      = document.getElementById('chat-box');
-  const chatForm     = document.getElementById('chat-form');
-  const chatInput    = document.getElementById('chat-input');
-  const expandBtn    = document.getElementById('expand-chat');
-  const sendBtn      = document.getElementById('send-btn');
+  const chatBox = document.getElementById('chat-box');
+  const chatForm = document.getElementById('chat-form');
+  const chatInput = document.getElementById('chat-input');
+  const expandBtn = document.getElementById('expand-chat');
+  const sendBtn = document.getElementById('send-btn');
+
   sendBtn.addEventListener('click', () => {
-    chatBox.scrollTop = chatBox.scrollHeight;
+    chatBox.scrollTop = chatBox.scrollHeight; // Asegurarse de que el chat siempre se desplace hacia abajo
   });
-  
+
   let chatAbierto = false;
   let menuMostrado = false;
   const userId = 'user_' + Math.random().toString(36).substr(2, 9);
@@ -34,10 +34,11 @@ window.addEventListener('DOMContentLoaded', () => {
   function toggleChat() {
     chatAbierto = !chatAbierto;
     chatContainer.classList.toggle('mostrar', chatAbierto);
-    burbujaChat.style.display = chatAbierto ? 'none' : 'flex';
+    burbujaChat.style.display = chatAbierto ? 'none' : 'flex';  // Cambia la visibilidad del ícono del chat
 
     if (chatAbierto) {
-      chatInput.focus();
+      // Si el chat se abre, automáticamente mueve el foco al input
+      document.getElementById('chat-input').focus();
       
       // Mostrar menú inmediatamente si el chat está vacío
       if (!chatBox.innerText.trim()) {
