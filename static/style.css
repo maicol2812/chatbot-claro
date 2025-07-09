@@ -308,6 +308,9 @@ video#bg-video.intenso {
 
 .chat-container.mostrar {
   display: flex;
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .chat-container.expandido {
@@ -648,7 +651,8 @@ video#bg-video.intenso {
  /* Ocultar el chat por defecto */
 .chat-container {
   width: calc(100vw - 40px);
-  display: none; /* Mantenerlo oculto */
+  display: flex; /* Mantenerlo oculto */
+  transform: translateY(0);
   position: fixed;
   bottom: 100px;
   right: 20px;
@@ -724,34 +728,29 @@ video#bg-video.intenso {
   }
 
   /* Ocultar el chat por defecto */
+/* … (todo tu CSS previo sin tocar) … */
+
+/* ——— CAMBIO 1: por defecto oculto ——— */
 .chat-container {
-  display: none; /* Oculto por defecto */
-  position: fixed;
-  bottom: 110px;
-  right: 30px;
-  width: 400px;
-  max-height: 600px;
-  background: linear-gradient(135deg, var(--glass-bg), rgba(0, 0, 0, 0.9));
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  border-radius: 25px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 9999;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateY(100%);
-  opacity: 0;
-  pointer-events: none;
+  display:none;        /* <— oculto inicialmente */
+  transform:translateY(100%);
+  opacity:0;
+  pointer-events:none;
+  /* …tus propiedades originales… */
 }
 
-/* Mostrar el chat cuando esté abierto */
+/* ——— CAMBIO 2: cuando se abra con la clase .mostrar ——— */
 .chat-container.mostrar {
-  display: flex;
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: auto;
+  display:flex;
+  transform:translateY(0);
+  opacity:1;
+  pointer-events:auto;
 }
+
+/* ——— CAMBIO 3: aseguro que .acciones-rapidas no aparezca antes ——— */
+.acciones-rapidas { display:none; }  /* se muestra vía JS al llamar mostrarMenu() */
+
+/* …el resto de tu CSS permanece igual… */
 
 /* Para el botón de chat en la burbuja */
 .burbuja-chat {
