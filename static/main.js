@@ -30,33 +30,35 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Mostrar/Ocultar el chat cuando se hace clic en la burbuja
   function toggleChat() {
-    chatAbierto = !chatAbierto;
-    
-    if (chatAbierto) {
-      // Mostrar el chat
-      chatContainer.classList.add('mostrar');
-      burbujaChat.style.display = 'none';
-      chatInput.focus();
-      
-      // Mostrar el mensaje de bienvenida solo la primera vez
-      if (!saludoRealizado) {
+  chatAbierto = !chatAbierto;
+
+  if (chatAbierto) {
+    // Mostrar el chat
+    chatContainer.classList.add('mostrar');
+    burbujaChat.style.display = 'none';
+    chatInput.focus();
+
+    // Mostrar el mensaje de bienvenida solo la primera vez
+    if (!saludoRealizado) {
+      setTimeout(() => {
+        agregarMensaje("🤖 <strong>Asesor Claro IA activado</strong><br>Sistema de análisis predictivo en línea.<br>¿En qué puedo ayudarte hoy?", 'bot');
+        saludoRealizado = true;
+
+        // Mostrar las opciones después de 5 segundos del saludo
         setTimeout(() => {
-          agregarMensaje("🤖 <strong>Asesor Claro IA activado</strong><br>Sistema de análisis predictivo en línea.<br>¿En qué puedo ayudarte hoy?", 'bot');
-          saludoRealizado = true;
-          
-          // Mostrar el menú después de 5 segundos del saludo
-          setTimeout(() => {
-            mostrarMenu();
-          }, 5000);
-        }, 300);
-      }
-    } else {
-      // Ocultar el chat
-      chatContainer.classList.remove('mostrar');
-      burbujaChat.style.display = 'flex';
-      // NO resetear menuMostrado aquí para evitar duplicación
+          mostrarMenu();
+        }, 5000);  // Opciones aparecerán después de 5 segundos
+      }, 300);
     }
+  } else {
+    // Ocultar el chat
+    chatContainer.classList.remove('mostrar');
+    burbujaChat.style.display = 'flex';
+    menuMostrado = false;  // Resetear menú al cerrar el chat
   }
+}
+
+
 
   // Mostrar el chat expandido
   function toggleExpandChat() {
