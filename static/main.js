@@ -1,5 +1,3 @@
-// main.js optimizado para Asesor Claro (actualizado para abrir con ícono y mostrar menú luego del saludo)
-
 window.addEventListener('DOMContentLoaded', () => {
   const burbujaChat  = document.getElementById('burbuja-chat');
   const chatContainer = document.getElementById('chat-container');
@@ -11,8 +9,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const accionesRapidas = document.querySelector('.acciones-rapidas');
 
   let chatAbierto = false;
-  const userId = 'user_' + Math.random().toString(36).substr(2, 9);
   let saludoMostrado = false;
+  const userId = 'user_' + Math.random().toString(36).substr(2, 9);
 
   function mostrarMenu() {
     const opciones = `
@@ -32,23 +30,12 @@ window.addEventListener('DOMContentLoaded', () => {
     chatContainer.classList.toggle('mostrar', chatAbierto);
     burbujaChat.style.display = chatAbierto ? 'none' : 'flex';
 
-    if (chatAbierto) {
-      chatInput.focus();
-
-      // Mostrar saludo + luego menú
-      if (!saludoMostrado) {
-        saludoMostrado = true;
-        const saludo = `🤖 <strong>Asesor Claro IA activado</strong><br>Sistema de análisis predictivo en línea.<br>¿En qué puedo ayudarte hoy?`;
-        agregarMensaje(saludo, 'bot');
-
-        setTimeout(() => mostrarMenu(), 3000);
-      }
+    if (chatAbierto && !saludoMostrado) {
+      saludoMostrado = true;
+      const saludo = `🤖 <strong>Asesor Claro IA activado</strong><br>Sistema de análisis predictivo en línea.<br>¿En qué puedo ayudarte hoy?`;
+      agregarMensaje(saludo, 'bot');
+      setTimeout(mostrarMenu, 3000);
     }
-  }
-
-  function toggleExpandChat() {
-    chatContainer.classList.toggle('expandido');
-    expandBtn.textContent = chatContainer.classList.contains('expandido') ? '⤡' : '⤢';
   }
 
   function agregarMensaje(mensaje, tipo = 'bot') {
@@ -84,63 +71,9 @@ window.addEventListener('DOMContentLoaded', () => {
       agregarMensaje('❌ Error de conexión.', 'bot');
     } finally {
       sendBtn.disabled = false;
-      setTimeout(() => chatInput.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
     }
   }
 
-  function enviarAccionRapida(texto) {
-    chatInput.value = texto;
-    chatForm.dispatchEvent(new Event('submit'));
-  }
-
   burbujaChat.addEventListener('click', toggleChat);
-  expandBtn.addEventListener('click', toggleExpandChat);
   chatForm.addEventListener('submit', enviarMensaje);
-
-  window.enviarAccionRapida = enviarAccionRapida;
 });
-
-/* === FIXES PARA VISIBILIDAD Y CONTENEDOR === */
-const styleFixes = document.createElement('style');
-styleFixes.innerHTML = `
-.chat-box {
-  flex: 1;
-  overflow-y: auto;
-  max-height: 100%;
-  scroll-behavior: smooth;
-}
-
-.chat-input {
-  flex-shrink: 0;
-}
-
-.chat-container {
-  max-height: 85vh;
-  position: relative;
-  margin: 0 auto;
-  right: unset;
-  bottom: unset;
-  display: none;
-  flex-direction: column;
-}
-
-.chat-container.mostrar {
-  display: flex;
-}
-
-.chat-container.expandido {
-  max-height: 90vh;
-  height: 90vh;
-}
-
-.chat-container .chat-box {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.chat-container .chat-input {
-  position: sticky;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2));
-}`;
-document.head.appendChild(styleFixes);
