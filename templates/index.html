@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,483 +10,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <title>Asesor Claro - IA Avanzada</title>
-  <style>
-    /* === ESTILOS GENERALES Y VARIABLES === */
-    :root {
-      --primary-color: #d41528;
-      --secondary-color: #1a1a1a;
-      --accent-color: #00ff88;
-      --warning-color: #ff6b35;
-      --error-color: #ff1744;
-      --success-color: #4caf50;
-      --text-primary: #ffffff;
-      --text-secondary: #b0b0b0;
-      --glass-bg: rgba(255, 255, 255, 0.1);
-      --glass-border: rgba(255, 255, 255, 0.2);
-      --shadow-glow: 0 0 20px rgba(212, 21, 40, 0.3);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
-      color: var(--text-primary);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow-x: hidden;
-    }
-
-    /* === EFECTOS DE FONDO AVANZADOS === */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: 
-        radial-gradient(circle at 20% 30%, rgba(212, 21, 40, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 80%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: -2;
-      animation: float-bg 20s ease-in-out infinite;
-    }
-
-    @keyframes float-bg {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-20px) rotate(180deg); }
-    }
-
-    /* === OVERLAY GLASSMORPHISM === */
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: linear-gradient(
-        135deg,
-        rgba(0, 0, 0, 0.6) 0%,
-        rgba(0, 0, 0, 0.3) 50%,
-        rgba(0, 0, 0, 0.6) 100%
-      );
-      backdrop-filter: blur(2px);
-      z-index: -1;
-    }
-
-    /* === LOGO MEJORADO === */
-    .logo {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      width: 120px;
-      z-index: 10;
-      filter: drop-shadow(0 0 10px rgba(212, 21, 40, 0.5));
-      transition: all 0.3s ease;
-    }
-
-    .logo:hover {
-      transform: scale(1.05);
-      filter: drop-shadow(0 0 15px rgba(212, 21, 40, 0.8));
-    }
-
-    /* === PANTALLA DE BIENVENIDA MEJORADA === */
-    .welcome {
-      position: relative;
-      text-align: center;
-      color: var(--text-primary);
-      padding-top: 12vh;
-      z-index: 1;
-      animation: fadeInUp 1s ease-out;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .welcome h1 {
-      font-size: clamp(2rem, 8vw, 4rem);
-      font-weight: 800;
-      background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 1rem;
-      text-shadow: 0 0 30px rgba(212, 21, 40, 0.3);
-      animation: glow-text 2s ease-in-out infinite alternate;
-    }
-
-    @keyframes glow-text {
-      from { text-shadow: 0 0 20px rgba(212, 21, 40, 0.3); }
-      to { text-shadow: 0 0 30px rgba(212, 21, 40, 0.6); }
-    }
-
-    .welcome p {
-      font-size: clamp(1rem, 4vw, 1.5rem);
-      color: var(--text-secondary);
-      font-weight: 300;
-      margin-bottom: 2rem;
-    }
-
-    /* === INDICADORES DE ESTADO === */
-    .estado-sistema {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
-      border-radius: 15px;
-      padding: 10px 15px;
-      font-size: 0.9rem;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .estado-indicador {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success-color);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.2); opacity: 0.7; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* === BURBUJA DE CHAT MEJORADA === */
-    .burbuja-chat {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: linear-gradient(135deg, var(--primary-color), #ff1744);
-      color: white;
-      font-size: 1.8rem;
-      border-radius: 50%;
-      width: 70px;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 
-        0 8px 32px rgba(212, 21, 40, 0.4),
-        0 0 0 0 rgba(212, 21, 40, 0.7);
-      z-index: 100;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-10px) rotate(180deg); }
-    }
-
-    .burbuja-chat:hover {
-      transform: scale(1.15);
-      box-shadow: 
-        0 12px 48px rgba(212, 21, 40, 0.6),
-        0 0 0 10px rgba(212, 21, 40, 0.2);
-    }
-
-    /* === CONTENEDOR DE CHAT === */
-    .chat-container {
-      position: fixed;
-      bottom: 110px;
-      right: 30px;
-      width: 400px;
-      height: 500px;
-      background: linear-gradient(135deg, var(--glass-bg), rgba(0, 0, 0, 0.9));
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 25px;
-      box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      z-index: 50;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      animation: slideInUp 0.3s ease-out;
-    }
-
-    @keyframes slideInUp {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .chat-container.mostrar {
-      display: flex;
-    }
-
-    .chat-container.expandido {
-      width: 85vw;
-      height: 80vh;
-      bottom: 10vh;
-      right: 7.5vw;
-      max-height: 80vh;
-    }
-
-    /* === CABECERA DE CHAT === */
-    .chat-header {
-      position: sticky;
-      top: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(10px);
-      z-index: 10;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 25px 25px 0 0;
-    }
-
-    .estado-chat {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .indicador-ia {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent-color);
-      animation: pulse 2s infinite;
-    }
-
-    .expand-chat {
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      font-size: 18px;
-      color: white;
-      cursor: pointer;
-      padding: 8px 12px;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-    }
-
-    .expand-chat:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(1.05);
-    }
-
-    /* === CUERPO DE MENSAJES === */
-    .chat-box {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      scroll-behavior: smooth;
-    }
-
-    .chat-box::-webkit-scrollbar {
-      width: 6px;}
-
-    .chat-box::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .chat-box::-webkit-scrollbar-thumb {
-      background: var(--primary-color);
-      border-radius: 3px;
-    }
-
-    /* === MENSAJES === */
-    .bot-msg, .user-msg {
-      padding: 15px 20px;
-      border-radius: 20px;
-      max-width: 85%;
-      word-wrap: break-word;
-      animation: messageIn 0.3s ease-out;
-    }
-
-    @keyframes messageIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .bot-msg {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: var(--text-primary);
-      align-self: flex-start;
-      border-bottom-left-radius: 5px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .user-msg {
-      background: linear-gradient(135deg, var(--primary-color), #ff1744);
-      color: white;
-      align-self: flex-end;
-      border-bottom-right-radius: 5px;
-      box-shadow: 0 5px 15px rgba(212, 21, 40, 0.3);
-    }
-
-    /* === ACCIONES RÁPIDAS === */
-    .acciones-rapidas {
-      display: none;
-      gap: 8px;
-      padding: 10px 20px;
-      background: rgba(255, 255, 255, 0.03);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      overflow-x: auto;
-      flex-wrap: wrap;
-    }
-
-    .acciones-rapidas.mostrar {
-      display: flex;
-    }
-
-    .accion-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: var(--text-primary);
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-      backdrop-filter: blur(5px);
-    }
-
-    .accion-btn:hover {
-      background: rgba(212, 21, 40, 0.2);
-      border-color: var(--primary-color);
-      transform: translateY(-1px);
-    }
-
-    /* === ENTRADA DE TEXTO === */
-    .chat-input {
-      display: flex;
-      padding: 20px;
-      gap: 10px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2));
-      backdrop-filter: blur(10px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 0 0 25px 25px;
-    }
-
-    .chat-input input {
-      flex: 1;
-      border-radius: 15px;
-      padding: 12px 18px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-primary);
-      font-size: 1rem;
-      outline: none;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(5px);
-    }
-
-    .chat-input input:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(212, 21, 40, 0.2);
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .chat-input input::placeholder {
-      color: var(--text-secondary);
-    }
-
-    .chat-input button {
-      border-radius: 15px;
-      background: linear-gradient(135deg, var(--primary-color), #ff1744);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-    }
-
-    .chat-input button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(212, 21, 40, 0.4);
-    }
-
-    /* === RESPONSIVE === */
-    @media screen and (max-width: 768px) {
-      .chat-container {
-        width: 90vw;
-        height: 70vh;
-        bottom: 100px;
-        right: 5vw;
-        max-height: 70vh;
-      }
-
-      .chat-container.expandido {
-        width: 95vw;
-        height: 85vh;
-        bottom: 7.5vh;
-        right: 2.5vw;
-        max-height: 85vh;
-      }
-
-      .burbuja-chat {
-        bottom: 20px;
-        right: 20px;
-        width: 60px;
-        height: 60px;
-        font-size: 1.6rem;
-      }
-
-      .logo {
-        width: 90px;
-        top: 15px;
-        left: 15px;
-      }
-
-      .welcome h1 {
-        font-size: 2.5rem;
-      }
-
-      .welcome p {
-        font-size: 1.1rem;
-      }
-
-      .estado-sistema {
-        top: 15px;
-        right: 15px;
-        padding: 8px 12px;
-        font-size: 0.8rem;
-      }
-    }
-  </style>
+  
 </head>
 <body>
+  <!-- Video de fondo -->
+  <video autoplay muted loop id="bg-video">
+    <source src="/static/ruta-al-video.mp4" type="video/mp4" />
+  </video>
+
   <!-- Overlay con efectos -->
   <div class="overlay"></div>
 
+  <!-- Partículas flotantes -->
+  <div class="particles" id="particles"></div>
+
   <!-- Logo mejorado -->
-  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjUwIiBmaWxsPSIjZDQxNTI4Ii8+Cjx0ZXh0IHg9IjUwIiB5PSI1OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCI+Q2xhcm8gPC90ZXh0Pgo8L3N2Zz4=" alt="Logo Claro" class="logo" />
+  <img src="/static/claro-logo.png" alt="Logo Claro" class="logo" />
 
   <!-- Indicador de estado del sistema -->
   <div class="estado-sistema">
@@ -497,12 +37,17 @@
   <div class="welcome">
     <h1>Asesor Claro</h1>
     <p>Asistente IA avanzado para plataformas Core</p>
+    <div class="sparkle" style="top: 20%; left: 30%;"></div>
+    <div class="sparkle" style="top: 60%; right: 20%;"></div>
   </div>
+
+  <!-- Notificaciones -->
+  <div id="notificaciones-container"></div>
 
   <!-- Burbuja de chat -->
   <div class="burbuja-chat" id="burbuja-chat">💬</div>
 
-  <!-- Contenedor de chat -->
+  <!-- Contenedor de chat avanzado -->
   <div class="chat-container" id="chat-container">
     <div class="chat-header">
       <div class="estado-chat">
@@ -513,10 +58,14 @@
     </div>
 
     <div class="chat-box" id="chat-box">
-      <!-- Los mensajes se cargan dinámicamente -->
+      <div class="bot-msg">
+        🤖 <strong>Asesor Claro IA activado</strong><br>
+        Sistema de análisis predictivo en línea.<br>
+        ¿En qué puedo ayudarte hoy?
+      </div>
     </div>
     
-    <div class="acciones-rapidas" id="acciones-rapidas">
+    <div class="acciones-rapidas">
       <button class="accion-btn" onclick="enviarAccionRapida('estado sistema')">📊 Estado</button>
       <button class="accion-btn" onclick="enviarAccionRapida('emergencia')">🚨 Emergencia</button>
       <button class="accion-btn" onclick="enviarAccionRapida('dashboard')">📈 Dashboard</button>
@@ -529,11 +78,33 @@
     </form>
   </div>
 
+  <!-- Panel de métricas -->
+  <div class="metricas-overlay" id="metricas-overlay">
+    <div class="metricas-panel">
+      <h2>📊 Métricas del Sistema</h2>
+      <div id="metricas-content"></div>
+      <button onclick="cerrarMetricas()" style="margin-top: 20px; padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 10px; cursor: pointer;">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Tu script JS aquí -->
+  <script src="/static/main.js"></script>
+</body>
+</html>
+
   <script>
     // === VARIABLES GLOBALES ===
     let chatAbierto = false;
-    let saludoMostrado = false;
-    const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+    let escribiendo = false;
+    let userId = 'user_' + Math.random().toString(36).substr(2, 9);
+    let modoIA = false;
+    let ultimaActividad = Date.now();
+    let contadorMensajes = 0;
+    let metricas = {
+      mensajes: 0,
+      tiempoSesion: 0,
+      satisfaccion: 0
+    };
 
     // === ELEMENTOS DOM ===
     const burbujaChat = document.getElementById('burbuja-chat');
@@ -543,12 +114,24 @@
     const chatInput = document.getElementById('chat-input');
     const sendBtn = document.getElementById('send-btn');
     const expandBtn = document.getElementById('expand-chat');
-    const accionesRapidas = document.getElementById('acciones-rapidas');
+    const indicadorIA = document.getElementById('indicador-ia');
+    const estadoIndicador = document.getElementById('estado-indicador');
+    const estadoTexto = document.getElementById('estado-texto');
+    const notificacionesContainer = document.getElementById('notificaciones-container');
 
     // === INICIALIZACIÓN ===
     document.addEventListener('DOMContentLoaded', function() {
+      inicializarSistema();
+      crearParticulas();
+      iniciarMonitoreoSistema();
       configurarEventListeners();
     });
+
+    function inicializarSistema() {
+      console.log('🚀 Sistema Asesor Claro iniciado');
+      actualizarEstadoSistema('operativo');
+      mostrarNotificacion('Sistema iniciado correctamente', 'success');
+    }
 
     function configurarEventListeners() {
       // Chat toggle
@@ -559,93 +142,119 @@
       
       // Envío de mensajes
       chatForm.addEventListener('submit', enviarMensaje);
+      
+      // Detectar escritura
+      chatInput.addEventListener('input', detectarEscritura);
+      
+      // Doble clic para métricas
+      burbujaChat.addEventListener('dblclick', mostrarMetricas);
+      
+      // Atajos de teclado
+      document.addEventListener('keydown', manejarAtajos);
     }
 
-    // === FUNCIÓN PARA MOSTRAR EL MENÚ ===
-    function mostrarMenu() {
-      const opciones = `
-        📋 <strong>Opciones disponibles:</strong><br>
-        1️⃣ Alarmas de plataformas.<br>
-        2️⃣ Documentación de las plataformas.<br>
-        3️⃣ Incidentes activos de las plataformas.<br>
-        4️⃣ Estado operativo de las plataformas.<br>
-        5️⃣ Cambios activos en las plataformas.<br>
-        6️⃣ Hablar con el administrador de la plataforma.`;
-      agregarMensaje(opciones, 'bot');
-      accionesRapidas.classList.add('mostrar');
-    }
-
-    // === FUNCIÓN TOGGLE CHAT ===
+    // === FUNCIONES DE CHAT ===
     function toggleChat() {
       chatAbierto = !chatAbierto;
       chatContainer.classList.toggle('mostrar', chatAbierto);
       
       if (chatAbierto) {
         chatInput.focus();
-        if (!saludoMostrado) {
-          saludoMostrado = true;
-          const saludo = `🤖 <strong>Asesor Claro IA activado</strong><br>Sistema de análisis predictivo en línea.<br>¿En qué puedo ayudarte hoy?`;
-          agregarMensaje(saludo, 'bot');
-          setTimeout(mostrarMenu, 2000);
-        }
+        burbujaChat.style.display = 'none';
+        actualizarIndicadorIA('activo');
+      } else {
+        burbujaChat.style.display = 'flex';
+        actualizarIndicadorIA('inactivo');
       }
     }
 
-    // === FUNCIÓN EXPANDIR CHAT ===
     function toggleExpandChat() {
       chatContainer.classList.toggle('expandido');
       expandBtn.textContent = chatContainer.classList.contains('expandido') ? '⤡' : '⤢';
     }
 
-    // === FUNCIÓN AGREGAR MENSAJE ===
-    function agregarMensaje(mensaje, tipo = 'bot') {
-      const div = document.createElement('div');
-      div.className = `${tipo}-msg`;
-      div.innerHTML = mensaje.replace(/\n/g, '<br>');
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    // === FUNCIÓN ENVIAR MENSAJE ===
     async function enviarMensaje(e) {
       e.preventDefault();
-      const texto = chatInput.value.trim();
-      if (!texto) return;
+      const mensaje = chatInput.value.trim();
+      if (!mensaje) return;
 
-      agregarMensaje(texto, 'user');
+      // Agregar mensaje del usuario
+      agregarMensaje(mensaje, 'user');
       chatInput.value = '';
-      sendBtn.disabled = true;
-
-      // Simulación de respuesta (reemplaza con tu lógica de backend)
-      setTimeout(() => {
-        const respuestas = [
-          "✅ Mensaje recibido. Procesando solicitud...",
-          "🔍 Analizando datos del sistema...",
-          "📊 Generando reporte de estado...",
-          "🤖 Respuesta del sistema IA activada."
-        ];
-        const respuestaAleatoria = respuestas[Math.floor(Math.random() * respuestas.length)];
-        agregarMensaje(respuestaAleatoria, 'bot');
-        sendBtn.disabled = false;
-      }, 1000);
-    }
-
-    // === FUNCIÓN PARA ACCIONES RÁPIDAS ===
-    function enviarAccionRapida(accion) {
-      agregarMensaje(accion, 'user');
+      contadorMensajes++;
       
-      setTimeout(() => {
-        const respuestasAcciones = {
-          'estado sistema': '📊 <strong>Estado del Sistema:</strong><br>✅ Servicios principales: Operativos<br>🟡 Carga del sistema: 67%<br>🔵 Conexiones activas: 1,247',
-          'emergencia': '🚨 <strong>Modo Emergencia Activado</strong><br>Redirigiendo a protocolo de emergencia...',
-          'dashboard': '📈 <strong>Dashboard Ejecutivo</strong><br>Abriendo vista de métricas en tiempo real...',
-          'análisis predictivo': '🔮 <strong>IA Predictiva</strong><br>Iniciando análisis de tendencias y patrones...'
-        };
+      // Mostrar indicador de escritura
+      mostrarEscribiendo();
+      
+      // Detectar comandos especiales
+      if (manejarComandosEspeciales(mensaje)) return;
+      
+      try {
+        // Enviar a la API
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            message: mensaje,
+            user_id: userId,
+            timestamp: Date.now()
+          })
+        });
         
-        const respuesta = respuestasAcciones[accion] || '🤖 Procesando solicitud...';
-        agregarMensaje(respuesta, 'bot');
-      }, 800);
+        const data = await response.json();
+        
+        // Remover indicador de escritura
+        removerEscribiendo();
+        
+        // Agregar respuesta del bot
+        agregarMensaje(data.response, 'bot', data.tipo);
+        
+        // Actualizar estado según respuesta
+        actualizarEstadoSegunRespuesta(data.tipo);
+        
+      } catch (error) {
+        console.error('Error en chat:', error);
+        removerEscribiendo();
+        agregarMensaje('❌ Error de conexión. Intenta nuevamente.', 'bot', 'error');
+      }
     }
-  </script>
-</body>
-</html>
+
+    function agregarMensaje(mensaje, tipo, categoria = null) {
+      const mensajeDiv = document.createElement('div');
+      mensajeDiv.className = `${tipo}-msg`;
+      
+      if (categoria) {
+        mensajeDiv.classList.add(categoria);
+      }
+      
+      // Formatear mensaje con markdown básico
+      const mensajeFormateado = formatearMensaje(mensaje);
+      mensajeDiv.innerHTML = mensajeFormateado;
+      
+      chatBox.appendChild(mensajeDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      
+      // Efectos especiales según categoría
+      if (categoria === 'emergencia') {
+        activarModoEmergencia();
+      } else if (categoria === 'ia_avanzada') {
+        activarModoIA();
+      }
+    }
+
+    function formatearMensaje(mensaje) {
+      return mensaje
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/━+/g, '<hr style="border: 1px solid rgba(255,255,255,0.2); margin: 10px 0;">')
+        .replace(/\n/g, '<br>');
+    }
+
+    function mostrarEscribiendo() {
+      const escribiendoDiv = document.createElement('div');
+      escribiendoDiv.className = 'escribiendo';
+      escribiendoDiv.id = 'escribiendo';}
+      
+
+
+
