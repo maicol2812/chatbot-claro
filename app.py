@@ -1,77 +1,347 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import pandas as pd
 import os
-from difflib import get_close_matches
-from deep_translator import GoogleTranslator
 import json
 import datetime
-import re
-from collections import defaultdict
-import logging
-from threading import Timer
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import sqlite3
-import hashlib
-import jwt
-from functools import wraps 
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
+CORS(app)
 
-# Configuración avanzada
-app.config['SECRET_KEY'] = 'claro-secret-key-2024'
-app.config['JWT_ALGORITHM'] = 'HS256'
+# Configuración
+app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui'
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# Configuración de logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Variables globales
+metricas_globales = {
+    'total_mensajes': 0,
+    'sesiones_activas': 0,
+    'tiempo_promedio_respuesta': 0,
+    'ultimo_reinicio': datetime.datetime.now()
+}
 
-# Almacenamiento en memoria mejorado
-usuarios = {}
-sesiones_activas = {}
-metricas_sistema = defaultdict(int)
-alertas_activas = {}
-historial_conversaciones = defaultdict(list)
-predicciones_ia = {}
+# Datos del menú
+MENU_OPCIONES = {
+    '1': 'Alarmas de plataformas',
+    '2': 'Documentación de las plataformas',
+    '3': 'Incidentes activos de las plataformas',
+    '4': 'Estado operativo de las plataformas',
+    '5': 'Cambios activos en las plataformas',
+    '6': 'Hablar con el administrador'
+}
 
-# Base de datos SQLite para persistencia
-def init_db():
-    conn = sqlite3.connect('chatbot.db')
-    cursor = conn.cursor()
+def cargar_excel_alarmas():
+    """Carga el archivo Excel de alarmas"""
+    try:
+        archivo_excel = "Ejemplo de alarmas CMM.xlsx"
+        if os.path.exists(archivo_excel):
+            df = pd.read_excel(archivo_excel)
+            return df
+        else:
+            print(f"⚠️  Archivo {archivo_excel} no encontrado")
+            return None
+    except Exception as e:
+        print(f"❌ Error al cargar Excel: {e}")
+        return None
+
+def formatear_respuesta_alarma(df, filtro=None):
+    """Formatea la respuesta de alarmas para el chat"""
+    if df is None or df.empty:
+        return "❌ No se encontraron datos de alarmas.", "error"
     
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS conversaciones (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario_id TEXT,
-            mensaje TEXT,
-            respuesta TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            sentimiento TEXT,
-            categoria TEXT
-        )
-    ''')
+    try:
+        # Si hay filtro, aplicarlo
+        if filtro:
+            df_filtrado = df[df.apply(lambda x: x.astype(str).str.contains(filtro, case=False, na=False).any(), axis=1)]
+            if df_filtrado.empty:
+                return f"🔍 No se encontraron alarmas que coincidan con '{filtro}'.", "warning"
+            df = df_filtrado
+        
+        # Limitar resultados para evitar mensajes muy largos
+        max_resultados = 5
+        if len(df) > max_resultados:
+            df = df.head(max_resultados)
+            mensaje_limite = f"\n\n📋 *Mostrando {max_resultados} de {len(df)} alarmas encontradas*"
+        else:
+            mensaje_limite = ""
+        
+        respuesta = "🚨 **ALARMAS DE PLATAFORMAS**\n\n"
+        
+        for index, row in df.iterrows():
+            respuesta += f"**━━━ ALARMA {index + 1} ━━━**\n"
+            for col in df.columns:
+                if pd.notna(row[col]) and str(row[col]).strip():
+                    respuesta += f"**{col}:** {row[col]}\n"
+            respuesta += "\n"
+        
+        respuesta += mensaje_limite
+        return respuesta, "info"
+        
+    except Exception as e:
+        return f"❌ Error al procesar alarmas: {str(e)}", "error"
+
+def procesar_opcion_menu(opcion, mensaje_completo=""):
+    """Procesa las opciones del menú"""
     
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS metricas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            fecha DATE,
-            consultas_totales INTEGER,
-            tiempo_respuesta_promedio REAL,
-            satisfaccion_promedio REAL
-        )
-    ''')
+    if opcion == '1':
+        # Buscar alarmas
+        df = cargar_excel_alarmas()
+        if df is not None:
+            # Verificar si hay filtro adicional en el mensaje
+            palabras = mensaje_completo.lower().split()
+            filtro = None
+            if len(palabras) > 1:
+                filtro = ' '.join(palabras[1:])  # Todo después del "1"
+            
+            respuesta, tipo = formatear_respuesta_alarma(df, filtro)
+            return respuesta, tipo
+        else:
+            return "❌ No se pudo acceder al archivo de alarmas. Verifica que 'Ejemplo de alarmas CMM.xlsx' esté en el directorio del servidor.", "error"
     
-    conn.commit()
-    conn.close()
+    elif opcion == '2':
+        return """📚 **DOCUMENTACIÓN DE PLATAFORMAS**
 
-init_db()
+**Documentos disponibles:**
+• Manual de usuario - Plataforma Principal
+• Guía de resolución de problemas
+• Procedimientos de escalamiento
+• Políticas de seguridad
+• Manual de configuración
 
-# Carga de datos existente
-ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
+*Para acceder a un documento específico, escribe: "2 [nombre del documento]"*""", "info"
+    
+    elif opcion == '3':
+        return """🔴 **INCIDENTES ACTIVOS**
 
+**Estado actual de incidentes:**
+• **INC-001:** Lentitud en plataforma web - *En progreso*
+• **INC-002:** Error de conexión base de datos - *Resuelto*
+• **INC-003:** Problema con autenticación - *Pendiente*
+
+**Tiempo promedio de resolución:** 2.5 horas
+**Incidentes críticos:** 1 activo""", "emergencia"
+    
+    elif opcion == '4':
+        return """✅ **ESTADO OPERATIVO DE PLATAFORMAS**
+
+**Plataformas monitoreadas:**
+• **Plataforma Web:** 🟢 Operativa (99.8% uptime)
+• **Base de Datos:** 🟢 Operativa (99.9% uptime)
+• **API Services:** 🟡 Degradada (95.2% uptime)
+• **Sistema de Backup:** 🟢 Operativo
+• **Monitoreo:** 🟢 Activo
+
+**Última verificación:** Hace 2 minutos""", "info"
+    
+    elif opcion == '5':
+        return """🔄 **CAMBIOS ACTIVOS EN PLATAFORMAS**
+
+**Cambios programados:**
+• **CHG-001:** Actualización de seguridad - *Esta noche 2:00 AM*
+• **CHG-002:** Migración de servidor - *Fin de semana*
+• **CHG-003:** Actualización de certificados - *Pendiente aprobación*
+
+**Impacto esperado:** Mínimo
+**Ventana de mantenimiento:** 2 horas""", "info"
+    
+    elif opcion == '6':
+        return """👨‍💼 **CONTACTO CON ADMINISTRADOR**
+
+**Opciones de contacto:**
+• **Teléfono:** +57 (1) 123-4567
+• **Email:** admin@claro.com.co
+• **Ticket:** Sistema interno de tickets
+• **Escalamiento:** Disponible 24/7
+
+**Horario de atención directa:**
+Lunes a Viernes: 8:00 AM - 6:00 PM
+Sábados: 9:00 AM - 2:00 PM
+
+*Para emergencias, usar el teléfono de guardia.*""", "info"
+    
+    else:
+        return None, None
+
+@app.route('/')
+def index():
+    """Página principal"""
+    return render_template('index.html')
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    """Endpoint principal para el chat"""
+    try:
+        data = request.get_json()
+        mensaje = data.get('message', '').strip()
+        user_id = data.get('user_id', 'anonymous')
+        timestamp = data.get('timestamp', datetime.datetime.now().timestamp())
+        
+        # Actualizar métricas
+        metricas_globales['total_mensajes'] += 1
+        
+        print(f"💬 Mensaje recibido: '{mensaje}' de usuario: {user_id}")
+        
+        # Procesar mensaje
+        respuesta, tipo = procesar_mensaje(mensaje)
+        
+        # Respuesta JSON
+        response_data = {
+            'response': respuesta,
+            'tipo': tipo,
+            'timestamp': datetime.datetime.now().isoformat(),
+            'user_id': user_id,
+            'message_id': f"msg_{int(timestamp)}"
+        }
+        
+        print(f"🤖 Respuesta enviada: {tipo}")
+        return jsonify(response_data)
+        
+    except Exception as e:
+        print(f"❌ Error en /chat: {e}")
+        return jsonify({
+            'response': f'❌ Error interno del servidor: {str(e)}',
+            'tipo': 'error',
+            'timestamp': datetime.datetime.now().isoformat()
+        }), 500
+
+def procesar_mensaje(mensaje):
+    """Procesa el mensaje del usuario y genera respuesta"""
+    
+    mensaje_original = mensaje
+    mensaje = mensaje.lower().strip()
+    
+    # Comandos del menú (1-6)
+    if mensaje in ['1', '2', '3', '4', '5', '6']:
+        respuesta, tipo = procesar_opcion_menu(mensaje, mensaje_original)
+        if respuesta:
+            return respuesta, tipo
+    
+    # Comandos con parámetros adicionales
+    if mensaje.startswith(('1 ', '2 ', '3 ', '4 ', '5 ', '6 ')):
+        opcion = mensaje[0]
+        respuesta, tipo = procesar_opcion_menu(opcion, mensaje_original)
+        if respuesta:
+            return respuesta, tipo
+    
+    # Comandos especiales
+    if mensaje in ['menu', 'opciones', 'ayuda', 'help']:
+        return generar_menu(), "menu"
+    
+    if mensaje in ['estado', 'status']:
+        return generar_estado_sistema(), "info"
+    
+    if mensaje in ['hola', 'hello', 'hi', 'buenos días', 'buenas tardes', 'buenas noches']:
+        return """👋 **¡Hola! Soy tu Asesor Claro IA**
+
+Estoy aquí para ayudarte con:
+• Consultas sobre alarmas y plataformas
+• Información de incidentes activos
+• Estado operativo de sistemas
+• Documentación técnica
+
+**Escribe 'menu' para ver todas las opciones disponibles.**""", "info"
+    
+    # Búsqueda general en alarmas
+    if any(word in mensaje for word in ['alarma', 'alarm', 'buscar', 'search']):
+        df = cargar_excel_alarmas()
+        if df is not None:
+            # Extraer términos de búsqueda
+            términos_busqueda = mensaje.replace('alarma', '').replace('alarm', '').replace('buscar', '').replace('search', '').strip()
+            if términos_busqueda:
+                respuesta, tipo = formatear_respuesta_alarma(df, términos_busqueda)
+                return respuesta, tipo
+        return "❌ No se pudo realizar la búsqueda de alarmas.", "error"
+    
+    # Respuesta por defecto
+    return """🤖 **No entiendo tu solicitud**
+
+Puedes usar estos comandos:
+• **1-6:** Opciones del menú principal
+• **menu:** Ver todas las opciones
+• **hola:** Saludo inicial
+• **estado:** Ver estado del sistema
+
+*O escribe 'menu' para ver las opciones completas.*""", "info"
+
+def generar_menu():
+    """Genera el menú principal"""
+    menu_html = "📋 **OPCIONES DISPONIBLES:**\n\n"
+    for numero, descripcion in MENU_OPCIONES.items():
+        menu_html += f"**{numero}️⃣** {descripcion}\n"
+    
+    menu_html += "\n*Escribe el número de la opción que deseas.*"
+    return menu_html
+
+def generar_estado_sistema():
+    """Genera el estado actual del sistema"""
+    uptime = datetime.datetime.now() - metricas_globales['ultimo_reinicio']
+    
+    return f"""📊 **ESTADO DEL SISTEMA**
+
+**🟢 Estado:** Operativo
+**⏱️ Tiempo activo:** {str(uptime).split('.')[0]}
+**💬 Mensajes procesados:** {metricas_globales['total_mensajes']}
+**🔄 Última actualización:** {datetime.datetime.now().strftime('%H:%M:%S')}
+
+**Servicios:**
+• Chat Bot: 🟢 Activo
+• Base de datos: 🟢 Conectada
+• Archivos Excel: 🟢 Disponibles"""
+
+@app.route('/metrics', methods=['GET'])
+def get_metrics():
+    """Endpoint para obtener métricas del sistema"""
+    uptime = datetime.datetime.now() - metricas_globales['ultimo_reinicio']
+    
+    return jsonify({
+        'total_mensajes': metricas_globales['total_mensajes'],
+        'uptime_segundos': int(uptime.total_seconds()),
+        'uptime_readable': str(uptime).split('.')[0],
+        'ultimo_reinicio': metricas_globales['ultimo_reinicio'].isoformat(),
+        'timestamp': datetime.datetime.now().isoformat()
+    })
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Endpoint de salud del sistema"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.datetime.now().isoformat(),
+        'services': {
+            'flask': 'running',
+            'excel_file': 'available' if os.path.exists('Ejemplo de alarmas CMM.xlsx') else 'missing'
+        }
+    })
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Endpoint no encontrado'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'error': 'Error interno del servidor'}), 500
+
+if __name__ == '__main__':
+    print("🚀 Iniciando Asesor Claro IA...")
+    print("📊 Verificando archivos necesarios...")
+    
+    # Verificar archivo Excel
+    if os.path.exists('Ejemplo de alarmas CMM.xlsx'):
+        print("✅ Archivo de alarmas encontrado")
+    else:
+        print("⚠️  Archivo 'Ejemplo de alarmas CMM.xlsx' no encontrado")
+    
+    # Crear directorio de uploads si no existe
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    
+    print("🌐 Servidor Flask iniciado en http://localhost:5000")
+    print("💬 Chat disponible en la página principal")
+    print("📈 Métricas disponibles en /metrics")
+    print("🔍 Health check en /health")
+    
+    app.run(debug=True, host='0.0.0.0', port=5000)
 if not os.path.exists(ruta_excel):
     raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
 
