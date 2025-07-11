@@ -1,814 +1,89 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#d41528" />
-  <meta name="description" content="Asesor Claro - Asistente IA avanzado para plataformas Core" />
-  <link rel="manifest" href="/static/manifest.json" />
-  <link rel="stylesheet" href="/static/style.css" />
-  <link rel="icon" href="/static/claro-logo.png" type="image/png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <title>Asesor Claro - IA Avanzada</title>
-  <style>
-    :root {
-      --primary-color: #d41528;
-      --secondary-color: #f8f9fa;
-      --dark-bg: #1a1a1a;
-      --chat-bg: rgba(255, 255, 255, 0.95);
-      --text-color: #333;
-      --border-radius: 15px;
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      height: 100vh;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(45deg, rgba(212, 21, 40, 0.1), rgba(0, 0, 0, 0.3));
-      z-index: 1;
-    }
-
-    .particles {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 2;
-      pointer-events: none;
-    }
-
-    .particle {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.6);
-      border-radius: 50%;
-      animation: float 6s ease-in-out infinite;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-20px) rotate(180deg); }
-    }
-
-    .logo {
-      position: absolute;
-      top: 30px;
-      left: 30px;
-      width: 60px;
-      height: 60px;
-      z-index: 10;
-      border-radius: 50%;
-      box-shadow: var(--shadow);
-    }
-
-    .estado-sistema {
-      position: absolute;
-      top: 30px;
-      right: 30px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px 15px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 500;
-      z-index: 10;
-      box-shadow: var(--shadow);
-    }
-
-    .estado-indicador {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #28a745;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
-      70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
-    }
-
-    .welcome {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      color: white;
-      z-index: 5;
-    }
-
-    .welcome h1 {
-      font-size: 4rem;
-      font-weight: 800;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    }
-
-    .welcome p {
-      font-size: 1.2rem;
-      opacity: 0.9;
-      font-weight: 300;
-    }
-
-    .burbuja-chat {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      width: 70px;
-      height: 70px;
-      background: var(--primary-color);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 24px;
-      color: white;
-      box-shadow: var(--shadow);
-      z-index: 1000;
-      transition: all 0.3s ease;
-    }
-
-    .burbuja-chat:hover {
-      transform: scale(1.1);
-      box-shadow: 0 15px 35px rgba(212, 21, 40, 0.4);
-    }
-
-    .chat-container {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      width: 400px;
-      height: 500px;
-      background: var(--chat-bg);
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      z-index: 1001;
-      display: none;
-      flex-direction: column;
-      backdrop-filter: blur(10px);
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .chat-container.mostrar {
-      display: flex;
-    }
-
-    .chat-container.expandido {
-      width: 600px;
-      height: 700px;
-    }
-
-    .chat-header {
-      background: var(--primary-color);
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-radius: var(--border-radius) var(--border-radius) 0 0;
-    }
-
-    .estado-chat {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 600;
-    }
-
-    .indicador-ia {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #28a745;
-      animation: pulse 2s infinite;
-    }
-
-    .expand-chat {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 20px;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-
-    .expand-chat:hover {
-      transform: scale(1.2);
-    }
-
-    .chat-box {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      background: rgba(255, 255, 255, 0.98);
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      max-height: calc(100% - 140px);
-    }
-
-    .chat-box::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .chat-box::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.1);
-    }
-
-    .chat-box::-webkit-scrollbar-thumb {
-      background: var(--primary-color);
-      border-radius: 3px;
-    }
-
-    .bot-msg, .user-msg {
-      padding: 12px 16px;
-      border-radius: 15px;
-      max-width: 85%;
-      word-wrap: break-word;
-      line-height: 1.5;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .bot-msg {
-      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-      color: var(--text-color);
-      align-self: flex-start;
-      border: 1px solid rgba(212, 21, 40, 0.1);
-    }
-
-    .user-msg {
-      background: var(--primary-color);
-      color: white;
-      align-self: flex-end;
-    }
-
-    .bot-msg.emergencia {
-      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-      color: white;
-      border: 2px solid #ff3838;
-      animation: glow 2s infinite alternate;
-    }
-
-    @keyframes glow {
-      from { box-shadow: 0 0 5px rgba(255, 107, 107, 0.5); }
-      to { box-shadow: 0 0 20px rgba(255, 107, 107, 0.8); }
-    }
-
-    .bot-msg.info {
-      background: linear-gradient(135deg, #74b9ff, #0984e3);
-      color: white;
-    }
-
-    .escribiendo {
-      padding: 10px 16px;
-      background: #f1f3f4;
-      border-radius: 15px;
-      align-self: flex-start;
-      max-width: 85%;
-    }
-
-    .escribiendo::after {
-      content: "●●●";
-      animation: typing 1.5s infinite;
-    }
-
-    @keyframes typing {
-      0%, 60% { opacity: 0.3; }
-      30% { opacity: 1; }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .acciones-rapidas {
-      padding: 15px 20px;
-      background: rgba(248, 249, 250, 0.9);
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      border-top: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    .accion-btn {
-      background: white;
-      border: 1px solid rgba(212, 21, 40, 0.3);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-    }
-
-    .accion-btn:hover {
-      background: var(--primary-color);
-      color: white;
-      transform: translateY(-2px);
-    }
-
-    .chat-input {
-      padding: 15px 20px;
-      background: white;
-      border-top: 1px solid rgba(0, 0, 0, 0.1);
-      display: flex;
-      gap: 10px;
-      border-radius: 0 0 var(--border-radius) var(--border-radius);
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 12px 16px;
-      border: 1px solid rgba(0, 0, 0, 0.2);
-      border-radius: 25px;
-      outline: none;
-      font-size: 14px;
-      transition: border-color 0.3s ease;
-    }
-
-    .chat-input input:focus {
-      border-color: var(--primary-color);
-    }
-
-    .chat-input button {
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-
-    .chat-input button:hover {
-      background: #c41426;
-      transform: translateY(-2px);
-    }
-
-    .notificacion {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: white;
-      padding: 15px 20px;
-      border-radius: 10px;
-      box-shadow: var(--shadow);
-      z-index: 2000;
-      animation: slideIn 0.5s ease;
-    }
-
-    @keyframes slideIn {
-      from { transform: translateX(100%); }
-      to { transform: translateX(0); }
-    }
-
-    .notificacion.success {
-      border-left: 4px solid #28a745;
-    }
-
-    .notificacion.error {
-      border-left: 4px solid #dc3545;
-    }
-
-    .notificacion.warning {
-      border-left: 4px solid #ffc107;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .chat-container {
-        width: calc(100vw - 20px);
-        height: calc(100vh - 40px);
-        bottom: 10px;
-        right: 10px;
-        left: 10px;
-      }
-
-      .chat-container.expandido {
-        width: calc(100vw - 20px);
-        height: calc(100vh - 40px);
-      }
-
-      .welcome h1 {
-        font-size: 2.5rem;
-      }
-
-      .welcome p {
-        font-size: 1rem;
-      }
-
-      .acciones-rapidas {
-        flex-direction: column;
-      }
-
-      .accion-btn {
-        width: 100%;
-        text-align: center;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .chat-container {
-        width: 100vw;
-        height: 100vh;
-        bottom: 0;
-        right: 0;
-        left: 0;
-        border-radius: 0;
-      }
-
-      .welcome h1 {
-        font-size: 2rem;
-      }
-
-      .logo {
-        width: 40px;
-        height: 40px;
-        top: 20px;
-        left: 20px;
-      }
-
-      .estado-sistema {
-        top: 20px;
-        right: 20px;
-        font-size: 12px;
-        padding: 8px 12px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asesor Claro IA</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="static/claro-logo.png">
+    <!-- Fuente de Google para mejor tipografía -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Overlay con efectos -->
-  <div class="overlay"></div>
-
-  <!-- Partículas flotantes -->
-  <div class="particles" id="particles"></div>
-
-  <!-- Logo mejorado -->
-  <img src="/static/claro-logo.png" alt="Logo Claro" class="logo" />
-
-  <!-- Indicador de estado del sistema -->
-  <div class="estado-sistema">
-    <div class="estado-indicador" id="estado-indicador"></div>
-    <span id="estado-texto">Sistema Operativo</span>
-  </div>
-
-  <!-- Pantalla de bienvenida -->
-  <div class="welcome">
-    <h1>Asesor Claro</h1>
-    <p>Asistente IA avanzado para plataformas Core</p>
-  </div>
-
-  <!-- Notificaciones -->
-  <div id="notificaciones-container"></div>
-
-  <!-- Burbuja de chat -->
-  <div class="burbuja-chat" id="burbuja-chat">💬</div>
-
-  <!-- Contenedor de chat avanzado -->
-  <div class="chat-container" id="chat-container">
-    <div class="chat-header">
-      <div class="estado-chat">
-        <div class="indicador-ia" id="indicador-ia"></div>
-        <span>Asesor IA Claro</span>
-      </div>
-      <button class="expand-chat" id="expand-chat">⤢</button>
-    </div>
-
-    <div class="chat-box" id="chat-box">
-      <div class="bot-msg">
-        🤖 <strong>Asesor Claro IA activado</strong><br>
-        Sistema de análisis predictivo en línea.<br>
-        ¿En qué puedo ayudarte hoy?
-      </div>
+    <!-- Video de fondo (se muestra solo en desktop) -->
+    <video autoplay muted loop id="video-fondo" class="video-fondo">
+        <source src="static/ruta-al-video.mp4" type="video/mp4">
+    </video>
+    
+    <!-- Overlay para mejorar legibilidad -->
+    <div class="overlay"></div>
+    
+    <div class="chat-container">
+        <div class="chat-header">
+            <img src="static/claro-logo.png" alt="Logo Claro" class="logo-claro">
+            <div class="header-text">
+                <h1>Asesor Claro IA</h1>
+                <p class="subtitle">Asistencia inteligente 24/7</p>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text">En línea</span>
+            </div>
+        </div>
+        
+        <div class="chat-box" id="chat-box">
+            <!-- Mensaje de bienvenida inicial -->
+            <div class="message bot-message welcome-message">
+                <strong>Asesor Claro IA:</strong>
+                <div class="message-content">
+                    ¡Hola! 👋 Soy tu Asesor Virtual de Claro. Estoy aquí para ayudarte con:<br><br>
+                    🔍 Búsqueda de alarmas técnicas<br>
+                    📊 Informes de métricas de red<br>
+                    ⚡️ Soporte técnico especializado<br><br>
+                    Escribe <strong>"menu"</strong> para ver todas las opciones disponibles.
+                </div>
+                <div class="welcome-footer">
+                    <small>Servicio disponible 24/7 | Versión 2.1.0</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Escribe tu mensaje o selecciona una opción del menú..." autocomplete="off">
+            <button id="send-btn" title="Enviar mensaje">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+            <button id="menu-btn" title="Mostrar menú rápido">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="12" cy="5" r="1"></circle>
+                    <circle cx="12" cy="19" r="1"></circle>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Menú rápido flotante -->
+        <div class="quick-menu" id="quick-menu">
+            <div class="menu-header">
+                <h3>Opciones rápidas</h3>
+                <button id="close-menu-btn">×</button>
+            </div>
+            <div class="menu-options">
+                <button class="menu-option" data-option="1">🔍 Buscar alarma</button>
+                <button class="menu-option" data-option="2">📞 Soporte técnico</button>
+                <button class="menu-option" data-option="3">🌐 Estado de red</button>
+                <button class="menu-option" data-option="4">⚠️ Reportar incidencia</button>
+                <button class="menu-option" data-option="5">📊 Ver métricas</button>
+            </div>
+        </div>
     </div>
     
-    <div class="acciones-rapidas">
-      <button class="accion-btn" onclick="enviarAccionRapida('menu')">📋 Menú</button>
-      <button class="accion-btn" onclick="enviarAccionRapida('1')">🚨 Alarmas</button>
-      <button class="accion-btn" onclick="enviarAccionRapida('3')">🔴 Incidentes</button>
-      <button class="accion-btn" onclick="enviarAccionRapida('4')">📊 Estado</button>
-    </div>
-
-    <form class="chat-input" id="chat-form">
-      <input type="text" id="chat-input" placeholder="Escribe tu mensaje o comando (1-6)..." autocomplete="off" />
-      <button type="submit" id="send-btn">Enviar</button>
-    </form>
-  </div>
-
-  <script>
-    // === VARIABLES GLOBALES ===
-    let chatAbierto = false;
-    let escribiendo = false;
-    let userId = 'user_' + Math.random().toString(36).substr(2, 9);
-    let contadorMensajes = 0;
-
-    // === ELEMENTOS DOM ===
-    const burbujaChat = document.getElementById('burbuja-chat');
-    const chatContainer = document.getElementById('chat-container');
-    const chatBox = document.getElementById('chat-box');
-    const chatForm = document.getElementById('chat-form');
-    const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-btn');
-    const expandBtn = document.getElementById('expand-chat');
-    const indicadorIA = document.getElementById('indicador-ia');
-    const estadoIndicador = document.getElementById('estado-indicador');
-    const estadoTexto = document.getElementById('estado-texto');
-    const notificacionesContainer = document.getElementById('notificaciones-container');
-
-    // === INICIALIZACIÓN ===
-    document.addEventListener('DOMContentLoaded', function() {
-      inicializarSistema();
-      crearParticulas();
-      configurarEventListeners();
-      
-      // Mostrar menú automáticamente al cargar
-      setTimeout(() => {
-        enviarMensajeAutomatico('menu');
-      }, 2000);
-    });
-
-    function inicializarSistema() {
-      console.log('🚀 Sistema Asesor Claro iniciado');
-      actualizarEstadoSistema('operativo');
-      mostrarNotificacion('Sistema iniciado correctamente', 'success');
-    }
-
-    function configurarEventListeners() {
-      // Chat toggle
-      burbujaChat.addEventListener('click', toggleChat);
-      
-      // Expandir chat
-      expandBtn.addEventListener('click', toggleExpandChat);
-      
-      // Envío de mensajes
-      chatForm.addEventListener('submit', enviarMensaje);
-      
-      // Detectar Enter en input
-      chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          enviarMensaje(e);
-        }
-      });
-    }
-
-    function crearParticulas() {
-      const particles = document.getElementById('particles');
-      for (let i = 0; i < 30; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.top = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 6 + 's';
-        particles.appendChild(particle);
-      }
-    }
-
-    // === FUNCIONES DE CHAT ===
-    function toggleChat() {
-      chatAbierto = !chatAbierto;
-      chatContainer.classList.toggle('mostrar', chatAbierto);
-      
-      if (chatAbierto) {
-        chatInput.focus();
-        burbujaChat.style.display = 'none';
-        actualizarIndicadorIA('activo');
-      } else {
-        burbujaChat.style.display = 'flex';
-        actualizarIndicadorIA('inactivo');
-      }
-    }
-
-    function toggleExpandChat() {
-      chatContainer.classList.toggle('expandido');
-      expandBtn.textContent = chatContainer.classList.contains('expandido') ? '⤡' : '⤢';
-    }
-
-    async function enviarMensaje(e) {
-      e.preventDefault();
-      const mensaje = chatInput.value.trim();
-      if (!mensaje) return;
-
-      // Agregar mensaje del usuario
-      agregarMensaje(mensaje, 'user');
-      chatInput.value = '';
-      contadorMensajes++;
-      
-      // Mostrar indicador de escritura
-      mostrarEscribiendo();
-      
-      try {
-        // Enviar a la API
-        const response = await fetch('/chat', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({ 
-            message: mensaje,
-            user_id: userId,
-            timestamp: Date.now()
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Remover indicador de escritura
-        removerEscribiendo();
-        
-        // Agregar respuesta del bot
-        agregarMensaje(data.response, 'bot', data.tipo);
-        
-        // Actualizar estado según respuesta
-        actualizarEstadoSegunRespuesta(data.tipo);
-        
-      } catch (error) {
-        console.error('Error en chat:', error);
-        removerEscribiendo();
-        agregarMensaje('❌ Error de conexión. Intenta nuevamente.', 'bot', 'error');
-      }
-    }
-
-    function enviarMensajeAutomatico(mensaje) {
-      // Agregar mensaje del sistema
-      agregarMensaje(mensaje, 'system');
-      
-      // Mostrar indicador de escritura
-      mostrarEscribiendo();
-      
-      // Enviar a la API
-      fetch('/chat', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ 
-          message: mensaje,
-          user_id: userId,
-          timestamp: Date.now()
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        removerEscribiendo();
-        agregarMensaje(data.response, 'bot', data.tipo);
-        actualizarEstadoSegunRespuesta(data.tipo);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        removerEscribiendo();
-        agregarMensaje('❌ Error del sistema.', 'bot', 'error');
-      });
-    }
-
-    function enviarAccionRapida(accion) {
-      chatInput.value = accion;
-      enviarMensaje(new Event('submit'));
-    }
-
-    function agregarMensaje(mensaje, tipo, categoria = null) {
-      const mensajeDiv = document.createElement('div');
-      
-      if (tipo === 'system') {
-        // Los mensajes del sistema no se muestran visualmente
-        return;
-      }
-      
-      mensajeDiv.className = `${tipo}-msg`;
-      
-      if (categoria) {
-        mensajeDiv.classList.add(categoria);
-      }
-      
-      // Formatear mensaje con markdown básico
-      const mensajeFormateado = formatearMensaje(mensaje);
-      mensajeDiv.innerHTML = mensajeFormateado;
-      
-      chatBox.appendChild(mensajeDiv);
-      chatBox.scrollTop = chatBox.scrollHeight;
-      
-      // Efectos especiales según categoría
-      if (categoria === 'emergencia') {
-        activarModoEmergencia();
-      }
-    }
-
-    function formatearMensaje(mensaje) {
-      return mensaje
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/━+/g, '<hr style="border: 1px solid rgba(255,255,255,0.2); margin: 10px 0;">')
-        .replace(/\n/g, '<br>');
-    }
-
-    function mostrarEscribiendo() {
-      if (escribiendo) return;
-      
-      escribiendo = true;
-      const escribiendoDiv = document.createElement('div');
-      escribiendoDiv.className = 'escribiendo';
-      escribiendoDiv.id = 'escribiendo';
-      escribiendoDiv.innerHTML = 'Escribiendo';
-      
-      chatBox.appendChild(escribiendoDiv);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function removerEscribiendo() {
-      escribiendo = false;
-      const escribiendoDiv = document.getElementById('escribiendo');
-      if (escribiendoDiv) {
-        escribiendoDiv.remove();
-      }
-    }
-
-    function actualizarIndicadorIA(estado) {
-      if (estado === 'activo') {
-        indicadorIA.style.background = '#28a745';
-      } else {
-        indicadorIA.style.background = '#ffc107';
-      }
-    }
-
-    function actualizarEstadoSistema(estado) {
-      if (estado === 'operativo') {
-        estadoIndicador.style.background = '#28a745';
-        estadoTexto.textContent = 'Sistema Operativo';
-      } else if (estado === 'emergencia') {
-        estadoIndicador.style.background = '#dc3545';
-        estadoTexto.textContent = 'Modo Emergencia';
-      }
-    }
-
-    function actualizarEstadoSegunRespuesta(tipo) {
-      if (tipo === 'emergencia') {
-        actualizarEstadoSistema('emergencia');
-      } else {
-        actualizarEstadoSistema('operativo');
-      }
-    }
-
-    function activarModoEmergencia() {
-      document.body.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)';
-      setTimeout(() => {
-        document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-      }, 5000);
-    }
-
-    function mostrarNotificacion(mensaje, tipo) {
-      const notificacion = document.createElement('div');
-      notificacion.className = `notificacion ${tipo}`;
-      notificacion.textContent = mensaje;
-      
-      notificacionesContainer.appendChild(notificacion);
-      
-      setTimeout(() => {
-        notificacion.remove();
-      }, 5000);
-    }
-
-    // === FUNCIONES AUXILIARES ===
-    function determinarTipoRespuesta(urgencia, sentimiento) {
-      if (urgencia === 'crítica') return 'emergencia';
-      if (sentimiento === 'negativo') return 'warning';
-      return 'info';
-    }
-  </script>
+    <!-- Notificación de sonido -->
+    <audio id="notification-sound" src="static/notification.mp3" preload="auto"></audio>
+    
+    <script src="main.js"></script>
 </body>
 </html>
