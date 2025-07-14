@@ -18,7 +18,7 @@ EMERGENCY_KEYWORDS = ['emergencia', 'urgente', 'ayuda', 'error', 'falla']
 def init_db():
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
-    
+
     c.execute('''CREATE TABLE IF NOT EXISTS conversations
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   user_id TEXT,
@@ -26,7 +26,7 @@ def init_db():
                   response TEXT,
                   sentiment REAL,
                   timestamp DATETIME)''')
-    
+
     c.execute('''CREATE TABLE IF NOT EXISTS metrics
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   user_id TEXT,
@@ -34,7 +34,7 @@ def init_db():
                   emergencies INTEGER,
                   response_time REAL,
                   timestamp DATETIME)''')
-    
+
     conn.commit()
     conn.close()
 
@@ -59,31 +59,29 @@ def check_emergency(message):
 # Ruta raíz para evitar el 404
 @app.route('/')
 def home():
-     return render_template('index.html')
-            
+    return render_template('index.html')
 
 # Ruta principal del chatbot
 @app.route('/chat', methods=['POST'])
 def chat():
-
     start_time = time.time()
     data = request.json
     user_message = data['message']
     user_id = data.get('user_id', 'anonymous')
     is_emergency = data.get('isEmergency', False)
-    
+
     # Procesamiento del mensaje
     response = process_message(user_message, is_emergency)
     sentiment = analyze_sentiment(user_message)
-    
+
     # Guardar en base de datos
     save_conversation(user_id, user_message, response['response'], sentiment)
-    
+
     # Métricas
     response_time = time.time() - start_time
-    save_metrics(user_id, response.get('alarms_checked', 0), 
-               1 if is_emergency else 0, response_time)
-    
+    save_metrics(user_id, response.get('alarms_checked', 0),
+                 1 if is_emergency else 0, response_time)
+
     return jsonify(response)
 
 # Actualizar la función process_message para manejar el nuevo flujo
@@ -94,20 +92,20 @@ def process_message(message, is_emergency):
             'response': 'Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?\n\n1. Alarmas de plataformas\n2. Documentación de las plataformas\n3. Incidentes activos de las plataformas\n4. Estado operativo de las plataformas\n5. Cambios activos en las plataformas\n6. Hablar con el administrador de la plataforma',
             'type': 'menu'
         }
-    
+
     if message.lower() == '1' or 'alarma' in message.lower():
         return {
             'response': 'Por favor ingrese el número de alarma que desea consultar',
             'type': 'alarm_query',
             'next_step': 'await_alarm_number'
         }
-    
+
     if message.lower() == '4' or 'estado operativo' in message.lower():
         return {
             'response': 'Estado operativo actual:\n\n• Plataforma Core A: Operativa\n• Plataforma Core B: En mantenimiento\n• Plataforma Core C: Operativa con alertas',
             'type': 'system_status'
         }
-    
+
     # Manejo de emergencia
     if is_emergency:
         return {
@@ -115,7 +113,7 @@ def process_message(message, is_emergency):
             'type': 'emergency',
             'command': 'emergency'
         }
-    
+
     # Respuesta por defecto
     return {
         'response': 'Por favor selecciona una opción del menú (1-6) o escribe "menu" para ver las opciones.',
@@ -129,7 +127,7 @@ def handle_state():
     user_message = data['message']
     current_state = data.get('current_state', '')
     user_id = data.get('user_id', 'anonymous')
-    
+
     if current_state == 'await_alarm_number':
         # Validar formato de número de alarma
         if not user_message.isdigit():
@@ -138,22 +136,39 @@ def handle_state():
                 'type': 'error',
                 'next_step': 'await_alarm_number'
             })
-        
+
         return jsonify({
             'response': 'Por favor ingresa el nombre del elemento que reporta la alarma',
             'type': 'alarm_query',
             'next_step': 'await_element_name',
             'alarm_number': user_message
         })
-    
+
     elif current_state == 'await_element_name':
         alarm_number = data.get('alarm_number', 'N/A')
+        element_name = user_message.strip().lower()
+
+        # Buscar coincidencias en el archivo Excel
+        alarms = load_alarms()
+        match = next((a for a in alarms if str(a.get('Código')).strip() == alarm_number and str(a.get('Nombre', '')).strip().lower() == element_name), None)
+
+        if match:
+            response_text = f"""🔎 Resultado de la consulta:
+
+• Número de alarma: {alarm_number}
+• Elemento: {user_message}
+• Descripción: {match.get('Descripción', 'N/A')}
+• Severidad: {match.get('Severidad', 'N/A')}
+• Recomendaciones: {match.get('Recomendaciones', 'N/A')}"""
+        else:
+            response_text = f"No se encontró información para la alarma {alarm_number} con el elemento '{user_message}'. Verifica los datos."
+
         return jsonify({
-            'response': f'Consulta de alarma completada:\n\n• Número de alarma: {alarm_number}\n• Elemento: {user_message}\n\nSe ha generado un ticket de seguimiento.',
+            'response': response_text,
             'type': 'alarm_resolved',
             'next_step': ''
         })
-    
+
     return jsonify({
         'response': 'Estado de conversación no reconocido. Volviendo al menú principal.',
         'type': 'error',
@@ -163,19 +178,17 @@ def handle_state():
 def format_alarms(alarms):
     if not alarms:
         return 'No se encontraron alarmas activas.'
-    
+
     formatted = '🚨 **Alarmas Recientes:**\n'
     for alarm in alarms:
         formatted += f"- {alarm.get('nombre', 'Sin nombre')} (Código: {alarm.get('codigo', 'N/A')})\n"
     return formatted
 
 def generate_ai_response(message):
-    # Aquí integrarías tu modelo de IA o reglas de negocio
     if 'hola' in message.lower():
         return '¡Hola! ¿En qué puedo ayudarte hoy?'
     if 'gracias' in message.lower():
         return '¡De nada! ¿Hay algo más en lo que pueda ayudarte?'
-    
     return 'He procesado tu solicitud. ¿Necesitas algo más específico?'
 
 def save_conversation(user_id, message, response, sentiment):
@@ -196,5 +209,5 @@ def save_metrics(user_id, alarms_checked, emergencies, response_time):
 
 # Inicializar la aplicación
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # Usa el puerto de Render o 10000 por defecto
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
