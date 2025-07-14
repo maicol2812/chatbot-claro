@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+import os
+from flask import Flask, request, jsonify, render_template
 import pandas as pd
 import sqlite3
 from deep_translator import GoogleTranslator
