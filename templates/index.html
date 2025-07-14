@@ -1,89 +1,97 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asesor Claro IA</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="static/claro-logo.png">
-    <!-- Fuente de Google para mejor tipografía -->
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#d41528" />
+  <meta name="description" content="Asesor Claro - Asistente IA avanzado para plataformas Core" />
+  <link rel="manifest" href="/static/manifest.json" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="icon" href="/static/claro-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Asesor Claro - IA Avanzada</title>
 </head>
 <body>
-    <!-- Video de fondo (se muestra solo en desktop) -->
-    <video autoplay muted loop id="video-fondo" class="video-fondo">
-        <source src="static/ruta-al-video.mp4" type="video/mp4">
-    </video>
-    
-    <!-- Overlay para mejorar legibilidad -->
-    <div class="overlay"></div>
-    
-    <div class="chat-container">
-        <div class="chat-header">
-            <img src="static/claro-logo.png" alt="Logo Claro" class="logo-claro">
-            <div class="header-text">
-                <h1>Asesor Claro IA</h1>
-                <p class="subtitle">Asistencia inteligente 24/7</p>
-            </div>
-            <div class="status-indicator">
-                <span class="status-dot"></span>
-                <span class="status-text">En línea</span>
-            </div>
-        </div>
-        
-        <div class="chat-box" id="chat-box">
-            <!-- Mensaje de bienvenida inicial -->
-            <div class="message bot-message welcome-message">
-                <strong>Asesor Claro IA:</strong>
-                <div class="message-content">
-                    ¡Hola! 👋 Soy tu Asesor Virtual de Claro. Estoy aquí para ayudarte con:<br><br>
-                    🔍 Búsqueda de alarmas técnicas<br>
-                    📊 Informes de métricas de red<br>
-                    ⚡️ Soporte técnico especializado<br><br>
-                    Escribe <strong>"menu"</strong> para ver todas las opciones disponibles.
-                </div>
-                <div class="welcome-footer">
-                    <small>Servicio disponible 24/7 | Versión 2.1.0</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="input-area">
-            <input type="text" id="user-input" placeholder="Escribe tu mensaje o selecciona una opción del menú..." autocomplete="off">
-            <button id="send-btn" title="Enviar mensaje">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-            </button>
-            <button id="menu-btn" title="Mostrar menú rápido">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <circle cx="12" cy="5" r="1"></circle>
-                    <circle cx="12" cy="19" r="1"></circle>
-                </svg>
-            </button>
-        </div>
-        
-        <!-- Menú rápido flotante -->
-        <div class="quick-menu" id="quick-menu">
-            <div class="menu-header">
-                <h3>Opciones rápidas</h3>
-                <button id="close-menu-btn">×</button>
-            </div>
-            <div class="menu-options">
-                <button class="menu-option" data-option="1">🔍 Buscar alarma</button>
-                <button class="menu-option" data-option="2">📞 Soporte técnico</button>
-                <button class="menu-option" data-option="3">🌐 Estado de red</button>
-                <button class="menu-option" data-option="4">⚠️ Reportar incidencia</button>
-                <button class="menu-option" data-option="5">📊 Ver métricas</button>
-            </div>
-        </div>
+  <!-- Video de fondo -->
+  <video autoplay muted loop id="bg-video">
+    <source src="/static/background.mp4" type="video/mp4" />
+    <!-- Fallback para navegadores que no soporten el video -->
+    <div class="video-fallback"></div>
+  </video>
+
+  <!-- Overlay con efectos -->
+  <div class="overlay"></div>
+
+  <!-- Partículas flotantes -->
+  <div id="particles-js"></div>
+
+  <!-- Logo mejorado -->
+  <img src="/static/claro-logo.png" alt="Logo Claro" class="logo" />
+
+  <!-- Indicador de estado del sistema -->
+  <div class="system-status">
+    <div class="status-indicator" id="status-indicator"></div>
+    <span id="status-text">Sistema Operativo</span>
+  </div>
+
+  <!-- Pantalla de bienvenida -->
+  <div class="welcome-screen">
+    <h1>Asesor Claro</h1>
+    <p>Asistente IA avanzado para plataformas Core</p>
+    <div class="sparkle" style="top: 20%; left: 30%;"></div>
+    <div class="sparkle" style="top: 60%; right: 20%;"></div>
+    <div class="sparkle" style="top: 40%; right: 40%;"></div>
+  </div>
+
+  <!-- Notificaciones -->
+  <div id="notifications-container"></div>
+
+  <!-- Burbuja de chat -->
+  <div class="chat-bubble" id="chat-bubble">
+    <span>💬</span>
+  </div>
+
+  <!-- Contenedor de chat avanzado -->
+  <div class="chat-container" id="chat-container">
+    <div class="chat-header">
+      <div class="chat-status">
+        <div class="ai-indicator" id="ai-indicator"></div>
+        <span>Asesor IA Claro</span>
+      </div>
+      <button class="expand-chat" id="expand-chat">⤢</button>
     </div>
-    
-    <!-- Notificación de sonido -->
-    <audio id="notification-sound" src="static/notification.mp3" preload="auto"></audio>
-    
-    <script src="main.js"></script>
+
+    <div class="chat-messages" id="chat-messages">
+      <!-- Los mensajes se cargarán dinámicamente aquí -->
+    </div>
+
+    <div class="quick-actions">
+      <button class="quick-btn" onclick="sendQuickAction('estado sistema')">📊 Estado</button>
+      <button class="quick-btn" onclick="sendQuickAction('emergencia')">🚨 Emergencia</button>
+      <button class="quick-btn" onclick="sendQuickAction('dashboard')">📈 Dashboard</button>
+      <button class="quick-btn" onclick="sendQuickAction('alarmas')">⚠️ Alarmas</button>
+    </div>
+
+    <form class="chat-input-form" id="chat-form">
+      <input type="text" id="chat-input" placeholder="Escribe tu mensaje o comando..." autocomplete="off" />
+      <button type="submit" id="send-btn">Enviar</button>
+    </form>
+  </div>
+
+  <!-- Panel de métricas -->
+  <div class="metrics-overlay" id="metrics-overlay">
+    <div class="metrics-panel">
+      <h2>📊 Métricas del Sistema</h2>
+      <div class="metrics-grid" id="metrics-content">
+        <!-- Las métricas se cargarán aquí -->
+      </div>
+      <button class="close-metrics" onclick="closeMetrics()">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/main.js"></script>
 </body>
 </html>
