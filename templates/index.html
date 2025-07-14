@@ -6,12 +6,663 @@
   <meta name="theme-color" content="#d41528" />
   <meta name="description" content="Asesor Claro - Asistente IA avanzado para plataformas Core" />
   <link rel="manifest" href="/static/manifest.json" />
-  <link rel="stylesheet" href="/static/style.css" />
   <link rel="icon" href="/static/claro-logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <title>Asesor Claro - IA Avanzada</title>
+  <style>
+    :root {
+      --primary-color: #d41528;
+      --secondary-color: #0d47a1;
+      --accent-color: #ffab00;
+      --success-color: #00c853;
+      --error-color: #d50000;
+      --warning-color: #ff6d00;
+      --text-light: #f5f5f5;
+      --text-dark: #212121;
+      --bg-dark: #121212;
+      --bg-darker: #0a0a0a;
+      --glass-bg: rgba(18, 18, 18, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      color: var(--text-light);
+      overflow-x: hidden;
+      height: 100vh;
+      position: relative;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+    }
+
+    #bg-video {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      min-width: 100%;
+      min-height: 100%;
+      z-index: -2;
+    }
+
+    .video-fallback {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, #0a0a0a, #1a1a1a, #0a0a0a);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      z-index: -2;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: -1;
+    }
+
+    .logo {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 80px;
+      height: auto;
+      z-index: 10;
+      filter: drop-shadow(0 0 10px rgba(212, 21, 40, 0.7));
+      background: var(--primary-color);
+      border-radius: 50%;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+    }
+
+    .system-status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--glass-bg);
+      padding: 8px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--success-color);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    #status-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .welcome-screen {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 5;
+    }
+
+    .welcome-screen h1 {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 20px rgba(212, 21, 40, 0.3);
+      animation: titleGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes titleGlow {
+      from { filter: drop-shadow(0 0 10px rgba(212, 21, 40, 0.3)); }
+      to { filter: drop-shadow(0 0 30px rgba(212, 21, 40, 0.8)); }
+    }
+
+    .welcome-screen p {
+      font-size: 1.2rem;
+      opacity: 0.8;
+      animation: fadeInUp 2s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 0.8; transform: translateY(0); }
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      filter: blur(1px);
+      animation: sparkle 3s infinite alternate;
+    }
+
+    @keyframes sparkle {
+      0% { transform: scale(1); opacity: 0.3; }
+      100% { transform: scale(1.5); opacity: 1; }
+    }
+
+    /* Chat Bubble */
+    .chat-bubble {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      z-index: 100;
+      transition: all 0.3s ease;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .chat-bubble:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(212, 21, 40, 0.4);
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    /* Chat Container */
+    .chat-container {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 350px;
+      height: 500px;
+      background: var(--glass-bg);
+      border-radius: 15px;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(20px);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 99;
+    }
+
+    .chat-container.mostrar {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .chat-container.expandido {
+      width: 450px;
+      height: 600px;
+    }
+
+    .chat-header {
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .chat-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success-color);
+      animation: pulse 2s infinite;
+    }
+
+    .expand-chat {
+      background: none;
+      border: none;
+      color: var(--text-light);
+      font-size: 16px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .expand-chat:hover {
+      opacity: 1;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 10px;
+    }
+
+    .message-divider {
+      border: none;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 8px 0;
+    }
+
+    .bot-message, .user-message {
+      max-width: 80%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+      word-wrap: break-word;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bot-message {
+      align-self: flex-start;
+      background: rgba(13, 71, 161, 0.3);
+      border-bottom-left-radius: 5px;
+      border-left: 3px solid var(--secondary-color);
+    }
+
+    .user-message {
+      align-self: flex-end;
+      background: rgba(212, 21, 40, 0.3);
+      border-bottom-right-radius: 5px;
+      border-right: 3px solid var(--primary-color);
+    }
+
+    .bot-message.welcome {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--glass-border);
+      border-left: 3px solid var(--accent-color);
+      max-width: 100%;
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      align-self: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: var(--text-light);
+      border-radius: 50%;
+      display: inline-block;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(1) {
+      animation-delay: 0s;
+    }
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+
+    .quick-actions {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      border-top: 1px solid var(--glass-border);
+      gap: 5px;
+    }
+
+    .quick-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--text-light);
+      padding: 8px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .quick-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .chat-input-form {
+      display: flex;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-top: 1px solid var(--glass-border);
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 10px 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 20px;
+      color: var(--text-light);
+      outline: none;
+      font-size: 14px;
+    }
+
+    #chat-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    #send-btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 0 15px;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 14px;
+    }
+
+    #send-btn:hover {
+      background: #b01020;
+    }
+
+    /* Metrics Overlay */
+    .metrics-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .metrics-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .metrics-panel {
+      background: var(--bg-dark);
+      border-radius: 15px;
+      padding: 20px;
+      width: 80%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .metric-card {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .metric-card h3 {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .metric-card p {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .close-metrics {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+      transition: background 0.2s;
+    }
+
+    .close-metrics:hover {
+      background: #b01020;
+    }
+
+    /* Notification System */
+    #notifications-container {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 150;
+    }
+
+    .notification {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      padding: 12px 15px;
+      border-radius: 8px;
+      border-left: 4px solid var(--success-color);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      animation: slideIn 0.3s ease;
+      max-width: 300px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .notification.error {
+      border-left-color: var(--error-color);
+    }
+
+    .notification.warning {
+      border-left-color: var(--warning-color);
+    }
+
+    .notification.info {
+      border-left-color: var(--secondary-color);
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .chat-container {
+        width: calc(100% - 40px);
+        height: 70vh;
+        right: 20px;
+        bottom: 20px;
+      }
+      
+      .chat-container.expandido {
+        width: calc(100% - 40px);
+        height: 80vh;
+      }
+      
+      .welcome-screen h1 {
+        font-size: 2.5rem;
+      }
+      
+      .metrics-panel {
+        width: 90%;
+      }
+      
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quick-actions {
+        flex-wrap: wrap;
+      }
+
+      .quick-btn {
+        font-size: 11px;
+        padding: 6px 10px;
+      }
+    }
+
+    /* Emergency Mode */
+    .emergency-mode {
+      animation: emergencyPulse 1s infinite;
+    }
+
+    @keyframes emergencyPulse {
+      0% { box-shadow: 0 0 0 0 rgba(213, 0, 0, 0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(213, 0, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(213, 0, 0, 0); }
+    }
+
+    /* Special message types */
+    .message-emergency {
+      background: rgba(213, 0, 0, 0.3) !important;
+      border-left: 4px solid var(--error-color);
+    }
+
+    .message-warning {
+      background: rgba(255, 109, 0, 0.3) !important;
+      border-left: 4px solid var(--warning-color);
+    }
+
+    .message-success {
+      background: rgba(0, 200, 83, 0.3) !important;
+      border-left: 4px solid var(--success-color);
+    }
+
+    .message-system {
+      background: rgba(255, 255, 255, 0.1) !important;
+      border-left: 4px solid var(--text-light);
+    }
+
+    .message-ai {
+      background: rgba(255, 171, 0, 0.3) !important;
+      border-left: 4px solid var(--accent-color);
+    }
+
+    /* Particles effect */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.3);
+      animation: particleFloat 20s infinite linear;
+    }
+
+    @keyframes particleFloat {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+    }
+  </style>
 </head>
 <body>
   <!-- Video de fondo -->
@@ -25,10 +676,10 @@
   <div class="overlay"></div>
 
   <!-- Partículas flotantes -->
-  <div id="particles-js"></div>
+  <div class="particles" id="particles"></div>
 
   <!-- Logo mejorado -->
-  <img src="/static/claro-logo.png" alt="Logo Claro" class="logo" />
+  <div class="logo">C</div>
 
   <!-- Indicador de estado del sistema -->
   <div class="system-status">
@@ -91,7 +742,397 @@
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="/static/main.js"></script>
+  <script>
+    // Crear partículas
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    // Variables globales
+    let chatVisible = false;
+    let expandido = false;
+    let inactivityTimer;
+    let lastActivity = Date.now();
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function() {
+      createParticles();
+      setupEventListeners();
+      showWelcomeMessage();
+    });
+
+    // Configurar event listeners
+    function setupEventListeners() {
+      const chatBubble = document.getElementById('chat-bubble');
+      const chatContainer = document.getElementById('chat-container');
+      const expandBtn = document.getElementById('expand-chat');
+      const chatForm = document.getElementById('chat-form');
+      const chatInput = document.getElementById('chat-input');
+
+      chatBubble.addEventListener('click', toggleChat);
+      expandBtn.addEventListener('click', toggleExpand);
+      chatForm.addEventListener('submit', handleSubmit);
+      
+      // Cerrar chat al hacer clic fuera
+      document.addEventListener('click', function(e) {
+        if (!chatContainer.contains(e.target) && !chatBubble.contains(e.target)) {
+          if (chatVisible) {
+            closeChat();
+          }
+        }
+      });
+
+      // Actividad del usuario
+      document.addEventListener('mousemove', updateActivity);
+      document.addEventListener('keypress', updateActivity);
+    }
+
+    // Mostrar mensaje de bienvenida
+    function showWelcomeMessage() {
+      setTimeout(() => {
+        if (!chatVisible) {
+          showNotification('¡Hola! Soy tu Asesor IA Claro. Haz clic en el chat para comenzar.', 'info');
+        }
+      }, 2000);
+    }
+
+    // Toggle chat
+    function toggleChat() {
+      const chatContainer = document.getElementById('chat-container');
+      chatVisible = !chatVisible;
+      
+      if (chatVisible) {
+        chatContainer.classList.add('mostrar');
+        document.getElementById('chat-input').focus();
+        
+        // Mostrar saludo inicial
+        setTimeout(() => {
+          addMessage('¡Hola! Soy tu Asesor IA Claro. ¿En qué puedo ayudarte hoy?', 'bot', 'welcome');
+          setTimeout(() => {
+            showInitialMenu();
+          }, 3000);
+        }, 500);
+      } else {
+        chatContainer.classList.remove('mostrar');
+      }
+    }
+
+    // Cerrar chat
+    function closeChat() {
+      const chatContainer = document.getElementById('chat-container');
+      chatContainer.classList.remove('mostrar');
+      chatVisible = false;
+    }
+
+    // Toggle expandir
+    function toggleExpand() {
+      const chatContainer = document.getElementById('chat-container');
+      expandido = !expandido;
+      
+      if (expandido) {
+        chatContainer.classList.add('expandido');
+      } else {
+        chatContainer.classList.remove('expandido');
+      }
+    }
+
+    // Mostrar menú inicial
+    function showInitialMenu() {
+      const menuMessage = `
+        <div style="text-align: center; padding: 10px;">
+          <p><strong>Menú Principal</strong></p>
+          <hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">
+          <p>1️⃣ Consultar alarmas</p>
+          <p>2️⃣ Estado del sistema</p>
+          <p>3️⃣ Reportar emergencia</p>
+          <p>4️⃣ Dashboard de métricas</p>
+          <p>5️⃣ Ayuda y soporte</p>
+          <hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">
+          <p><em>Selecciona una opción o escribe tu consulta</em></p>
+        </div>
+      `;
+      addMessage(menuMessage, 'bot', 'system');
+    }
+
+    // Manejar envío de mensaje
+    function handleSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      
+      if (message) {
+        addMessage(message, 'user');
+        input.value = '';
+        
+        // Simular respuesta del bot
+        setTimeout(() => {
+          handleBotResponse(message);
+        }, 1000);
+      }
+    }
+
+    // Manejar respuesta del bot
+    function handleBotResponse(userMessage) {
+      const msg = userMessage.toLowerCase();
+      let response = '';
+      let messageType = 'bot';
+      
+      if (msg.includes('1') || msg.includes('alarma')) {
+        response = '🚨 Consultando alarmas activas...\n\nAlarmas críticas encontradas:\n• Equipo CMM-001: Falla de comunicación\n• Sensor T-205: Temperatura elevada\n• Switch NET-15: Conexión intermitente\n\n¿Necesitas más detalles sobre alguna alarma?';
+        messageType = 'warning';
+      } else if (msg.includes('2') || msg.includes('estado')) {
+        response = '📊 Estado del Sistema:\n\n✅ Servicios principales: Operativo\n⚠️ Monitoreo: 2 alertas menores\n🔋 Recursos: 78% disponible\n🌐 Conectividad: Estable\n\nTodo funcionando correctamente.';
+        messageType = 'success';
+      } else if (msg.includes('3') || msg.includes('emergencia')) {
+        response = '🚨 MODO EMERGENCIA ACTIVADO\n\nProtocolo de emergencia iniciado:\n1. Notificando al equipo técnico\n2. Escalando a supervisión\n3. Registrando incidente\n\n¿Puedes describir la emergencia?';
+        messageType = 'emergency';
+      } else if (msg.includes('4') || msg.includes('dashboard')) {
+        response = '📈 Abriendo dashboard de métricas...\n\nMétricas principales:\n• Uptime: 99.8%\n• Respuesta promedio: 45ms\n• Consultas hoy: 1,247\n• Satisfacción: 94%\n\nDashboard completo disponible en el panel lateral.';
+        messageType = 'ai';
+      } else if (msg.includes('5') || msg.includes('ayuda')) {
+        response = '🆘 Centro de Ayuda:\n\n• Comandos disponibles: "menu", "limpiar", "estado"\n• Soporte técnico: 24/7 disponible\n• Documentación: Acceso completo\n• Contacto: soporte@claro.com\n\n¿En qué más puedo ayudarte?';
+        messageType = 'bot';
+      } else if (msg.includes('menu')) {
+        showInitialMenu();
+        return;
+      } else if (msg.includes('limpiar')) {
+        clearChat();
+        return;
+      } else {
+        response = '🤖 Procesando tu consulta...\n\nHe entendido tu mensaje. Como asistente IA, puedo ayudarte con:\n\n• Consultas técnicas\n• Información del sistema\n• Soporte especializado\n• Análisis predictivo\n\n¿Podrías ser más específico sobre lo que necesitas?';
+        messageType = 'bot';
+      }
+      
+      showTyping();
+      setTimeout(() => {
+        hideTyping();
+        addMessage(response, 'bot', messageType);
+      }, 2000);
+    }
+
+    // Mostrar indicador de escritura
+    function showTyping() {
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'typing-indicator';
+      typingDiv.id = 'typing-indicator';
+      typingDiv.innerHTML = '<span></span><span></span><span></span>';
+      
+      document.getElementById('chat-messages').appendChild(typingDiv);
+      scrollToBottom();
+    }
+
+    // Ocultar indicador de escritura
+    function hideTyping() {
+      const typingIndicator = document.getElementById('typing-indicator');
+      if (typingIndicator) {
+        typingIndicator.remove();
+      }
+    }
+
+    // Agregar mensaje
+    function addMessage(message, sender, type = '') {
+      const messagesContainer = document.getElementById('chat-messages');
+      const messageDiv = document.createElement('div');
+      
+      let className = sender === 'user' ? 'user-message' : 'bot-message';
+      if (type) {
+        className += ' ' + type;
+        if (type === 'emergency') className += ' message-emergency';
+        if (type === 'warning') className += ' message-warning';
+        if (type === 'success') className += ' message-success';
+        if (type === 'system') className += ' message-system';
+        if (type === 'ai') className += ' message-ai';
+      }
+      
+      messageDiv.className = className;
+      messageDiv.innerHTML = message.replace(/\n/g, '<br>');
+      
+      messagesContainer.appendChild(messageDiv);
+      scrollToBottom();
+    }
+
+    // Scroll al final
+    function scrollToBottom() {
+      const messagesContainer = document.getElementById('chat-messages');
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Limpiar chat
+    function clearChat() {
+      const messagesContainer = document.getElementById('chat-messages');
+      messagesContainer.innerHTML = '';
+      addMessage('Chat limpiado. ¿En qué puedo ayudarte?', 'bot', 'system');
+    }
+
+    // Acciones rápidas
+    function sendQuickAction(action) {
+      document.getElementById('chat-input').value = action;
+      document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+    }
+
+    // Mostrar notificación
+    function showNotification(message, type = 'info') {
+      const container = document.getElementById('notifications-container');
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `
+        <span>${getNotificationIcon(type)}</span>
+        <span>${message}</span>
+      `;
+      
+      container.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => {
+          notification.remove();
+        }, 300);
+      }, 4000);
+    }
+
+    // Obtener icono de notificación
+    function getNotificationIcon(type) {
+      switch(type) {
+        case 'error': return '❌';
+        case 'warning': return '⚠️';
+        case 'success': return '✅';
+        default: return 'ℹ️';
+      }
+    }
+
+    // Mostrar métricas
+    function showMetrics() {
+      const metricsOverlay = document.getElementById('metrics-overlay');
+      const metricsContent = document.getElementById('metrics-content');
+      
+      metricsContent.innerHTML = `
+        <div class="metric-card">
+          <h3>Consultas Hoy</h3>
+          <p>1,247</p>
+        </div>
+        <div class="metric-card">
+          <h3>Tiempo Respuesta</h3>
+          <p>45ms</p>
+        </div>
+        <div class="metric-card">
+          <h3>Uptime</h3>
+          <p>99.8%</p>
+        </div>
+        <div class="metric-card">
+          <h3>Satisfacción</h3>
+          <p>94%</p>
+        </div>
+        <div class="metric-card">
+          <h3>Usuarios Activos</h3>
+          <p>234</p>
+        </div>
+        <div class="metric-card">
+          <h3>Alarmas Críticas</h3>
+          <p>3</p>
+        </div>
+      `;
+      
+      metricsOverlay.classList.add('active');
+    }
+
+    // Cerrar métricas
+    function closeMetrics() {
+      document.getElementById('metrics-overlay').classList.remove('active');
+    }
+
+    // Actualizar actividad
+    function updateActivity() {
+      lastActivity = Date.now();
+      clearTimeout(inactivityTimer);
+      
+      inactivityTimer = setTimeout(() => {
+        if (chatVisible) {
+          addMessage('¿Sigues ahí? ¿Necesitas ayuda con algo más?', 'bot', 'system');
+        }
+      }, 300000); // 5 minutos
+    }
+
+    // Cambiar estado del sistema
+    function updateSystemStatus(status, text) {
+      const indicator = document.getElementById('status-indicator');
+      const statusText = document.getElementById('status-text');
+      
+      indicator.className = 'status-indicator';
+      
+      switch(status) {
+        case 'online':
+          indicator.style.background = 'var(--success-color)';
+          break;
+        case 'warning':
+          indicator.style.background = 'var(--warning-color)';
+          break;
+        case 'error':
+          indicator.style.background = 'var(--error-color)';
+          break;
+        case 'maintenance':
+          indicator.style.background = 'var(--secondary-color)';
+          break;
+      }
+      
+      statusText.textContent = text;
+    }
+
+    // Simular cambios de estado
+    setInterval(() => {
+      const statuses = [
+        { status: 'online', text: 'Sistema Operativo' },
+        { status: 'warning', text: 'Alerta Menor' },
+        { status: 'online', text: 'Funcionando Normal' }
+      ];
+      
+      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+      updateSystemStatus(randomStatus.status, randomStatus.text);
+    }, 30000);
+
+    // Efectos de teclado
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && chatVisible) {
+        closeChat();
+      }
+      
+      if (e.key === 'Enter' && e.ctrlKey && chatVisible) {
+        toggleExpand();
+      }
+    });
+
+    // Detección de modo emergencia
+    function activateEmergencyMode() {
+      document.body.classList.add('emergency-mode');
+      updateSystemStatus('error', 'MODO EMERGENCIA');
+      showNotification('¡MODO EMERGENCIA ACTIVADO!', 'error');
+      
+      setTimeout(() => {
+        document.body.classList.remove('emergency-mode');
+        updateSystemStatus('online', 'Sistema Operativo');
+      }, 10000);
+    }
+
+    // Comandos de voz (experimental)
+    if ('webkitSpeechRecognition' in window) {
+      const recognition = new webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'es-ES';
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('chat-input').value = transcript;
+        showNotification('Comando de voz detectado: ' + transcript, 'info');
+      };
+    }
+  </script>
 </body>
 </html>
