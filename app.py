@@ -55,6 +55,18 @@ def analyze_sentiment(text):
 def check_emergency(message):
     return any(keyword in message.lower() for keyword in EMERGENCY_KEYWORDS)
 
+# Ruta raíz para evitar el 404
+@app.route('/')
+def home():
+    return jsonify({
+        "status": "active",
+        "message": "Chatbot API is running. Use /chat endpoint to interact.",
+        "endpoints": {
+            "/chat": "POST - Interact with the chatbot",
+            "/handle_state": "POST - Handle conversation states"
+        }
+    })
+
 # Ruta principal del chatbot
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -78,27 +90,26 @@ def chat():
     
     return jsonify(response)
 
+# Actualizar la función process_message para manejar el nuevo flujo
 def process_message(message, is_emergency):
     # Comandos especiales
-    if message.lower() == 'estado sistema':
+    if message.lower() == 'menu':
         return {
-            'response': '✅ **Estado del Sistema**\n- Servidor: Operativo\n- IA: Activa\n- Alarmas: 0 críticas',
-            'type': 'system'
+            'response': 'Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?\n\n1. Alarmas de plataformas\n2. Documentación de las plataformas\n3. Incidentes activos de las plataformas\n4. Estado operativo de las plataformas\n5. Cambios activos en las plataformas\n6. Hablar con el administrador de la plataforma',
+            'type': 'menu'
         }
     
-    if message.lower() == 'alarmas':
-        alarms = load_alarms()
+    if message.lower() == '1' or 'alarma' in message.lower():
         return {
-            'response': format_alarms(alarms[:5]),
-            'type': 'alarms',
-            'alarms_checked': len(alarms)
+            'response': 'Por favor ingrese el número de alarma que desea consultar',
+            'type': 'alarm_query',
+            'next_step': 'await_alarm_number'
         }
     
-    if message.lower() == 'dashboard':
+    if message.lower() == '4' or 'estado operativo' in message.lower():
         return {
-            'response': '📊 **Dashboard**\n- Usuarios activos: 42\n- Alarmas hoy: 3\n- Satisfacción: 4.5/5',
-            'type': 'dashboard',
-            'command': 'metrics'
+            'response': 'Estado operativo actual:\n\n• Plataforma Core A: Operativa\n• Plataforma Core B: En mantenimiento\n• Plataforma Core C: Operativa con alertas',
+            'type': 'system_status'
         }
     
     # Manejo de emergencia
@@ -111,9 +122,47 @@ def process_message(message, is_emergency):
     
     # Respuesta por defecto
     return {
-        'response': generate_ai_response(message),
-        'type': 'normal'
+        'response': 'Por favor selecciona una opción del menú (1-6) o escribe "menu" para ver las opciones.',
+        'type': 'instruction'
     }
+
+# Función para manejar estados de conversación
+@app.route('/handle_state', methods=['POST'])
+def handle_state():
+    data = request.json
+    user_message = data['message']
+    current_state = data.get('current_state', '')
+    user_id = data.get('user_id', 'anonymous')
+    
+    if current_state == 'await_alarm_number':
+        # Validar formato de número de alarma
+        if not user_message.isdigit():
+            return jsonify({
+                'response': 'Por favor ingrese un número de alarma válido',
+                'type': 'error',
+                'next_step': 'await_alarm_number'
+            })
+        
+        return jsonify({
+            'response': 'Por favor ingresa el nombre del elemento que reporta la alarma',
+            'type': 'alarm_query',
+            'next_step': 'await_element_name',
+            'alarm_number': user_message
+        })
+    
+    elif current_state == 'await_element_name':
+        alarm_number = data.get('alarm_number', 'N/A')
+        return jsonify({
+            'response': f'Consulta de alarma completada:\n\n• Número de alarma: {alarm_number}\n• Elemento: {user_message}\n\nSe ha generado un ticket de seguimiento.',
+            'type': 'alarm_resolved',
+            'next_step': ''
+        })
+    
+    return jsonify({
+        'response': 'Estado de conversación no reconocido. Volviendo al menú principal.',
+        'type': 'error',
+        'next_step': ''
+    })
 
 def format_alarms(alarms):
     if not alarms:
@@ -150,5 +199,7 @@ def save_metrics(user_id, alarms_checked, emergencies, response_time):
     conn.close()
 
 # Inicializar la aplicación
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

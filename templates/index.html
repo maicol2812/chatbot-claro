@@ -797,12 +797,12 @@
 
     // Mostrar mensaje de bienvenida
     function showWelcomeMessage() {
-      setTimeout(() => {
-        if (!chatVisible) {
-          showNotification('¡Hola! Soy tu Asesor IA Claro. Haz clic en el chat para comenzar.', 'info');
-        }
-      }, 2000);
+  setTimeout(() => {
+    if (!chatVisible) {
+      showNotification('Buen día, hablemos de nuestras plataformas de Core', 'info');
     }
+  }, 2000);
+}
 
     // Toggle chat
     function toggleChat() {
@@ -846,21 +846,23 @@
 
     // Mostrar menú inicial
     function showInitialMenu() {
-      const menuMessage = `
-        <div style="text-align: center; padding: 10px;">
-          <p><strong>Menú Principal</strong></p>
-          <hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">
-          <p>1️⃣ Consultar alarmas</p>
-          <p>2️⃣ Estado del sistema</p>
-          <p>3️⃣ Reportar emergencia</p>
-          <p>4️⃣ Dashboard de métricas</p>
-          <p>5️⃣ Ayuda y soporte</p>
-          <hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">
-          <p><em>Selecciona una opción o escribe tu consulta</em></p>
-        </div>
-      `;
-      addMessage(menuMessage, 'bot', 'system');
-    }
+  const menuMessage = `
+    <div style="text-align: left; padding: 10px;">
+      <p><strong>Buen día, hablemos de nuestras plataformas de Core.</strong></p>
+      <p>¿Qué te gustaría consultar el día de hoy?</p>
+      <hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">
+      <p>1️⃣ Alarmas de plataformas</p>
+      <p>2️⃣ Documentación de las plataformas</p>
+      <p>3️⃣ Incidentes activos de las plataformas</p>
+      <p>4️⃣ Estado operativo de las plataformas</p>
+      <p>5️⃣ Cambios activos en las plataformas</p>
+      <p>6️⃣ Hablar con el administrador de la plataforma</p>
+      <hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">
+      <p><em>Por favor selecciona una opción numérica</em></p>
+    </div>
+  `;
+  addMessage(menuMessage, 'bot', 'system');
+}
 
     // Manejar envío de mensaje
     function handleSubmit(e) {
@@ -881,42 +883,54 @@
 
     // Manejar respuesta del bot
     function handleBotResponse(userMessage) {
-      const msg = userMessage.toLowerCase();
-      let response = '';
-      let messageType = 'bot';
-      
-      if (msg.includes('1') || msg.includes('alarma')) {
-        response = '🚨 Consultando alarmas activas...\n\nAlarmas críticas encontradas:\n• Equipo CMM-001: Falla de comunicación\n• Sensor T-205: Temperatura elevada\n• Switch NET-15: Conexión intermitente\n\n¿Necesitas más detalles sobre alguna alarma?';
-        messageType = 'warning';
-      } else if (msg.includes('2') || msg.includes('estado')) {
-        response = '📊 Estado del Sistema:\n\n✅ Servicios principales: Operativo\n⚠️ Monitoreo: 2 alertas menores\n🔋 Recursos: 78% disponible\n🌐 Conectividad: Estable\n\nTodo funcionando correctamente.';
-        messageType = 'success';
-      } else if (msg.includes('3') || msg.includes('emergencia')) {
-        response = '🚨 MODO EMERGENCIA ACTIVADO\n\nProtocolo de emergencia iniciado:\n1. Notificando al equipo técnico\n2. Escalando a supervisión\n3. Registrando incidente\n\n¿Puedes describir la emergencia?';
-        messageType = 'emergency';
-      } else if (msg.includes('4') || msg.includes('dashboard')) {
-        response = '📈 Abriendo dashboard de métricas...\n\nMétricas principales:\n• Uptime: 99.8%\n• Respuesta promedio: 45ms\n• Consultas hoy: 1,247\n• Satisfacción: 94%\n\nDashboard completo disponible en el panel lateral.';
-        messageType = 'ai';
-      } else if (msg.includes('5') || msg.includes('ayuda')) {
-        response = '🆘 Centro de Ayuda:\n\n• Comandos disponibles: "menu", "limpiar", "estado"\n• Soporte técnico: 24/7 disponible\n• Documentación: Acceso completo\n• Contacto: soporte@claro.com\n\n¿En qué más puedo ayudarte?';
-        messageType = 'bot';
-      } else if (msg.includes('menu')) {
-        showInitialMenu();
-        return;
-      } else if (msg.includes('limpiar')) {
-        clearChat();
-        return;
-      } else {
-        response = '🤖 Procesando tu consulta...\n\nHe entendido tu mensaje. Como asistente IA, puedo ayudarte con:\n\n• Consultas técnicas\n• Información del sistema\n• Soporte especializado\n• Análisis predictivo\n\n¿Podrías ser más específico sobre lo que necesitas?';
-        messageType = 'bot';
-      }
-      
-      showTyping();
-      setTimeout(() => {
-        hideTyping();
-        addMessage(response, 'bot', messageType);
-      }, 2000);
-    }
+  const msg = userMessage.toLowerCase();
+  let response = '';
+  let messageType = 'bot';
+  
+  if (msg.includes('1') || msg.includes('alarma')) {
+    response = 'Por favor ingrese el número de alarma que desea consultar';
+    messageType = 'system';
+    currentState = 'awaiting_alarm_number';
+  } else if (msg.includes('2') || msg.includes('documentación')) {
+    response = 'Documentación disponible:\n\n• Manual de usuario\n• Guías técnicas\n• Protocolos de operación\n\n¿Qué documentación específica necesitas?';
+    messageType = 'bot';
+  } else if (msg.includes('3') || msg.includes('incidente')) {
+    response = 'Incidentes activos actualmente:\n\n1. INC-2023-0456 - Latencia en plataforma Core\n2. INC-2023-0457 - Problema de sincronización\n\n¿Necesitas detalles de algún incidente en particular?';
+    messageType = 'warning';
+  } else if (msg.includes('4') || msg.includes('estado operativo')) {
+    response = 'Estado operativo actual:\n\n• Plataforma Core A: Operativa\n• Plataforma Core B: En mantenimiento\n• Plataforma Core C: Operativa con alertas\n\n¿Necesitas más detalles?';
+    messageType = 'success';
+  } else if (msg.includes('5') || msg.includes('cambio')) {
+    response = 'Cambios programados:\n\n• CHG-2023-0789 - Actualización de firmware (hoy 20:00)\n• CHG-2023-0790 - Migración de datos (mañana 02:00)\n\n¿Quieres más información sobre algún cambio?';
+    messageType = 'ai';
+  } else if (msg.includes('6') || msg.includes('administrador')) {
+    response = 'Conectando con el administrador de plataforma...\n\nPor favor describe brevemente el motivo de tu consulta para asignarla al especialista adecuado.';
+    messageType = 'system';
+  } else if (currentState === 'awaiting_alarm_number') {
+    response = 'Por favor ingresa el nombre del elemento que reporta la alarma';
+    currentState = 'awaiting_element_name';
+    alarmNumber = msg; // Guardamos el número de alarma
+  } else if (currentState === 'awaiting_element_name') {
+    response = `Consulta de alarma completada:\n\n• Número de alarma: ${alarmNumber}\n• Elemento: ${msg}\n\nDetalles:\nLa alarma fue generada por el elemento mencionado. Se ha registrado un ticket de seguimiento.`;
+    currentState = '';
+    messageType = 'warning';
+  } else if (msg.includes('menu')) {
+    showInitialMenu();
+    return;
+  } else if (msg.includes('limpiar')) {
+    clearChat();
+    return;
+  } else {
+    response = 'No he entendido tu solicitud. Por favor selecciona una opción del menú o escribe "menu" para ver las opciones disponibles.';
+    messageType = 'system';
+  }
+  
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    addMessage(response, 'bot', messageType);
+  }, 1500);
+}
 
     // Mostrar indicador de escritura
     function showTyping() {
