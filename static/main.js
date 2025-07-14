@@ -1,6 +1,9 @@
-// ========= CONFIGURACIÓN DEL SISTEMA =========
-const ALARM_KEYWORDS = ['alarma', 'alarmas', 'problema', 'falla', 'error'];
-const PLATFORM_KEYWORDS = ['core', 'plataforma', 'sistema', 'servidor'];
+// Configuración
+const config = {
+    timeout: 5000,
+    maxRetries: 3,
+    retryDelay: 2000
+};
 
 // Estado global
 const state = {
@@ -25,161 +28,71 @@ const state = {
     }
 };
 
-// === MENSAJES DE INICIO ===
-function getWelcomeMessage() {
-    const currentTime = new Date().toLocaleString('es-ES', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+// Mapeo de estados backend-frontend
+const STATE_MAPPING = {
+    'await_alarm_number': 'request_alarm_number',
+    'await_element_name': 'request_element_name',
+    '': 'provide_alarm_details'
+};
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', () => {
+    initChat();
+    setupEventListeners();
+    showWelcomeMessage();
+    startConnectionMonitor();
+});
+
+// Funciones principales
+function initChat() {
+    document.getElementById('chat-container').classList.add('hidden');
+    document.getElementById('chat-bubble').addEventListener('click', toggleChat);
+    document.getElementById('expand-chat').addEventListener('click', toggleChatExpand);
+    document.getElementById('chat-form').addEventListener('submit', handleSubmit);
+}
+
+function setupEventListeners() {
+    document.getElementById('emergency-btn').addEventListener('click', () => {
+        activateEmergencyMode(true);
+        processMessage("¡Necesito ayuda urgente!");
     });
-    
-    return `🤖 <strong>Asesor Claro IA v2.1</strong>
-            ---
-            📅 ${currentTime}
-            ---
-            🚀 <em>Sistema de análisis predictivo activado</em>
-            ---
-            Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar hoy?`;
+
+    // Inactividad
+    setInterval(checkInactivity, 300000); // 5 minutos
+    document.addEventListener('mousemove', updateActivity);
+    document.addEventListener('keypress', updateActivity);
 }
 
-function getMenuMessage() {
-    return `📋 <strong>Opciones disponibles:</strong>
-            ---
-            1️⃣ Alarmas de plataformas
-            2️⃣ Documentación de las plataformas
-            3️⃣ Incidentes activos de las plataformas
-            4️⃣ Estado operativo de las plataformas
-            5️⃣ Cambios activos en las plataformas
-            6️⃣ Hablar con el administrador de la plataforma
-            ---
-            💡 <em>Por favor ingresa el número de la opción que deseas consultar</em>`;
-}
-
-// === RESPUESTA DEL BOT ===
-function handleBotResponse(data) {
-    if (data.command) handleSpecialCommands(data);
-    
-    addMessage(data.response, 'bot', data.type || 'normal');
-
-    if (data.alarms_checked) state.metrics.alarmsChecked += data.alarms_checked;
-    if (data.type === 'emergency') activateEmergencyMode(true);
-
-    if (data.next_step === 'request_alarm_number') {
-        state.waitingForAlarmNumber = true;
-        state.waitingForElementName = false;
-    } else if (data.next_step === 'request_element_name') {
-        state.waitingForAlarmNumber = false;
-        state.waitingForElementName = true;
-    } else if (data.next_step === 'provide_alarm_details') {
-        state.waitingForAlarmNumber = false;
-        state.waitingForElementName = false;
-    }
-}
-
-// === PROCESO DE CONSULTA DE ALARMAS ===
-async function processAlarmInquiry(message) {
-    if (message.match(/^[1-6]$/)) {
-        switch(message) {
-            case '1':
-                return {
-                    response: 'Por favor ingrese el número de alarma que desea consultar',
-                    type: 'system',
-                    next_step: 'request_alarm_number'
-                };
-            case '2':
-                return {
-                    response: '📚 Documentación disponible:\n\n1. Manual de usuario\n2. Especificaciones técnicas\n3. Protocolos de operación\n\n¿Qué documentación necesitas?',
-                    type: 'system'
-                };
-            default:
-                return {
-                    response: 'Opción no reconocida. Por favor selecciona un número del 1 al 6.',
-                    type: 'system'
-                };
-        }
-    } else if (state.waitingForAlarmNumber) {
-        state.currentAlarmNumber = message;
-        return {
-            response: 'Por favor ingresa el nombre del elemento que reporta la alarma',
-            type: 'system',
-            next_step: 'request_element_name',
-            alarm_number: message
-        };
-    } else if (state.waitingForElementName) {
-        const alarmDetails = await fetchAlarmDetails(state.currentAlarmNumber, message);
-        return {
-            response: formatAlarmDetails(alarmDetails),
-            type: 'alarms',
-            next_step: 'provide_alarm_details',
-            alarms_checked: 1
-        };
-    }
-    return null;
-}
-
-async function fetchAlarmDetails(alarmNumber, elementName) {
-    return {
-        id: alarmNumber,
-        element: elementName,
-        status: 'Activa',
-        severity: 'Alta',
-        firstOccurrence: new Date().toISOString(),
-        description: 'Falla de comunicación con el elemento',
-        recommendedActions: [
-            'Verificar conectividad física',
-            'Reiniciar el servicio',
-            'Contactar al equipo de soporte si persiste'
-        ]
-    };
-}
-
-function formatAlarmDetails(details) {
-    return `🚨 <strong>Detalles de la Alarma #${details.id}</strong>
-            ---
-            🔹 <strong>Elemento:</strong> ${details.element}
-            🔹 <strong>Estado:</strong> ${details.status}
-            🔹 <strong>Severidad:</strong> ${details.severity}
-            🔹 <strong>Primera ocurrencia:</strong> ${new Date(details.firstOccurrence).toLocaleString()}
-            ---
-            📝 <strong>Descripción:</strong>
-            ${details.description}
-            ---
-            ✅ <strong>Acciones recomendadas:</strong>
-            ${details.recommendedActions.map((action, i) => `${i+1}. ${action}`).join('\n')}
-            ---
-            ¿Necesitas más información sobre esta alarma?`;
-}
-
-// === PROCESAMIENTO GENERAL DE MENSAJES ===
+// Manejo de mensajes
 async function processMessage(message, retryCount = 0) {
-    const startTime = Date.now();
+    if (!message.trim()) return;
 
-    if (handleLocalCommands(message)) return;
+    state.messagesSent++;
+    addMessage(message, 'user');
+    updateActivity();
+
+    if (await checkConnection() === false) {
+        return addMessage('⚠️ No hay conexión con el servidor. Intenta nuevamente más tarde.', 'bot', 'error');
+    }
 
     const alarmResponse = await processAlarmInquiry(message);
     if (alarmResponse) {
-        handleBotResponse(alarmResponse);
-        return;
+        return handleBotResponse(alarmResponse);
     }
 
     showTyping();
 
     try {
-        const isEmergency = checkEmergency(message);
-
         const payload = {
             message,
             user_id: state.userId,
-            isEmergency,
-            timestamp: new Date().toISOString(),
-            sessionData: getSessionData()
+            isEmergency: state.isEmergency,
+            timestamp: new Date().toISOString()
         };
 
         if (state.waitingForElementName && state.currentAlarmNumber) {
             payload.alarm_number = state.currentAlarmNumber;
+            payload.current_state = 'await_element_name';
         }
 
         const response = await fetchWithTimeout('/chat', {
@@ -188,36 +101,136 @@ async function processMessage(message, retryCount = 0) {
             body: JSON.stringify(payload)
         }, config.timeout);
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const data = await response.json();
-        hideTyping();
-
-        state.metrics.responseTime = Date.now() - startTime;
         handleBotResponse(data);
 
-        if (state.messageQueue.length > 0) {
-            const nextMessage = state.messageQueue.shift();
-            setTimeout(() => processMessage(nextMessage), 500);
-        }
-
     } catch (error) {
-        hideTyping();
-        console.error('Error procesando mensaje:', error);
-
         if (retryCount < config.maxRetries) {
-            showNotification(`Reintentando... (${retryCount + 1}/${config.maxRetries})`, 'warning');
             setTimeout(() => processMessage(message, retryCount + 1), config.retryDelay);
         } else {
             addMessage(getErrorMessage(error), 'bot', 'error');
-            showNotification('Error de conexión persistente', 'error');
         }
+    } finally {
+        hideTyping();
     }
 }
 
-// === EXPANDIR Y CONTRAER CHAT ===
-function toggleChatExpand() {
-    const chatBox = document.querySelector('.chat-window');
-    chatBox.classList.toggle('expanded');
-    state.isExpanded = !state.isExpanded;
+// Procesamiento de alarmas
+async function processAlarmInquiry(message) {
+    try {
+        if (message.match(/^[1-6]$/)) {
+            switch(message) {
+                case '1':
+                    return {
+                        response: 'Por favor ingrese el número de alarma que desea consultar',
+                        type: 'system',
+                        next_step: 'request_alarm_number'
+                    };
+                default:
+                    return {
+                        response: 'Opción no reconocida. Por favor selecciona un número del 1 al 6.',
+                        type: 'system'
+                    };
+            }
+        } else if (state.waitingForAlarmNumber) {
+            if (!message.match(/^\d+$/)) {
+                return {
+                    response: '❌ El número de alarma debe contener solo dígitos',
+                    type: 'error',
+                    next_step: 'request_alarm_number'
+                };
+            }
+
+            state.currentAlarmNumber = message;
+            return {
+                response: 'Por favor ingresa el nombre del elemento que reporta la alarma',
+                type: 'system',
+                next_step: 'request_element_name',
+                alarm_number: message
+            };
+        } else if (state.waitingForElementName) {
+            const response = await fetch('/handle_state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: message,
+                    current_state: 'await_element_name',
+                    alarm_number: state.currentAlarmNumber,
+                    user_id: state.userId
+                })
+            });
+
+            if (!response.ok) throw new Error('Error en la respuesta');
+            return await response.json();
+        }
+        return null;
+    } catch (error) {
+        console.error('Error procesando alarma:', error);
+        return {
+            response: 'Error procesando la alarma. Intenta nuevamente.',
+            type: 'error'
+        };
+    }
 }
+
+// Manejo de respuesta del bot
+function handleBotResponse(data) {
+    if (!data) return;
+
+    addMessage(data.response, 'bot', data.type || 'normal');
+
+    // Actualizar estado
+    const frontendState = STATE_MAPPING[data.next_step] || '';
+    state.waitingForAlarmNumber = (frontendState === 'request_alarm_number');
+    state.waitingForElementName = (frontendState === 'request_element_name');
+
+    // Actualizar métricas
+    if (data.alarms_checked) state.metrics.alarmsChecked += data.alarms_checked;
+    if (data.type === 'emergency') activateEmergencyMode(true);
+}
+
+// Funciones auxiliares
+async function checkConnection() {
+    try {
+        const response = await fetch('/health');
+        if (!response.ok) throw new Error('Servidor no saludable');
+        return true;
+    } catch (error) {
+        console.error('Error de conexión:', error);
+        return false;
+    }
+}
+
+function fetchWithTimeout(url, options, timeout) {
+    return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), timeout)
+        )
+    ]);
+}
+
+function activateEmergencyMode(active) {
+    state.isEmergency = active;
+    document.body.classList.toggle('emergency-mode', active);
+    if (active) {
+        showNotification('Modo emergencia activado', 'error');
+    }
+}
+
+function toggleChat() {
+    state.isOpen = !state.isOpen;
+    const container = document.getElementById('chat-container');
+    container.classList.toggle('hidden');
+    container.classList.toggle('show');
+    if (state.isOpen) document.getElementById('chat-input').focus();
+}
+
+function toggleChatExpand() {
+    state.isExpanded = !state.isExpanded;
+    document.getElementById('chat-container').classList.toggle('expanded');
+}
+
+// ... (resto de funciones auxiliares como addMessage, showTyping, etc.)
