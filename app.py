@@ -58,18 +58,13 @@ def check_emergency(message):
 # Ruta raíz para evitar el 404
 @app.route('/')
 def home():
-    return jsonify({
-        "status": "active",
-        "message": "Chatbot API is running. Use /chat endpoint to interact.",
-        "endpoints": {
-            "/chat": "POST - Interact with the chatbot",
-            "/handle_state": "POST - Handle conversation states"
-        }
-    })
+     return render_template('index.html')
+            
 
 # Ruta principal del chatbot
 @app.route('/chat', methods=['POST'])
 def chat():
+
     start_time = time.time()
     data = request.json
     user_message = data['message']
@@ -200,6 +195,5 @@ def save_metrics(user_id, alarms_checked, emergencies, response_time):
 
 # Inicializar la aplicación
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 10000))  # Usa el puerto de Render o 10000 por defecto
     app.run(host="0.0.0.0", port=port)
