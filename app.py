@@ -151,5 +151,4 @@ def save_metrics(user_id, alarms_checked, emergencies, response_time):
 
 # Inicializar la aplicación
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
