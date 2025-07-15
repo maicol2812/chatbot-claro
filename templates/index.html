@@ -225,6 +225,50 @@
     .sev-alta {
       background: #dc3545;
     }
+    /* Animación de fila resaltada en tabla de alarmas */
+    .tabla-alarma tr.destacada {
+      animation: highlightRow 1.2s ease-in-out;
+      background: linear-gradient(90deg, #fff6f6 60%, #f8d7da 100%);
+    }
+    @keyframes highlightRow {
+      0% { background: #fffbe6; }
+      50% { background: #ffeaea; }
+      100% { background: linear-gradient(90deg, #fff6f6 60%, #f8d7da 100%); }
+    }
+    /* Tooltip experto para celdas */
+    .tabla-alarma td[data-tooltip] {
+      position: relative;
+      cursor: help;
+    }
+    .tabla-alarma td[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 0;
+      top: 100%;
+      background: #343a40;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: pre-line;
+      z-index: 10;
+      min-width: 120px;
+      box-shadow: 0 2px 8px #0002;
+      margin-top: 2px;
+    }
+    /* Icono de copiar en celdas */
+    .tabla-alarma .copiar-celda {
+      margin-left: 6px;
+      color: #dc3545;
+      cursor: pointer;
+      font-size: 13px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .tabla-alarma .copiar-celda:hover {
+      opacity: 1;
+      color: #a71d2a;
+    }
   </style>
 </head>
 <body>
@@ -284,6 +328,9 @@
     chatBox.innerHTML += html;
     guardarMensaje("bot-msg", respuesta);
     chatBox.scrollTop = chatBox.scrollHeight;
+    // Sonido si es alerta
+    if (respuesta.includes('Alerta CRÍTICA')) playAlertaAudio('critical');
+    else if (respuesta.includes('Alerta MAYOR')) playAlertaAudio('major');
   }
 
   // Indicador de escribiendo...
@@ -464,6 +511,35 @@
     else if (val.includes('documentación')) mostrarSugerencias(['Ver documentación', 'Manual PDF']);
     else mostrarSugerencias([]);
   });
+
+  // Copiar contenido de celda al portapapeles
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('copiar-celda')) {
+      const text = e.target.closest('td').dataset.copiar || e.target.closest('td').innerText;
+      navigator.clipboard.writeText(text);
+      e.target.textContent = '✅';
+      setTimeout(() => { e.target.textContent = '📋'; }, 1200);
+    }
+  });
+
+  // Sonido de alerta para alarmas critical/major
+  function playAlertaAudio(tipo) {
+    let audioUrl = '';
+    if (tipo === 'critical') {
+      audioUrl = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa4c7e.mp3'; // Sonido crítico
+    } else if (tipo === 'major') {
+      audioUrl = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa4c7e.mp3'; // Puedes cambiar por otro sonido si lo deseas
+    }
+    if (audioUrl) {
+      const audio = new Audio(audioUrl);
+      audio.volume = 0.5;
+      audio.play();
+    }
+  }
+
+  // Renderizar tabla con tooltips y copiar (ejemplo de uso en backend)
+  // En el backend, agrega data-tooltip y el icono 📋 en las celdas que quieras:
+  // <td data-tooltip="Texto de ayuda" data-copiar="valor a copiar">valor <span class='copiar-celda'>📋</span></td>
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

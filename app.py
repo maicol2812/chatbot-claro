@@ -121,11 +121,20 @@ def chat():
                 return 'sev-alta'
             return ''
 
+        def alerta_critica(severidad):
+            sev = str(severidad).strip().lower()
+            if sev == 'critical':
+                return '<div class="alert alert-danger" style="margin-bottom:8px;"><b>⚠️ Alerta CRÍTICA:</b> Esta alarma requiere atención inmediata.</div>'
+            elif sev == 'major':
+                return '<div class="alert alert-warning" style="margin-bottom:8px;"><b>⚠️ Alerta MAYOR:</b> Revisa este evento lo antes posible.</div>'
+            return ''
+
         if not resultado.empty:
             fila = resultado.iloc[0]
+            alerta = alerta_critica(fila.get('severidad',''))
             tabla = f'''
-            <div class="tabla-alarma-responsive">
-              <table class="tabla-alarma">
+            <div class=\"tabla-alarma-responsive\">
+              <table class=\"tabla-alarma\">
                 <tr>
                   <th>Número alarma</th>
                   <th>Nombre del elemento</th>
@@ -134,18 +143,18 @@ def chat():
                   <th>Significado</th>
                   <th>Acciones</th>
                 </tr>
-                <tr>
-                  <td><b>{fila.get('numero alarma','')}</b></td>
-                  <td>{fila.get('nombre del elemento','')}</td>
-                  <td>{fila.get('descripción alarma','')}</td>
-                  <td><span class="sev {color_severidad(fila.get('severidad',''))}">{fila.get('severidad','')}</span></td>
-                  <td>{fila.get('significado','')}</td>
-                  <td>{fila.get('acciones','')}</td>
+                <tr class=\"destacada\">
+                  <td data-tooltip=\"Identificador único de la alarma\" data-copiar=\"{fila.get('numero alarma','')}\"><b>{fila.get('numero alarma','')}</b> <span class='copiar-celda'>📋</span></td>
+                  <td data-tooltip=\"Elemento afectado por la alarma\">{fila.get('nombre del elemento','')}</td>
+                  <td data-tooltip=\"Descripción técnica de la alarma\">{fila.get('descripción alarma','')}</td>
+                  <td data-tooltip=\"Nivel de severidad: baja, media, alta, major o critical\"><span class=\"sev {color_severidad(fila.get('severidad',''))}\">{fila.get('severidad','')}</span></td>
+                  <td data-tooltip=\"Significado técnico de la alarma\">{fila.get('significado','')}</td>
+                  <td data-tooltip=\"Acciones recomendadas para resolver la alarma\">{fila.get('acciones','')}</td>
                 </tr>
               </table>
             </div>
             '''
-            respuesta = f"<b>🔔 Alarma detectada:</b><br>{tabla}"
+            respuesta = f"<b>🔔 Alarma detectada:</b><br>{alerta}{tabla}"
             sugerencias = ["Consultar otra alarma", "Volver al menú principal"]
         else:
             respuesta = "❌ No se encontró una alarma con ese número y nombre de elemento."
