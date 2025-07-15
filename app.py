@@ -1,297 +1,164 @@
 from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 import pandas as pd
 import os
-import logging
-from datetime import datetime
-import sqlite3
-import json
-
-# Configuración de logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-class AlarmDatabase:
-    def __init__(self, excel_file='Ejemplo de alarmas CMM.xlsx'):
-        self.excel_file = excel_file
-        self.data = None
-        self.load_data()
-    
-    def load_data(self):
-        """Cargar datos del archivo Excel"""
-        try:
-            if os.path.exists(self.excel_file):
-                # Leer el archivo Excel
-                self.data = pd.read_excel(self.excel_file)
-                
-                # Normalizar nombres de columnas
-                self.data.columns = self.data.columns.str.strip()
-                
-                # Mapeo flexible de columnas reales → nombres esperados
-                column_aliases = {
-                    'Numero alarma': 'Número de la alarma',
-                    'Descripción alarma': 'Descripción',
-                    'Acciones': 'Recomendaciones'
-                }
+# ✅ Habilitar CORS globalmente (mejor para evitar errores)
 
-                for original, renamed in column_aliases.items():
-                    if original in self.data.columns:
-                        self.data.rename(columns={original: renamed}, inplace=True)
+CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
 
-                # Verificar que las columnas necesarias existen
-                required_columns = ['Nombre del elemento', 'Número de la alarma', 'Descripción', 'Severidad', 'Recomendaciones']
-                missing_columns = [col for col in required_columns if col not in self.data.columns]
+usuarios = {}
 
-                if missing_columns:
-                    logger.error(f"Columnas faltantes en el archivo Excel: {missing_columns}")
-                    logger.info(f"Columnas disponibles: {list(self.data.columns)}")
-                    return False
+# ✅ Ruta robusta que funciona tanto en local como en Render
+ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
 
-                # Limpiar datos
-                self.data['Nombre del elemento'] = self.data['Nombre del elemento'].astype(str).str.strip()
-                self.data['Número de la alarma'] = self.data['Número de la alarma'].astype(str).str.strip()
-                
-                logger.info(f"Datos cargados exitosamente: {len(self.data)} registros")
-                return True
-            else:
-                logger.error(f"Archivo Excel no encontrado: {self.excel_file}")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Error cargando datos del Excel: {str(e)}")
-            return False
-    
-    def search_alarm(self, alarm_number, element_name):
-        """Buscar alarma por número y nombre del elemento"""
-        try:
-            if self.data is None:
-                return None
-            
-            # Normalizar inputs para búsqueda
-            alarm_number = str(alarm_number).strip()
-            element_name = str(element_name).strip().lower()
-            
-            # Buscar coincidencias
-            mask = (
-                (self.data['Número de la alarma'].astype(str).str.strip() == alarm_number) &
-                (self.data['Nombre del elemento'].astype(str).str.strip().str.lower() == element_name)
-            )
-            
-            results = self.data[mask]
-            
-            if len(results) > 0:
-                # Retornar el primer resultado
-                result = results.iloc[0]
-                return {
-                    'found': True,
-                    'alarm_number': result['Número de la alarma'],
-                    'element_name': result['Nombre del elemento'],
-                    'description': result['Descripción'],
-                    'severity': result['Severidad'],
-                    'recommendations': result['Recomendaciones']
-                }
-            else:
-                return {
-                    'found': False,
-                    'message': f'No se encontró una alarma con número {alarm_number} para el elemento "{element_name}"'
-                }
-                
-        except Exception as e:
-            logger.error(f"Error buscando alarma: {str(e)}")
-            return {
-                'found': False,
-                'message': f'Error interno al buscar la alarma: {str(e)}'
-            }
+if not os.path.exists(ruta_excel):
+    raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
 
-# Inicializar base de datos de alarmas
-alarm_db = AlarmDatabase()
+df = pd.read_excel(ruta_excel, engine="openpyxl")
+df.columns = df.columns.str.strip().str.lower()
 
-# Estado de usuarios (en memoria para simplicidad)
-user_states = {}
+if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
+    raise KeyError("❌ Las columnas necesarias no existen en el archivo Excel.")
 
-def get_user_state(user_id):
-    """Obtener estado del usuario"""
-    if user_id not in user_states:
-        user_states[user_id] = {
-            'current_state': '',
-            'alarm_number': None,
-            'element_name': None,
-            'conversation_started': False
-        }
-    return user_states[user_id]
+df["numero alarma"] = df["numero alarma"].astype(str).str.strip()
+df["nombre del elemento"] = df["nombre del elemento"].str.lower().str.strip()
 
-def update_user_state(user_id, **kwargs):
-    """Actualizar estado del usuario"""
-    state = get_user_state(user_id)
-    state.update(kwargs)
-    user_states[user_id] = state
+def menu_principal():
+    return (
+        "📋 Menú principal:\n"
+        "1. Alarmas de plataformas.\n"
+        "2. Documentación de las plataformas.\n"
+        "3. Incidentes activos de las plataformas.\n"
+        "4. Estado operativo de las plataformas.\n"
+        "5. Cambios activos de las plataformas.\n"
+        "6. Hablar con el administrador de la plataforma."
+    )
 
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/health')
-def health_check():
-    """Verificar estado del servidor"""
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.now().isoformat(),
-        'database_loaded': alarm_db.data is not None
-    })
-
-@app.route('/chat', methods=['POST'])
+@app.route("/chat", methods=["POST"])
 def chat():
-    """Endpoint principal del chat"""
-    try:
-        data = request.json
-        message = data.get('message', '').strip()
-        user_id = data.get('user_id', 'anonymous')
-        is_emergency = data.get('isEmergency', False)
-        
-        user_state = get_user_state(user_id)
-        
-        # Mensaje inicial/menú
-        if not user_state['conversation_started'] or message.lower() in ['menu', 'inicio', 'help']:
-            update_user_state(user_id, conversation_started=True, current_state='')
-            return jsonify({
-                'response': '''¡Hola! Soy tu asistente de alarmas CMM. 
+    msg = request.json.get("message", "").strip().lower()
+    user_id = "usuario1"
 
-¿En qué puedo ayudarte hoy?
+    if user_id not in usuarios:
+        usuarios[user_id] = {"estado": "inicio"}
 
-1. 🔍 Consultar información de alarma
-2. 📋 Ver historial de alarmas
-3. 🚨 Reportar emergencia
-4. 📊 Estadísticas del sistema
-5. 📖 Manual de procedimientos
-6. 👥 Contactar soporte técnico
+    estado = usuarios[user_id]["estado"]
 
-Selecciona una opción (1-6):''',
-                'type': 'system'
-            })
-        
-        return jsonify({
-            'response': 'Mensaje recibido en endpoint general. Por favor, usa el menú para navegar.',
-            'type': 'system'
-        })
-        
-    except Exception as e:
-        logger.error(f"Error en /chat: {str(e)}")
-        return jsonify({
-            'response': 'Error interno del servidor. Intenta nuevamente.',
-            'type': 'error'
-        }), 500
+    # Respuestas enriquecidas y sugerencias
+    def respuesta_enriquecida(texto, sugerencias=None):
+        resp = {"response": texto}
+        if sugerencias:
+            resp["suggestions"] = sugerencias
+        return jsonify(resp)
 
-@app.route('/handle_state', methods=['POST'])
-def handle_state():
-    """Manejar estados específicos del flujo de alarmas"""
-    try:
-        data = request.json
-        message = data.get('message', '').strip()
-        current_state = data.get('current_state', '')
-        user_id = data.get('user_id', 'anonymous')
-        alarm_number = data.get('alarm_number', None)
-        
-        logger.info(f"handle_state - User: {user_id}, State: {current_state}, Message: {message}, Alarm: {alarm_number}")
-        
-        if current_state == 'await_alarm_number':
-            if not message.isdigit():
-                return jsonify({
-                    'response': '❌ El número de alarma debe contener solo dígitos. Intenta nuevamente:',
-                    'type': 'error',
-                    'next_step': 'await_alarm_number'
-                })
-            
-            update_user_state(user_id, alarm_number=message, current_state='await_element_name')
-            return jsonify({
-                'response': 'Perfecto. Ahora ingresa el nombre del elemento que reporta la alarma:',
-                'type': 'system',
-                'next_step': 'await_element_name',
-                'alarm_number': message
-            })
-            
-        elif current_state == 'await_element_name':
-            if not alarm_number:
-                return jsonify({
-                    'response': 'Error: No se encontró el número de alarma. Vuelve a empezar.',
-                    'type': 'error'
-                })
-            
-            result = alarm_db.search_alarm(alarm_number, message)
-            
-            if result and result['found']:
-                response = f"""✅ **Alarma Encontrada**
+    if estado == "inicio":
+        if msg == "1":
+            usuarios[user_id]["estado"] = "espera_alarma"
+            return respuesta_enriquecida(
+                "Por favor ingresa el número de alarma que deseas consultar.",
+                ["12345", "67890", "54321"]
+            )
+        elif msg == "2":
+            return respuesta_enriquecida(
+                "📄 <b>Documentación disponible:</b><br>• <a href='https://tu-pdf-hosting.com/manual.pdf' target='_blank'>Manual PDF</a><br>• <a href='https://jefatura-url-de-alarmas.sharepoint.com'>SharePoint de alarmas</a>",
+                ["Manual PDF", "SharePoint de alarmas"]
+            )
+        elif msg == "3":
+            return respuesta_enriquecida(
+                "🚨 <b>Incidentes activos:</b><br>• Ningún incidente crítico reportado.<br>• Última actualización: 09:00 AM.",
+                ["Reportar incidente", "Ver historial"]
+            )
+        elif msg == "4":
+            return respuesta_enriquecida(
+                "🟢 Todas las plataformas operativas.",
+                ["Ver detalles", "Contactar administrador"]
+            )
+        elif msg == "5":
+            return respuesta_enriquecida(
+                "🔄 No hay cambios activos en este momento.",
+                ["Ver historial de cambios"]
+            )
+        elif msg == "6":
+            return respuesta_enriquecida(
+                "👨‍💼 Puedes contactar al administrador en <a href='mailto:jefe.plataformas@claro.com.co'>jefe.plataformas@claro.com.co</a>.",
+                ["Enviar correo", "Ver otros contactos"]
+            )
+        else:
+            return respuesta_enriquecida(menu_principal(), ["1", "2", "3", "4", "5", "6"])
 
-📋 **Información de la Alarma:**
-• **Número:** {result['alarm_number']}
-• **Elemento:** {result['element_name']}
-• **Severidad:** {result['severity']}
+    elif estado == "espera_alarma":
+        usuarios[user_id]["numero_alarma"] = msg
+        usuarios[user_id]["estado"] = "espera_elemento"
+        return respuesta_enriquecida(
+            "Ingresa ahora el nombre del elemento asociado a la alarma.",
+            ["Motor principal", "Válvula de seguridad", "Sensor de temperatura"]
+        )
 
-📝 **Descripción:**
-{result['description']}
+    elif estado == "espera_elemento":
+        numero = usuarios[user_id]["numero_alarma"]
+        elemento = msg.strip().lower()
+        usuarios[user_id]["estado"] = "inicio"
 
-💡 **Recomendaciones:**
-{result['recommendations']}
+        resultado = df[
+            (df["numero alarma"] == numero) &
+            (df["nombre del elemento"] == elemento)
+        ]
 
----
-¿Necesitas consultar otra alarma? Escribe "1" para buscar otra alarma o "menu" para ver todas las opciones."""
-                
-                update_user_state(user_id, current_state='', alarm_number=None, element_name=None)
-                
-                return jsonify({
-                    'response': response,
-                    'type': 'alarm_resolved',
-                    'alarm_info': result
-                })
-            else:
-                error_msg = result['message'] if result else 'No se encontró la alarma especificada'
-                response = f"""❌ **Alarma No Encontrada**
+        def color_severidad(sev):
+            sev = str(sev).strip().lower()
+            if sev == 'baja':
+                return 'sev-baja'
+            elif sev == 'media':
+                return 'sev-media'
+            elif sev == 'alta':
+                return 'sev-alta'
+            return ''
 
-{error_msg}
+        if not resultado.empty:
+            fila = resultado.iloc[0]
+            tabla = f'''
+            <div class="tabla-alarma-responsive">
+              <table class="tabla-alarma">
+                <tr>
+                  <th>Número alarma</th>
+                  <th>Nombre del elemento</th>
+                  <th>Descripción</th>
+                  <th>Severidad</th>
+                  <th>Significado</th>
+                  <th>Acciones</th>
+                </tr>
+                <tr>
+                  <td><b>{fila.get('numero alarma','')}</b></td>
+                  <td>{fila.get('nombre del elemento','')}</td>
+                  <td>{fila.get('descripción alarma','')}</td>
+                  <td><span class="sev {color_severidad(fila.get('severidad',''))}">{fila.get('severidad','')}</span></td>
+                  <td>{fila.get('significado','')}</td>
+                  <td>{fila.get('acciones','')}</td>
+                </tr>
+              </table>
+            </div>
+            '''
+            respuesta = f"<b>🔔 Alarma detectada:</b><br>{tabla}"
+            sugerencias = ["Consultar otra alarma", "Volver al menú principal"]
+        else:
+            respuesta = "❌ No se encontró una alarma con ese número y nombre de elemento."
+            sugerencias = ["Intentar de nuevo", "Volver al menú principal"]
 
-**Sugerencias:**
-• Verifica que el número de alarma sea correcto
-• Revisa la ortografía del nombre del elemento
-• Asegúrate de que el elemento corresponda a esa alarma
+        if "❌" in respuesta:
+            respuesta += "<br><br>" + menu_principal()
 
-¿Quieres intentar nuevamente?
-• Escribe "1" para buscar otra alarma
-• Escribe "menu" para ver todas las opciones"""
-                
-                update_user_state(user_id, current_state='', alarm_number=None, element_name=None)
-                
-                return jsonify({
-                    'response': response,
-                    'type': 'error'
-                })
-        
-        return jsonify({
-            'response': 'Estado no reconocido. Usa "menu" para empezar.',
-            'type': 'error'
-        })
-        
-    except Exception as e:
-        logger.error(f"Error en handle_state: {str(e)}")
-        return jsonify({
-            'response': 'Error procesando la solicitud. Intenta nuevamente.',
-            'type': 'error'
-        }), 500
+        return respuesta_enriquecida(respuesta, sugerencias)
 
-@app.route('/debug/data')
-def debug_data():
-    """Endpoint para debug - mostrar datos cargados"""
-    if alarm_db.data is not None:
-        return jsonify({
-            'status': 'loaded',
-            'records': len(alarm_db.data),
-            'columns': list(alarm_db.data.columns),
-            'sample_data': alarm_db.data.head().to_dict('records')
-        })
-    else:
-        return jsonify({
-            'status': 'not_loaded',
-            'message': 'No hay datos cargados'
-        })
+    return respuesta_enriquecida("❌ Algo salió mal. Intenta de nuevo.", ["Volver al menú principal"])
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
