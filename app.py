@@ -28,15 +28,26 @@ class AlarmDatabase:
                 # Normalizar nombres de columnas
                 self.data.columns = self.data.columns.str.strip()
                 
+                # Mapeo flexible de columnas reales → nombres esperados
+                column_aliases = {
+                    'Numero alarma': 'Número de la alarma',
+                    'Descripción alarma': 'Descripción',
+                    'Acciones': 'Recomendaciones'
+                }
+
+                for original, renamed in column_aliases.items():
+                    if original in self.data.columns:
+                        self.data.rename(columns={original: renamed}, inplace=True)
+
                 # Verificar que las columnas necesarias existen
                 required_columns = ['Nombre del elemento', 'Número de la alarma', 'Descripción', 'Severidad', 'Recomendaciones']
                 missing_columns = [col for col in required_columns if col not in self.data.columns]
-                
+
                 if missing_columns:
                     logger.error(f"Columnas faltantes en el archivo Excel: {missing_columns}")
                     logger.info(f"Columnas disponibles: {list(self.data.columns)}")
                     return False
-                
+
                 # Limpiar datos
                 self.data['Nombre del elemento'] = self.data['Nombre del elemento'].astype(str).str.strip()
                 self.data['Número de la alarma'] = self.data['Número de la alarma'].astype(str).str.strip()
@@ -184,7 +195,6 @@ def handle_state():
         logger.info(f"handle_state - User: {user_id}, State: {current_state}, Message: {message}, Alarm: {alarm_number}")
         
         if current_state == 'await_alarm_number':
-            # Validar que el mensaje es un número
             if not message.isdigit():
                 return jsonify({
                     'response': '❌ El número de alarma debe contener solo dígitos. Intenta nuevamente:',
@@ -192,9 +202,7 @@ def handle_state():
                     'next_step': 'await_alarm_number'
                 })
             
-            # Guardar número de alarma
             update_user_state(user_id, alarm_number=message, current_state='await_element_name')
-            
             return jsonify({
                 'response': 'Perfecto. Ahora ingresa el nombre del elemento que reporta la alarma:',
                 'type': 'system',
@@ -203,18 +211,15 @@ def handle_state():
             })
             
         elif current_state == 'await_element_name':
-            # Validar que tenemos el número de alarma
             if not alarm_number:
                 return jsonify({
                     'response': 'Error: No se encontró el número de alarma. Vuelve a empezar.',
                     'type': 'error'
                 })
             
-            # Buscar en la base de datos
             result = alarm_db.search_alarm(alarm_number, message)
             
             if result and result['found']:
-                # Formatear respuesta exitosa
                 response = f"""✅ **Alarma Encontrada**
 
 📋 **Información de la Alarma:**
@@ -231,7 +236,6 @@ def handle_state():
 ---
 ¿Necesitas consultar otra alarma? Escribe "1" para buscar otra alarma o "menu" para ver todas las opciones."""
                 
-                # Limpiar estado del usuario
                 update_user_state(user_id, current_state='', alarm_number=None, element_name=None)
                 
                 return jsonify({
@@ -240,7 +244,6 @@ def handle_state():
                     'alarm_info': result
                 })
             else:
-                # No encontrada
                 error_msg = result['message'] if result else 'No se encontró la alarma especificada'
                 response = f"""❌ **Alarma No Encontrada**
 
@@ -255,7 +258,6 @@ def handle_state():
 • Escribe "1" para buscar otra alarma
 • Escribe "menu" para ver todas las opciones"""
                 
-                # Limpiar estado del usuario
                 update_user_state(user_id, current_state='', alarm_number=None, element_name=None)
                 
                 return jsonify({

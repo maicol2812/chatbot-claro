@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buen día, hablemos de nuestras plataformas de Core.  Que te gustaría consultar el día de hoy:</title>
+    <title>Buen día, hablemos de nuestras plataformas de Core. Que te gustaría consultar el día de hoy:</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -623,6 +623,89 @@
             90% { opacity: 1; }
             100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
         }
+
+        /* Nuevos estilos integrados */
+        #notifications-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .notificacion {
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.4s ease;
+            font-weight: 500;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .notificacion.mostrar {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notificacion.info {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .notificacion.error {
+            background: rgba(213, 0, 0, 0.9);
+        }
+
+        .notificacion.success {
+            background: rgba(0, 200, 83, 0.9);
+        }
+
+        #loading-overlay {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            position: absolute;
+            width: 100%;
+            z-index: 999;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 <body>
@@ -642,6 +725,7 @@
     <div class="system-status">
         <div class="status-indicator" id="status-indicator"></div>
         <span id="status-text">Sistema Activo</span>
+        <span id="hora-actual" style="font-size: 12px; opacity: 0.7;"></span>
     </div>
     
     <!-- Pantalla de bienvenida -->
@@ -697,8 +781,18 @@
         </form>
     </div>
 
+    <!-- Cargando -->
+    <div id="loading-overlay">
+        <div class="typing-indicator">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
     <!-- Notificaciones -->
     <div id="notifications-container"></div>
+
+    <!-- Sonido de mensaje -->
+    <audio id="sonido-mensaje" src="https://cdn.pixabay.com/download/audio/2023/03/21/audio_c64ac62d3f.mp3" preload="auto"></audio>
 
     <!-- Scripts -->
     <script src="main.js"></script>
@@ -717,10 +811,45 @@
             }
         }
 
-        // Función para mostrar métricas (placeholder)
+        // Función para mostrar métricas
         function mostrarMetricas() {
-            // Implementar según necesidades
-            console.log('Mostrar métricas');
+            mostrarNotificacion('🔎 Consultando métricas del sistema...', 'info');
+            setTimeout(() => {
+                mostrarNotificacion('✅ 98% respuestas efectivas', 'success');
+                mostrarNotificacion('📊 Última consulta: hace 3 min', 'info');
+            }, 1000);
+        }
+
+        // Función para actualizar la hora
+        function actualizarHora() {
+            const ahora = new Date();
+            const horaElem = document.getElementById('hora-actual');
+            if (horaElem) horaElem.textContent = ahora.toLocaleTimeString('es-CO');
+        }
+        setInterval(actualizarHora, 1000);
+        actualizarHora();
+
+        // Función para mostrar notificaciones
+        function mostrarNotificacion(mensaje, tipo = 'info') {
+            const container = document.getElementById('notifications-container');
+            const noti = document.createElement('div');
+            noti.className = 'notificacion ' + tipo;
+            noti.innerText = mensaje;
+            container.appendChild(noti);
+            setTimeout(() => noti.classList.add('mostrar'), 100);
+            setTimeout(() => {
+                noti.classList.remove('mostrar');
+                setTimeout(() => noti.remove(), 500);
+            }, 4000);
+        }
+
+        // Función para mostrar/ocultar carga
+        function mostrarCargando() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function ocultarCargando() {
+            document.getElementById('loading-overlay').style.display = 'none';
         }
 
         // Inicializar cuando se carga la página
@@ -732,6 +861,38 @@
                 initChatbot();
             }
         });
+
+        // Funciones del chat (placeholder)
+        function toggleChat() {
+            const chatContainer = document.getElementById('chat-container');
+            const chatBubble = document.getElementById('chat-bubble');
+            
+            if (chatContainer.classList.contains('mostrar')) {
+                chatContainer.classList.remove('mostrar');
+                chatBubble.classList.remove('hidden');
+            } else {
+                chatContainer.classList.add('mostrar');
+                chatBubble.classList.add('hidden');
+            }
+        }
+
+        function expandChat() {
+            document.getElementById('chat-container').classList.add('expandido');
+        }
+
+        function minimizeChat() {
+            document.getElementById('chat-container').classList.remove('expandido');
+        }
+
+        function closeChat() {
+            document.getElementById('chat-container').classList.remove('mostrar');
+            document.getElementById('chat-bubble').classList.remove('hidden');
+        }
+
+        function enviarMensaje(texto) {
+            // Implementar según necesidades
+            console.log('Mensaje enviado:', texto);
+        }
     </script>
 </body>
 </html>

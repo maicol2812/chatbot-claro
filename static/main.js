@@ -2,7 +2,9 @@
 const config = {
     timeout: 5000,
     maxRetries: 3,
-    retryDelay: 2000
+    retryDelay: 2000,
+    supportedLanguages: ['es', 'en', 'fr', 'de', 'pt'],
+    maxFileSize: 5 * 1024 * 1024 // 5MB
 };
 
 // Estado global
@@ -18,13 +20,19 @@ const state = {
     waitingForAlarmNumber: false,
     waitingForElementName: false,
     currentAlarmNumber: null,
+    currentLanguage: navigator.language.split('-')[0] || 'es',
+    darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
+    voiceRecognition: null,
     metrics: {
         messagesSent: 0,
         alarmsChecked: 0,
         emergencies: 0,
         satisfaction: 4.5,
         responseTime: 0,
-        sessionsToday: 1
+        sessionsToday: 1,
+        voiceCommandsUsed: 0,
+        translationsMade: 0,
+        filesUploaded: 0
     }
 };
 
@@ -41,6 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     showWelcomeMessage();
     startConnectionMonitor();
+    initVoiceRecognition();
+    applyThemePreference();
+    initMetricsDashboard();
+    checkNotificationPermission();
 });
 
 // Funciones principales
@@ -86,448 +98,401 @@ function setupEventListeners() {
     setInterval(checkInactivity, 300000); // 5 minutos
     document.addEventListener('mousemove', updateActivity);
     document.addEventListener('keypress', updateActivity);
-}
 
-function handleSubmit(e) {
-    e.preventDefault();
-    const input = document.getElementById('chat-input');
-    const message = input.value.trim();
-    
-    if (message) {
-        processMessage(message);
-        input.value = '';
+    // Botón de voz
+    const voiceBtn = document.getElementById('voice-btn');
+    if (voiceBtn) {
+        voiceBtn.addEventListener('click', toggleVoiceRecognition);
+    }
+
+    // Botón de adjuntar archivo
+    const fileBtn = document.getElementById('file-btn');
+    if (fileBtn) {
+        fileBtn.addEventListener('click', () => document.getElementById('file-input').click());
+    }
+
+    // Input de archivo
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileUpload);
+    }
+
+    // Botón de traducción
+    const translateBtn = document.getElementById('translate-btn');
+    if (translateBtn) {
+        translateBtn.addEventListener('click', showLanguageSelector);
+    }
+
+    // Botón de tema oscuro/ligero
+    const themeBtn = document.getElementById('theme-btn');
+    if (themeBtn) {
+        themeBtn.addEventListener('click', toggleTheme);
+    }
+
+    // Botón de métricas
+    const metricsBtn = document.getElementById('metrics-btn');
+    if (metricsBtn) {
+        metricsBtn.addEventListener('click', toggleMetricsDashboard);
     }
 }
 
-// Manejo de mensajes
-async function processMessage(message, retryCount = 0) {
-    if (!message.trim()) return;
-
-    state.messagesSent++;
-    addMessage(message, 'user');
-    updateActivity();
-
-    if (await checkConnection() === false) {
-        return addMessage('⚠️ No hay conexión con el servidor. Intenta nuevamente más tarde.', 'bot', 'error');
+// Funciones de voz (WebSpeech API)
+function initVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        console.warn('Web Speech API no soportada en este navegador');
+        return;
     }
 
-    // Procesar alarmas ANTES de enviar al endpoint general
-    const alarmResponse = await processAlarmInquiry(message);
-    if (alarmResponse) {
-        return handleBotResponse(alarmResponse);
-    }
+    state.voiceRecognition = new SpeechRecognition();
+    state.voiceRecognition.continuous = false;
+    state.voiceRecognition.interimResults = false;
+    state.voiceRecognition.lang = state.currentLanguage;
 
-    showTyping();
+    state.voiceRecognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript.trim()) {
+            document.getElementById('chat-input').value = transcript;
+            state.metrics.voiceCommandsUsed++;
+            updateMetricsChart();
+        }
+    };
+
+    state.voiceRecognition.onerror = (event) => {
+        console.error('Error en reconocimiento de voz:', event.error);
+        showNotification(`Error de voz: ${event.error}`, 'error');
+    };
+}
+
+function toggleVoiceRecognition() {
+    if (!state.voiceRecognition) {
+        showNotification('Reconocimiento de voz no soportado en tu navegador', 'error');
+        return;
+    }
 
     try {
-        const payload = {
-            message,
-            user_id: state.userId,
-            isEmergency: state.isEmergency,
-            timestamp: new Date().toISOString()
-        };
-
-        const response = await fetchWithTimeout('/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        }, config.timeout);
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const data = await response.json();
-        handleBotResponse(data);
-
-    } catch (error) {
-        console.error('Error en processMessage:', error);
-        if (retryCount < config.maxRetries) {
-            setTimeout(() => processMessage(message, retryCount + 1), config.retryDelay);
+        if (state.isListening) {
+            state.voiceRecognition.stop();
+            document.getElementById('voice-btn').classList.remove('active');
+            state.isListening = false;
         } else {
-            addMessage(getErrorMessage(error), 'bot', 'error');
+            state.voiceRecognition.start();
+            document.getElementById('voice-btn').classList.add('active');
+            state.isListening = true;
+            showNotification('Escuchando... Habla ahora', 'info');
         }
-    } finally {
-        hideTyping();
-    }
-}
-
-// Procesamiento de alarmas - VERSIÓN CORREGIDA
-async function processAlarmInquiry(message) {
-    try {
-        // Paso 1: Usuario selecciona opción "1"
-        if (message.match(/^[1-6]$/)) {
-            switch(message) {
-                case '1':
-                    state.waitingForAlarmNumber = true;
-                    state.waitingForElementName = false;
-                    state.currentAlarmNumber = null;
-                    return {
-                        response: '🔍 **Consulta de Alarma**\n\nPor favor, ingresa el número de alarma que deseas consultar:',
-                        type: 'system',
-                        next_step: 'request_alarm_number'
-                    };
-                case '2':
-                    return {
-                        response: '📋 **Historial de Alarmas**\n\nEsta función estará disponible próximamente.',
-                        type: 'system'
-                    };
-                case '3':
-                    activateEmergencyMode(true);
-                    return {
-                        response: '🚨 **Modo Emergencia Activado**\n\nDescribe tu emergencia:',
-                        type: 'emergency'
-                    };
-                case '4':
-                    return {
-                        response: '📊 **Estadísticas del Sistema**\n\nEsta función estará disponible próximamente.',
-                        type: 'system'
-                    };
-                case '5':
-                    return {
-                        response: '📖 **Manual de Procedimientos**\n\nEsta función estará disponible próximamente.',
-                        type: 'system'
-                    };
-                case '6':
-                    return {
-                        response: '👥 **Contactar Soporte**\n\nEsta función estará disponible próximamente.',
-                        type: 'system'
-                    };
-                default:
-                    return {
-                        response: '❌ Opción no reconocida. Por favor selecciona un número del 1 al 6.',
-                        type: 'error'
-                    };
-            }
-        } 
-        // Paso 2: Usuario ingresa número de alarma
-        else if (state.waitingForAlarmNumber) {
-            if (!message.match(/^\d+$/)) {
-                return {
-                    response: '❌ El número de alarma debe contener solo dígitos. Intenta nuevamente:',
-                    type: 'error',
-                    next_step: 'request_alarm_number'
-                };
-            }
-
-            // Comunicar al backend para procesar el número de alarma
-            try {
-                const response = await fetch('/handle_state', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: message,
-                        current_state: 'await_alarm_number',
-                        user_id: state.userId
-                    })
-                });
-
-                if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                
-                const data = await response.json();
-                
-                // Actualizar estado local
-                state.currentAlarmNumber = message;
-                state.waitingForAlarmNumber = false;
-                state.waitingForElementName = true;
-                
-                return data;
-                
-            } catch (error) {
-                console.error('Error comunicando con backend:', error);
-                return {
-                    response: '❌ Error de comunicación con el servidor. Intenta nuevamente.',
-                    type: 'error'
-                };
-            }
-        } 
-        // Paso 3: Usuario ingresa nombre del elemento
-        else if (state.waitingForElementName && state.currentAlarmNumber) {
-            try {
-                const response = await fetch('/handle_state', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: message,
-                        current_state: 'await_element_name',
-                        alarm_number: state.currentAlarmNumber,
-                        user_id: state.userId
-                    })
-                });
-
-                if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                
-                const data = await response.json();
-                
-                // Reset del estado después de completar la consulta
-                state.waitingForAlarmNumber = false;
-                state.waitingForElementName = false;
-                state.currentAlarmNumber = null;
-                
-                // Actualizar métricas
-                if (data.type === 'alarm_resolved') {
-                    state.metrics.alarmsChecked++;
-                }
-                
-                return data;
-                
-            } catch (error) {
-                console.error('Error procesando elemento:', error);
-                return {
-                    response: '❌ Error procesando la consulta de alarma. Intenta nuevamente.',
-                    type: 'error'
-                };
-            }
-        }
-        
-        return null;
-        
     } catch (error) {
-        console.error('Error en processAlarmInquiry:', error);
-        return {
-            response: '❌ Error procesando la alarma. Intenta nuevamente.',
-            type: 'error'
-        };
+        console.error('Error al iniciar reconocimiento de voz:', error);
+        showNotification('Error al iniciar el micrófono', 'error');
     }
 }
 
-function handleBotResponse(data) {
-    if (!data) return;
+// Funciones de traducción
+function showLanguageSelector() {
+    const selector = document.createElement('div');
+    selector.className = 'language-selector';
+    selector.innerHTML = `
+        <h4>Seleccionar idioma</h4>
+        <div class="language-options">
+            ${config.supportedLanguages.map(lang => `
+                <button class="language-option ${state.currentLanguage === lang ? 'active' : ''}" 
+                        data-lang="${lang}">
+                    ${getLanguageName(lang)}
+                </button>
+            `).join('')}
+        </div>
+    `;
 
-    addMessage(data.response, 'bot', data.type || 'normal');
-
-    // Manejo de estados
-    if (data.next_step) {
-        const frontendState = STATE_MAPPING[data.next_step] || data.next_step;
-        state.waitingForAlarmNumber = (frontendState === 'request_alarm_number');
-        state.waitingForElementName = (frontendState === 'request_element_name');
-        
-        if (data.alarm_number) {
-            state.currentAlarmNumber = data.alarm_number;
-        }
-    }
-
-    // Reset completo si la consulta se resolvió
-    if (data.type === 'alarm_resolved') {
-        state.waitingForAlarmNumber = false;
-        state.waitingForElementName = false;
-        state.currentAlarmNumber = null;
-    }
-
-    // Actualizar métricas
-    if (data.alarms_checked) state.metrics.alarmsChecked += data.alarms_checked;
-    if (data.type === 'emergency') activateEmergencyMode(true);
-}
-
-// Funciones de UI
-function toggleChat() {
-    state.isOpen = !state.isOpen;
-    const container = document.getElementById('chat-container');
-    const bubble = document.getElementById('chat-bubble');
-    
-    if (state.isOpen) {
-        // Abrir chat
-        container.classList.remove('hidden');
-        container.classList.add('show');
-        bubble.classList.add('hidden');
-        
-        // Focus en el input después de la animación
-        setTimeout(() => {
-            document.getElementById('chat-input').focus();
-        }, 300);
-    } else {
-        // Cerrar chat
-        container.classList.remove('show');
-        container.classList.add('hidden');
-        bubble.classList.remove('hidden');
-        
-        // Resetear expansión
-        state.isExpanded = false;
-        container.classList.remove('expanded');
-    }
-}
-
-function toggleChatExpand() {
-    state.isExpanded = !state.isExpanded;
-    const container = document.getElementById('chat-container');
-    container.classList.toggle('expanded');
-    
-    // Scroll al final después de expandir
-    if (state.isExpanded) {
-        setTimeout(() => {
-            scrollToBottom();
-        }, 300);
-    }
-}
-
-function addMessage(message, sender, type = 'normal') {
-    const messagesContainer = document.getElementById('chat-messages');
-    const messageDiv = document.createElement('div');
-    
-    messageDiv.className = `message ${sender}-message`;
-    
-    if (type === 'error') {
-        messageDiv.classList.add('error');
-    } else if (type === 'emergency') {
-        messageDiv.classList.add('emergency');
-    } else if (type === 'system') {
-        messageDiv.classList.add('system');
-    }
-    
-    // Procesar markdown básico
-    const processedMessage = processMarkdown(message);
-    messageDiv.innerHTML = processedMessage;
-    
-    // Agregar timestamp
-    const timestamp = document.createElement('div');
-    timestamp.className = 'message-timestamp';
-    timestamp.textContent = new Date().toLocaleTimeString();
-    messageDiv.appendChild(timestamp);
-    
-    messagesContainer.appendChild(messageDiv);
-    scrollToBottom();
-}
-
-function processMarkdown(text) {
-    // Procesar markdown básico
-    return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code>$1</code>')
-        .replace(/\n/g, '<br>');
-}
-
-function showTyping() {
-    if (state.isTyping) return;
-    
-    state.isTyping = true;
-    const messagesContainer = document.getElementById('chat-messages');
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'message bot-message typing';
-    typingDiv.id = 'typing-indicator';
-    typingDiv.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span>';
-    
-    messagesContainer.appendChild(typingDiv);
-    scrollToBottom();
-}
-
-function hideTyping() {
-    state.isTyping = false;
-    const typingIndicator = document.getElementById('typing-indicator');
-    if (typingIndicator) {
-        typingIndicator.remove();
-    }
-}
-
-function scrollToBottom() {
-    const messagesContainer = document.getElementById('chat-messages');
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function showWelcomeMessage() {
-    if (!state.conversationStarted) {
-        setTimeout(() => {
-            addMessage('¡Hola! Soy tu asistente de alarmas CMM. Haz clic en el botón flotante para comenzar.', 'bot', 'system');
-        }, 1000);
-    }
-}
-
-// Funciones auxiliares
-function generateUserId() {
-    return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-async function checkConnection() {
-    try {
-        const response = await fetch('/health');
-        if (!response.ok) throw new Error('Servidor no saludable');
-        return true;
-    } catch (error) {
-        console.error('Error de conexión:', error);
-        return false;
-    }
-}
-
-function fetchWithTimeout(url, options, timeout) {
-    return Promise.race([
-        fetch(url, options),
-        new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout')), timeout)
-        )
-    ]);
-}
-
-function activateEmergencyMode(active) {
-    state.isEmergency = active;
-    document.body.classList.toggle('emergency-mode', active);
-    
-    if (active) {
-        showNotification('🚨 Modo emergencia activado', 'error');
-        state.metrics.emergencies++;
-    }
-}
-
-function showNotification(message, type = 'info') {
-    // Crear notificación
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    // Mostrar con animación
-    setTimeout(() => notification.classList.add('show'), 100);
-    
-    // Ocultar después de 3 segundos
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-function updateActivity() {
-    state.lastActivity = Date.now();
-}
-
-function checkInactivity() {
-    const now = Date.now();
-    const inactiveTime = now - state.lastActivity;
-    
-    if (inactiveTime > 300000 && state.isOpen) { // 5 minutos
-        addMessage('¿Sigues ahí? He notado que no has estado activo por un tiempo.', 'bot', 'system');
-    }
-}
-
-function startConnectionMonitor() {
-    setInterval(async () => {
-        const isConnected = await checkConnection();
-        if (!isConnected) {
-            showNotification('⚠️ Conexión perdida con el servidor', 'error');
-        }
-    }, 30000); // Cada 30 segundos
-}
-
-function getErrorMessage(error) {
-    if (error.message.includes('Timeout')) {
-        return '⏱️ La solicitud ha tardado demasiado. Intenta nuevamente.';
-    } else if (error.message.includes('HTTP')) {
-        return '🔌 Error de conexión con el servidor. Verifica tu conexión.';
-    } else {
-        return '❌ Ha ocurrido un error inesperado. Intenta nuevamente.';
-    }
-}
-
-// Función de debug (remover en producción)
-function debugState() {
-    console.log('Estado actual:', {
-        isOpen: state.isOpen,
-        isExpanded: state.isExpanded,
-        waitingForAlarmNumber: state.waitingForAlarmNumber,
-        waitingForElementName: state.waitingForElementName,
-        currentAlarmNumber: state.currentAlarmNumber,
-        messagesSent: state.messagesSent,
-        metrics: state.metrics
+    // Event listeners para los botones de idioma
+    selector.querySelectorAll('.language-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const lang = btn.dataset.lang;
+            changeLanguage(lang);
+            selector.remove();
+        });
     });
+
+    document.body.appendChild(selector);
+    setTimeout(() => selector.classList.add('show'), 10);
 }
 
-// Exponer funciones para debugging
-window.debugState = debugState;
-window.state = state;
+function getLanguageName(code) {
+    const names = {
+        'es': 'Español',
+        'en': 'English',
+        'fr': 'Français',
+        'de': 'Deutsch',
+        'pt': 'Português'
+    };
+    return names[code] || code;
+}
+
+async function changeLanguage(lang) {
+    if (!config.supportedLanguages.includes(lang)) {
+        showNotification('Idioma no soportado', 'error');
+        return;
+    }
+
+    if (state.currentLanguage === lang) return;
+
+    try {
+        // Aquí iría la llamada a la API de traducción (Google Translate o DeepL)
+        // Por ahora simulamos la traducción
+        state.currentLanguage = lang;
+        if (state.voiceRecognition) {
+            state.voiceRecognition.lang = lang;
+        }
+
+        showNotification(`Idioma cambiado a ${getLanguageName(lang)}`, 'success');
+        state.metrics.translationsMade++;
+        updateMetricsChart();
+
+        // Aquí podrías traducir los mensajes existentes si es necesario
+    } catch (error) {
+        console.error('Error cambiando idioma:', error);
+        showNotification('Error cambiando idioma', 'error');
+    }
+}
+
+// Funciones de tema oscuro/ligero
+function applyThemePreference() {
+    if (state.darkMode) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+}
+
+function toggleTheme() {
+    state.darkMode = !state.darkMode;
+    applyThemePreference();
+    localStorage.setItem('chatDarkMode', state.darkMode);
+}
+
+// Funciones de métricas con Chart.js
+function initMetricsDashboard() {
+    const metricsContainer = document.getElementById('metrics-container');
+    if (!metricsContainer) return;
+
+    // Crear el canvas para el gráfico
+    const canvas = document.createElement('canvas');
+    canvas.id = 'metrics-chart';
+    metricsContainer.appendChild(canvas);
+
+    // Inicializar el gráfico
+    updateMetricsChart();
+}
+
+function updateMetricsChart() {
+    const ctx = document.getElementById('metrics-chart');
+    if (!ctx) return;
+
+    // Datos para el gráfico
+    const data = {
+        labels: ['Mensajes', 'Alarmas', 'Emergencias', 'Voz', 'Traducciones', 'Archivos'],
+        datasets: [{
+            label: 'Actividad del Usuario',
+            data: [
+                state.metrics.messagesSent,
+                state.metrics.alarmsChecked,
+                state.metrics.emergencies,
+                state.metrics.voiceCommandsUsed,
+                state.metrics.translationsMade,
+                state.metrics.filesUploaded
+            ],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(255, 159, 64, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
+                'rgba(153, 102, 255, 0.5)',
+                'rgba(255, 205, 86, 0.5)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 205, 86, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    // Configuración del gráfico
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Métricas de Uso'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    };
+
+    // Destruir el gráfico anterior si existe
+    if (window.metricsChart) {
+        window.metricsChart.destroy();
+    }
+
+    // Crear nuevo gráfico
+    window.metricsChart = new Chart(ctx, config);
+}
+
+function toggleMetricsDashboard() {
+    const metricsContainer = document.getElementById('metrics-container');
+    if (!metricsContainer) return;
+
+    metricsContainer.classList.toggle('show');
+    if (metricsContainer.classList.contains('show')) {
+        updateMetricsChart();
+    }
+}
+
+// Funciones de subida de archivos
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validar tamaño del archivo
+    if (file.size > config.maxFileSize) {
+        showNotification(`El archivo es demasiado grande (máximo ${config.maxFileSize / 1024 / 1024}MB)`, 'error');
+        return;
+    }
+
+    // Mostrar previsualización (si es imagen)
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '200px';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message file-message';
+            messageDiv.appendChild(img);
+            
+            const timestamp = document.createElement('div');
+            timestamp.className = 'message-timestamp';
+            timestamp.textContent = new Date().toLocaleTimeString();
+            messageDiv.appendChild(timestamp);
+            
+            document.getElementById('chat-messages').appendChild(messageDiv);
+            scrollToBottom();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Aquí iría la subida real al servidor
+    // Simulamos la subida con un setTimeout
+    showNotification(`Subiendo ${file.name}...`, 'info');
+    
+    setTimeout(() => {
+        state.metrics.filesUploaded++;
+        updateMetricsChart();
+        showNotification(`${file.name} subido correctamente`, 'success');
+        processMessage(`He subido el archivo: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`);
+    }, 2000);
+
+    // Limpiar el input
+    event.target.value = '';
+}
+
+// Funciones de notificaciones push
+function checkNotificationPermission() {
+    if (!('Notification' in window)) {
+        console.log('Este navegador no soporta notificaciones push');
+        return;
+    }
+
+    if (Notification.permission === 'granted') {
+        return;
+    } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                console.log('Permiso para notificaciones concedido');
+            }
+        });
+    }
+}
+
+function showPushNotification(title, options) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return;
+    }
+
+    // Mostrar notificación
+    const notification = new Notification(title, options);
+
+    // Cerrar notificación después de 5 segundos
+    setTimeout(() => notification.close(), 5000);
+}
+
+// Sugerencias inteligentes
+function showSmartSuggestions(context) {
+    const suggestions = getSuggestionsBasedOnContext(context);
+    if (!suggestions.length) return;
+
+    const suggestionsContainer = document.getElementById('suggestions-container');
+    if (!suggestionsContainer) return;
+
+    suggestionsContainer.innerHTML = '';
+    suggestions.forEach(suggestion => {
+        const btn = document.createElement('button');
+        btn.className = 'suggestion';
+        btn.textContent = suggestion;
+        btn.addEventListener('click', () => {
+            document.getElementById('chat-input').value = suggestion;
+            suggestionsContainer.innerHTML = '';
+        });
+        suggestionsContainer.appendChild(btn);
+    });
+
+    suggestionsContainer.classList.add('show');
+}
+
+function getSuggestionsBasedOnContext(context) {
+    // Esta función debería analizar el contexto y devolver sugerencias relevantes
+    // Por ahora devolvemos algunas sugerencias genéricas
+    if (state.waitingForAlarmNumber) {
+        return ['12345', '67890', '54321'];
+    } else if (state.waitingForElementName) {
+        return ['Motor principal', 'Válvula de seguridad', 'Sensor de temperatura'];
+    } else if (state.isEmergency) {
+        return ['¡Necesito ayuda urgente!', 'Fallo crítico en el sistema', 'Accidente en la zona 5'];
+    } else {
+        return ['Consulta de alarma', 'Historial de alarmas', 'Contactar con soporte'];
+    }
+}
+
+// El resto de las funciones (handleSubmit, processMessage, etc.) permanecen igual que en tu código original
+// Solo necesitarías actualizar las que interactúan con las nuevas funcionalidades
+
+// Ejemplo de actualización de processMessage para incluir sugerencias
+async function processMessage(message, retryCount = 0) {
+    // ... (código existente)
+    
+    // Después de procesar el mensaje, mostrar sugerencias
+    showSmartSuggestions({
+        lastMessage: message,
+        currentState: state.waitingForAlarmNumber ? 'await_alarm_number' : 
+                    state.waitingForElementName ? 'await_element_name' : '',
+        isEmergency: state.isEmergency
+    });
+    
+    // ... (resto del código existente)
+}
