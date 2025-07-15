@@ -41,6 +41,11 @@ def menu_principal():
 def index():
     return render_template("index.html")
 
+
+# Sugerencia de mejora profesional:
+# Puedes permitir que el usuario consulte alarmas por coincidencia parcial (no solo exacta)
+# y mostrar múltiples resultados en una tabla profesional usando render_alarmas_table.
+
 @app.route("/chat", methods=["POST"])
 def chat():
     msg = request.json.get("message", "").strip().lower()
@@ -51,7 +56,6 @@ def chat():
 
     estado = usuarios[user_id]["estado"]
 
-    # Respuestas enriquecidas y sugerencias
     def respuesta_enriquecida(texto, sugerencias=None):
         resp = {"response": texto}
         if sugerencias:
@@ -106,20 +110,29 @@ def chat():
         elemento = msg.strip().lower()
         usuarios[user_id]["estado"] = "inicio"
 
+        # Conexión directa y búsqueda en el archivo Excel ya cargado en df
         resultado = df[
-            (df["numero alarma"] == numero) &
-            (df["nombre del elemento"] == elemento)
+            df["numero alarma"].str.contains(numero) &
+            df["nombre del elemento"].str.contains(elemento)
         ]
 
         def color_severidad(sev):
+            """
+            Devuelve la clase CSS profesional para la severidad de la alarma.
+            Soporta baja, media, alta, major, critical.
+            """
             sev = str(sev).strip().lower()
             if sev == 'baja':
-                return 'sev-baja'
+                return 'sev sev-baja'
             elif sev == 'media':
-                return 'sev-media'
+                return 'sev sev-media'
             elif sev == 'alta':
-                return 'sev-alta'
-            return ''
+                return 'sev sev-alta'
+            elif sev == 'major':
+                return 'sev sev-alta'
+            elif sev == 'critical':
+                return 'sev sev-alta'
+            return 'sev'
 
         def alerta_critica(severidad):
             sev = str(severidad).strip().lower()
@@ -130,31 +143,36 @@ def chat():
             return ''
 
         if not resultado.empty:
-            fila = resultado.iloc[0]
-            alerta = alerta_critica(fila.get('severidad',''))
-            tabla = f'''
-            <div class=\"tabla-alarma-responsive\">
-              <table class=\"tabla-alarma\">
-                <tr>
-                  <th>Número alarma</th>
-                  <th>Nombre del elemento</th>
-                  <th>Descripción</th>
-                  <th>Severidad</th>
-                  <th>Significado</th>
-                  <th>Acciones</th>
-                </tr>
-                <tr class=\"destacada\">
-                  <td data-tooltip=\"Identificador único de la alarma\" data-copiar=\"{fila.get('numero alarma','')}\"><b>{fila.get('numero alarma','')}</b> <span class='copiar-celda'>📋</span></td>
-                  <td data-tooltip=\"Elemento afectado por la alarma\">{fila.get('nombre del elemento','')}</td>
-                  <td data-tooltip=\"Descripción técnica de la alarma\">{fila.get('descripción alarma','')}</td>
-                  <td data-tooltip=\"Nivel de severidad: baja, media, alta, major o critical\"><span class=\"sev {color_severidad(fila.get('severidad',''))}\">{fila.get('severidad','')}</span></td>
-                  <td data-tooltip=\"Significado técnico de la alarma\">{fila.get('significado','')}</td>
-                  <td data-tooltip=\"Acciones recomendadas para resolver la alarma\">{fila.get('acciones','')}</td>
-                </tr>
-              </table>
-            </div>
-            '''
-            respuesta = f"<b>🔔 Alarma detectada:</b><br>{alerta}{tabla}"
+            filas = resultado.to_dict(orient="records")
+            if len(filas) == 1:
+                fila = filas[0]
+                alerta = alerta_critica(fila.get('severidad',''))
+                tabla = f'''
+                <div class="tabla-alarma-responsive">
+                  <table class="tabla-alarma">
+                    <tr>
+                      <th>Número alarma</th>
+                      <th>Nombre del elemento</th>
+                      <th>Descripción</th>
+                      <th>Severidad</th>
+                      <th>Significado</th>
+                      <th>Acciones</th>
+                    </tr>
+                    <tr class="destacada">
+                      <td data-tooltip="Identificador único de la alarma" data-copiar="{fila.get('numero alarma','')}"><b>{fila.get('numero alarma','')}</b> <span class='copiar-celda'>📋</span></td>
+                      <td data-tooltip="Elemento afectado por la alarma">{fila.get('nombre del elemento','')}</td>
+                      <td data-tooltip="Descripción técnica de la alarma">{fila.get('descripción alarma','')}</td>
+                      <td data-tooltip="Nivel de severidad: baja, media, alta, major o critical"><span class="sev {color_severidad(fila.get('severidad',''))}">{fila.get('severidad','')}</span></td>
+                      <td data-tooltip="Significado técnico de la alarma">{fila.get('significado','')}</td>
+                      <td data-tooltip="Acciones recomendadas para resolver la alarma">{fila.get('acciones','')}</td>
+                    </tr>
+                  </table>
+                </div>
+                '''
+                respuesta = f"<b>🔔 Alarma detectada:</b><br>{alerta}{tabla}"
+            else:
+                tabla = render_alarmas_table(filas)
+                respuesta = f"<b>🔔 Resultados encontrados ({len(filas)}):</b><br>{tabla}"
             sugerencias = ["Consultar otra alarma", "Volver al menú principal"]
         else:
             respuesta = "❌ No se encontró una alarma con ese número y nombre de elemento."
@@ -166,6 +184,70 @@ def chat():
         return respuesta_enriquecida(respuesta, sugerencias)
 
     return respuesta_enriquecida("❌ Algo salió mal. Intenta de nuevo.", ["Volver al menú principal"])
+
+def severidad_class(severidad):
+    sev = str(severidad).strip().lower()
+    if sev == 'baja':
+        return 'sev sev-baja'
+    elif sev == 'media':
+        return 'sev sev-media'
+    elif sev == 'alta':
+        return 'sev sev-alta'
+    return 'sev'
+
+def render_alarmas_table(rows):
+    """
+    Renderiza una tabla HTML profesional y responsiva para mostrar alarmas,
+    con tooltips, copiar, colores y formato experto.
+    """
+    table = '''
+    <div class="tabla-alarma-responsive">
+      <table class="tabla-alarma">
+        <thead>
+          <tr>
+            <th>Acciones</th>
+            <th>Significado</th>
+            <th>Severidad</th>
+            <th>Descripción alarma</th>
+            <th>Número alarma</th>
+            <th>Nombre del elemento</th>
+          </tr>
+        </thead>
+        <tbody>
+    '''
+    for row in rows:
+        acciones = row.get('Acciones', '')
+        significado = row.get('Significado', '')
+        severidad = row.get('Severidad', '')
+        descripcion = row.get('Descripción alarma', '')
+        numero = row.get('Número alarma', '')
+        elemento = row.get('Nombre del elemento', '')
+
+        table += f'''
+          <tr>
+            <td data-tooltip="Acción recomendada" data-copiar="{acciones}">{acciones} <span class='copiar-celda'>📋</span></td>
+            <td data-tooltip="Significado de la alarma" data-copiar="{significado}">{significado} <span class='copiar-celda'>📋</span></td>
+            <td><span class="{color_severidad(severidad)}">{severidad}</span></td>
+            <td data-tooltip="Descripción detallada" data-copiar="{descripcion}">{descripcion} <span class='copiar-celda'>📋</span></td>
+            <td data-tooltip="Identificador único de la alarma" data-copiar="{numero}"><b>{numero}</b> <span class='copiar-celda'>📋</span></td>
+            <td data-tooltip="Elemento afectado" data-copiar="{elemento}">{elemento} <span class='copiar-celda'>📋</span></td>
+          </tr>
+        '''
+    table += '''
+        </tbody>
+      </table>
+    </div>
+    '''
+    return table
+
+# Ejemplo de uso avanzado en tu endpoint:
+# if not resultado.empty:
+#     filas = resultado.to_dict(orient="records")
+#     tabla_html = render_alarmas_table(filas)
+#     respuesta = f"<b>🔔 Resultados encontrados:</b><br>{tabla_html}"
+#     return respuesta_enriquecida(respuesta, ["Consultar otra alarma", "Volver al menú principal"])
+# else:
+#     return respuesta_enriquecida("❌ No se encontraron alarmas para tu búsqueda.<br><br>" + menu_principal(), ["Intentar de nuevo", "Volver al menú principal"])
 
 if __name__ == "__main__":
     import os

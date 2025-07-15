@@ -189,6 +189,50 @@
       box-shadow: 0 2px 8px #dc354520;
       border-radius: 8px;
       overflow: hidden;
+      /* Nueva animación de entrada */
+      animation: tablaFadeIn 0.7s cubic-bezier(.4,1.4,.6,1) both;
+    }
+    @keyframes tablaFadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+        box-shadow: 0 8px 32px #dc354540;
+      }
+      60% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.01);
+        box-shadow: 0 4px 16px #dc354530;
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        box-shadow: 0 2px 8px #dc354520;
+      }
+    }
+    .tabla-alarma tr {
+      /* Animación de fila al aparecer */
+      animation: filaFadeIn 0.6s cubic-bezier(.4,1.4,.6,1) both;
+    }
+    @keyframes filaFadeIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .tabla-alarma tr.destacada {
+      animation: highlightRow 1.2s cubic-bezier(.4,1.4,.6,1);
+      background: linear-gradient(90deg, #fff6f6 60%, #f8d7da 100%);
+    }
+    /* Animación sutil al pasar el mouse por una fila */
+    .tabla-alarma tbody tr:hover {
+      background: #fff0f3;
+      transition: background 0.25s cubic-bezier(.4,1.4,.6,1);
+      box-shadow: 0 2px 12px #dc354520;
+      transform: scale(1.01);
     }
     .tabla-alarma th, .tabla-alarma td {
       padding: 6px 10px;
@@ -317,6 +361,7 @@
   const burbuja = document.getElementById("burbuja-toggle");
   const chat = document.getElementById("chat-container");
 
+  // Función: Muestra un mensaje del bot en el chat
   function mostrarMensajeBot(respuesta, esTip = false) {
     let html = `<div class=\"bot-msg\">`;
     html += `<span class=\"bot-avatar\"></span>`;
@@ -333,32 +378,27 @@
     else if (respuesta.includes('Alerta MAYOR')) playAlertaAudio('major');
   }
 
-  // Indicador de escribiendo...
+  // Función: Muestra el indicador de "El experto está escribiendo..."
   function mostrarEscribiendo() {
     const typing = `<div class=\"typing-indicator\" id=\"typing-indicator\"><span class=\"typing-dot\"></span><span class=\"typing-dot\"></span><span class=\"typing-dot\"></span> <span style=\"font-size:12px;color:#dc3545;\">El experto está escribiendo...</span></div>`;
     chatBox.innerHTML += typing;
     chatBox.scrollTop = chatBox.scrollHeight;
   }
+
+  // Función: Oculta el indicador de "El experto está escribiendo..."
   function ocultarEscribiendo() {
     const typing = document.getElementById("typing-indicator");
     if (typing) typing.remove();
   }
 
-  // Tips aleatorios
-  const tips = [
-    "Puedes consultar el estado de cualquier plataforma escribiendo su nombre.",
-    "¿Sabías que puedes pedir el manual en PDF desde el menú de ayuda?",
-    "Para reportar incidentes, usa la opción 3 del menú principal.",
-    "El chat recuerda tu historial para una mejor experiencia.",
-    "Haz clic en el icono de micrófono para futuras funciones de voz.",
-    "Contacta al administrador desde el menú de ayuda si tienes dudas."
-  ];
+  // Función: Muestra un tip aleatorio en el chat
   function mostrarTipAleatorio() {
     const tip = tips[Math.floor(Math.random() * tips.length)];
     chatBox.innerHTML += `<div class=\"bot-tip\">💡 <b>Tip:</b> ${tip}</div>`;
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
+  // Evento: Muestra/oculta el chat y muestra mensaje de bienvenida y menú
   burbuja.addEventListener("click", () => {
     chat.classList.toggle("mostrar");
     if (chat.classList.contains("mostrar")) {
@@ -370,12 +410,14 @@
     }
   });
 
+  // Evento: Expande o contrae el chat
   document.getElementById("expandir-chat").addEventListener("click", () => {
     chat.classList.toggle("expandido");
     const btn = document.getElementById("expandir-chat");
     btn.textContent = chat.classList.contains("expandido") ? "🗕" : "⛶";
   });
 
+  // Función: Muestra los botones del menú principal en el chat
   function mostrarBotonesMenu() {
     const opciones = [
       "1. Alarmas de plataformas",
@@ -394,23 +436,27 @@
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
+  // Función: Envía la opción seleccionada del menú como mensaje de usuario
   function enviarOpcion(valor) {
     input.value = valor;
     form.dispatchEvent(new Event('submit'));
   }
 
+  // Función: Guarda un mensaje en el historial local del chat
   function guardarMensaje(tipo, texto) {
     const historial = JSON.parse(localStorage.getItem("chatHistorial")) || [];
     historial.push({ tipo, texto });
     localStorage.setItem("chatHistorial", JSON.stringify(historial));
   }
 
+  // Función: Muestra un mensaje del bot en el chat (versión simple)
   function mostrarMensajeBot(respuesta) {
     chatBox.innerHTML += `<div class="bot-msg">${respuesta.replace(/\n/g, "<br>")}</div>`;
     guardarMensaje("bot-msg", respuesta);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
+  // Evento: Maneja el envío del formulario de chat (envía mensaje al backend)
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const message = input.value.trim();
@@ -442,10 +488,12 @@
     }
   });
 
+  // Función: Muestra mensaje de función de voz no disponible
   function activarMicrofono() {
     mostrarMensajeBot("🎙 Función de voz no disponible aún.");
   }
 
+  // Función: Muestra opciones rápidas de ayuda en el chat
   function mostrarAyuda() {
     const ayuda = `
       <b>🆘 Opciones rápidas:</b><br>
@@ -456,17 +504,19 @@
     mostrarMensajeBot(ayuda);
   }
 
+  // Función: Abre el manual PDF en una nueva pestaña
   function abrirManual() {
     window.open("https://tudominio.com/manual.pdf", "_blank");
   }
 
+  // Función: Abre el correo para contactar al administrador
   function contactarAdmin() {
     const mensaje = "Hola, necesito ayuda con el sistema de alarmas.";
     const correo = "mailto:admin@claro.com.co?subject=Asistencia%20Chatbot&body=" + encodeURIComponent(mensaje);
     window.open(correo, "_blank");
   }
 
-  // Exportar historial de chat
+  // Función: Exporta el historial del chat a un archivo de texto
   function exportarHistorial() {
     const historial = JSON.parse(localStorage.getItem("chatHistorial")) || [];
     let texto = 'Historial de chat:\n';
@@ -484,7 +534,7 @@
     URL.revokeObjectURL(url);
   }
 
-  // Sugerencias inteligentes (frontend simple)
+  // Función: Muestra sugerencias inteligentes debajo del chat
   function mostrarSugerencias(sugerencias) {
     const cont = document.getElementById('suggestions-container');
     cont.innerHTML = '';
@@ -503,7 +553,7 @@
     cont.classList.add('show');
   }
 
-  // Detectar palabras clave y mostrar sugerencias
+  // Evento: Detecta palabras clave en el input y muestra sugerencias relacionadas
   input.addEventListener('input', () => {
     const val = input.value.toLowerCase();
     if (val.includes('alarma')) mostrarSugerencias(['Consultar alarma', 'Listado de alarmas', 'Manual de alarmas']);
@@ -512,7 +562,7 @@
     else mostrarSugerencias([]);
   });
 
-  // Copiar contenido de celda al portapapeles
+  // Evento: Permite copiar el contenido de una celda de tabla al portapapeles
   document.addEventListener('click', function(e) {
     if (e.target.classList.contains('copiar-celda')) {
       const text = e.target.closest('td').dataset.copiar || e.target.closest('td').innerText;
@@ -522,7 +572,7 @@
     }
   });
 
-  // Sonido de alerta para alarmas critical/major
+  // Función: Reproduce un sonido de alerta según el tipo de alarma
   function playAlertaAudio(tipo) {
     let audioUrl = '';
     if (tipo === 'critical') {
@@ -540,6 +590,95 @@
   // Renderizar tabla con tooltips y copiar (ejemplo de uso en backend)
   // En el backend, agrega data-tooltip y el icono 📋 en las celdas que quieras:
   // <td data-tooltip="Texto de ayuda" data-copiar="valor a copiar">valor <span class='copiar-celda'>📋</span></td>
+
+  // Ejemplo de respuesta con tabla (simulando respuesta del backend)
+  // setTimeout(() => {
+  //   const tablaHtml = `
+  //     <div class="tabla-alarma-responsive">
+  //       <table class="tabla-alarma">
+  //         <thead>
+  //           <tr>
+  //             <th>Acciones</th>
+  //             <th>Significado</th>
+  //             <th>Severidad</th>
+  //             <th>Descripción alarma</th>
+  //             <th>Número alarma</th>
+  //             <th>Nombre del elemento</th>
+  //           </tr>
+  //         </thead>
+  //         <tbody>
+  //           <tr>
+  //             <td>Revisar sistema</td>
+  //             <td>Falla menor</td>
+  //             <td><span class="sev sev-baja">baja</span></td>
+  //             <td>Temperatura fuera de rango</td>
+  //             <td><b>12345</b></td>
+  //             <td>Servidor A</td>
+  //           </tr>
+  //           <tr>
+  //             <td>Escalar a soporte</td>
+  //             <td>Falla crítica</td>
+  //             <td><span class="sev sev-alta">alta</span></td>
+  //             <td>Pérdida de conectividad</td>
+  //             <td><b>67890</b></td>
+  //             <td>Router B</td>
+  //           </tr>
+  //           <tr>
+  //             <td>Monitorear</td>
+  //             <td>Advertencia</td>
+  //             <td><span class="sev sev-media">media</span></td>
+  //             <td>Uso de CPU elevado</td>
+  //             <td><b>54321</b></td>
+  //             <td>Switch C</td>
+  //           </tr>
+  //         </tbody>
+  //       </table>
+  //     </div>
+  //   `;
+  //   mostrarMensajeBot(tablaHtml);
+  // }, 2000);
+
+  // FRAGMENTO PARA RESPUESTA DEL BOT: PÉGALO COMO MENSAJE HTML DEL BOT
+  // <div class="tabla-alarma-responsive">
+  //   <table class="tabla-alarma">
+  //     <thead>
+  //       <tr>
+  //         <th>Acciones</th>
+  //         <th>Significado</th>
+  //         <th>Severidad</th>
+  //         <th>Descripción alarma</th>
+  //         <th>Número alarma</th>
+  //         <th>Nombre del elemento</th>
+  //       </tr>
+  //     </thead>
+  //     <tbody>
+  //       <tr>
+  //         <td data-tooltip="Acción recomendada" data-copiar="Revisar sistema">Revisar sistema <span class='copiar-celda'>📋</span></td>
+  //         <td data-tooltip="Significado de la alarma" data-copiar="Falla menor">Falla menor <span class='copiar-celda'>📋</span></td>
+  //         <td><span class="sev sev-baja">baja</span></td>
+  //         <td data-tooltip="Descripción detallada" data-copiar="Temperatura fuera de rango">Temperatura fuera de rango <span class='copiar-celda'>📋</span></td>
+  //         <td><b>12345</b></td>
+  //         <td data-tooltip="Elemento afectado" data-copiar="Servidor A">Servidor A <span class='copiar-celda'>📋</span></td>
+  //       </tr>
+  //       <tr>
+  //         <td data-tooltip="Acción recomendada" data-copiar="Escalar a soporte">Escalar a soporte <span class='copiar-celda'>📋</span></td>
+  //         <td data-tooltip="Significado de la alarma" data-copiar="Falla crítica">Falla crítica <span class='copiar-celda'>📋</span></td>
+  //         <td><span class="sev sev-alta">alta</span></td>
+  //         <td data-tooltip="Descripción detallada" data-copiar="Pérdida de conectividad">Pérdida de conectividad <span class='copiar-celda'>📋</span></td>
+  //         <td><b>67890</b></td>
+  //         <td data-tooltip="Elemento afectado" data-copiar="Router B">Router B <span class='copiar-celda'>📋</span></td>
+  //       </tr>
+  //       <tr>
+  //         <td data-tooltip="Acción recomendada" data-copiar="Monitorear">Monitorear <span class='copiar-celda'>📋</span></td>
+  //         <td data-tooltip="Significado de la alarma" data-copiar="Advertencia">Advertencia <span class='copiar-celda'>📋</span></td>
+  //         <td><span class="sev sev-media">media</span></td>
+  //         <td data-tooltip="Descripción detallada" data-copiar="Uso de CPU elevado">Uso de CPU elevado <span class='copiar-celda'>📋</span></td>
+  //         <td><b>54321</b></td>
+  //         <td data-tooltip="Elemento afectado" data-copiar="Switch C">Switch C <span class='copiar-celda'>📋</span></td>
+  //       </tr>
+  //     </tbody>
+  //   </table>
+  // </div>
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

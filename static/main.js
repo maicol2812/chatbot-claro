@@ -4,7 +4,8 @@ const config = {
     maxRetries: 3,
     retryDelay: 2000,
     supportedLanguages: ['es', 'en', 'fr', 'de', 'pt'],
-    maxFileSize: 5 * 1024 * 1024 // 5MB
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    apiUrl: 'http://localhost:5000'
 };
 
 // Estado global
@@ -23,6 +24,7 @@ const state = {
     currentLanguage: navigator.language.split('-')[0] || 'es',
     darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
     voiceRecognition: null,
+    currentState: '',
     metrics: {
         messagesSent: 0,
         alarmsChecked: 0,
@@ -42,6 +44,11 @@ const STATE_MAPPING = {
     'await_element_name': 'request_element_name',
     '': 'provide_alarm_details'
 };
+
+// Función para generar ID único de usuario
+function generateUserId() {
+    return 'user_' + Math.random().toString(36).substr(2, 9);
+}
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
@@ -134,6 +141,283 @@ function setupEventListeners() {
     if (metricsBtn) {
         metricsBtn.addEventListener('click', toggleMetricsDashboard);
     }
+}
+
+function showWelcomeMessage() {
+    if (!state.conversationStarted) {
+        // Iniciar conversación automáticamente
+        processMessage("inicio");
+    }
+}
+
+function toggleChat() {
+    state.isOpen = !state.isOpen;
+    const chatContainer = document.getElementById('chat-container');
+    const chatBubble = document.getElementById('chat-bubble');
+    
+    if (state.isOpen) {
+        chatContainer.classList.remove('hidden');
+        chatContainer.classList.add('show');
+        chatBubble.classList.add('hidden');
+        
+        // Focus en el input
+        setTimeout(() => {
+            document.getElementById('chat-input').focus();
+        }, 300);
+    } else {
+        chatContainer.classList.remove('show');
+        chatContainer.classList.add('hidden');
+        chatBubble.classList.remove('hidden');
+    }
+}
+
+function toggleChatExpand() {
+    state.isExpanded = !state.isExpanded;
+    const chatContainer = document.getElementById('chat-container');
+    
+    if (state.isExpanded) {
+        chatContainer.classList.add('expanded');
+    } else {
+        chatContainer.classList.remove('expanded');
+    }
+}
+
+function handleSubmit(e) {
+    e.preventDefault();
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    
+    if (message) {
+        processMessage(message);
+        input.value = '';
+    }
+}
+
+async function processMessage(message, retryCount = 0) {
+    try {
+        // Mostrar mensaje del usuario
+        if (message !== "inicio") {
+            addMessage(message, 'user');
+        }
+        
+        // Mostrar indicador de escritura
+        showTypingIndicator();
+        
+        // Actualizar métricas
+        state.metrics.messagesSent++;
+        updateMetricsChart();
+        
+        // Preparar datos para el servidor
+        const requestData = {
+            message: message,
+            user_id: state.userId,
+            isEmergency: state.isEmergency,
+            current_state: state.currentState,
+            alarm_number: state.currentAlarmNumber
+        };
+        
+        let response;
+        
+        // Determinar qué endpoint usar
+        if (state.currentState === 'await_alarm_number' || state.currentState === 'await_element_name') {
+            // Usar endpoint handle_state para estados específicos
+            response = await fetch(`${config.apiUrl}/handle_state`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+                timeout: config.timeout
+            });
+        } else {
+            // Usar endpoint chat para mensajes generales
+            response = await fetch(`${config.apiUrl}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+                timeout: config.timeout
+            });
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Ocultar indicador de escritura
+        hideTypingIndicator();
+        
+        // Mostrar respuesta del bot
+        addMessage(data.response, 'bot', data.type);
+        
+        // Actualizar estado según la respuesta
+        if (data.next_step) {
+            state.currentState = data.next_step;
+            
+            if (data.next_step === 'await_alarm_number') {
+                state.waitingForAlarmNumber = true;
+                state.waitingForElementName = false;
+            } else if (data.next_step === 'await_element_name') {
+                state.waitingForAlarmNumber = false;
+                state.waitingForElementName = true;
+                state.currentAlarmNumber = data.alarm_number;
+            }
+        } else {
+            // Reset states
+            state.currentState = '';
+            state.waitingForAlarmNumber = false;
+            state.waitingForElementName = false;
+            state.currentAlarmNumber = null;
+        }
+        
+        // Marcar conversación como iniciada
+        state.conversationStarted = true;
+        
+        // Actualizar métricas si es consulta de alarma
+        if (data.type === 'alarm_resolved') {
+            state.metrics.alarmsChecked++;
+            updateMetricsChart();
+        }
+        
+        // Mostrar sugerencias inteligentes
+        showSmartSuggestions({
+            lastMessage: message,
+            currentState: state.currentState,
+            isEmergency: state.isEmergency
+        });
+        
+    } catch (error) {
+        console.error('Error procesando mensaje:', error);
+        hideTypingIndicator();
+        
+        // Reintentar si es necesario
+        if (retryCount < config.maxRetries) {
+            setTimeout(() => {
+                processMessage(message, retryCount + 1);
+            }, config.retryDelay * (retryCount + 1));
+        } else {
+            addMessage('Lo siento, hubo un problema de conexión. Por favor intenta nuevamente.', 'bot', 'error');
+        }
+    }
+}
+
+function addMessage(message, sender, type = 'normal') {
+    const messagesContainer = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    
+    // Añadir clases adicionales según el tipo
+    if (type === 'error') {
+        messageDiv.classList.add('error-message');
+    } else if (type === 'system') {
+        messageDiv.classList.add('system-message');
+    } else if (type === 'alarm_resolved') {
+        messageDiv.classList.add('success-message');
+    }
+    
+    // Formatear mensaje (convertir saltos de línea a HTML)
+    const formattedMessage = message.replace(/\n/g, '<br>');
+    messageDiv.innerHTML = `
+        <div class="message-content">${formattedMessage}</div>
+        <div class="message-timestamp">${new Date().toLocaleTimeString()}</div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+function showTypingIndicator() {
+    const messagesContainer = document.getElementById('chat-messages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message bot-message typing-indicator';
+    typingDiv.id = 'typing-indicator';
+    typingDiv.innerHTML = `
+        <div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(typingDiv);
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+function scrollToBottom() {
+    const messagesContainer = document.getElementById('chat-messages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function activateEmergencyMode(isEmergency) {
+    state.isEmergency = isEmergency;
+    const chatContainer = document.getElementById('chat-container');
+    
+    if (isEmergency) {
+        chatContainer.classList.add('emergency-mode');
+        state.metrics.emergencies++;
+        updateMetricsChart();
+    } else {
+        chatContainer.classList.remove('emergency-mode');
+    }
+}
+
+function updateActivity() {
+    state.lastActivity = Date.now();
+}
+
+function checkInactivity() {
+    const inactiveTime = Date.now() - state.lastActivity;
+    if (inactiveTime > 300000 && state.isOpen) { // 5 minutos
+        addMessage('¿Sigues ahí? Si necesitas ayuda, solo escribe un mensaje.', 'bot', 'system');
+    }
+}
+
+function startConnectionMonitor() {
+    // Verificar conectividad cada 30 segundos
+    setInterval(async () => {
+        try {
+            const response = await fetch(`${config.apiUrl}/health`);
+            const statusIndicator = document.querySelector('.status-indicator');
+            
+            if (response.ok) {
+                statusIndicator.style.background = '#2ecc71';
+            } else {
+                statusIndicator.style.background = '#e74c3c';
+            }
+        } catch (error) {
+            const statusIndicator = document.querySelector('.status-indicator');
+            statusIndicator.style.background = '#e74c3c';
+        }
+    }, 30000);
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
 }
 
 // Funciones de voz (WebSpeech API)
@@ -236,8 +520,6 @@ async function changeLanguage(lang) {
     if (state.currentLanguage === lang) return;
 
     try {
-        // Aquí iría la llamada a la API de traducción (Google Translate o DeepL)
-        // Por ahora simulamos la traducción
         state.currentLanguage = lang;
         if (state.voiceRecognition) {
             state.voiceRecognition.lang = lang;
@@ -246,8 +528,6 @@ async function changeLanguage(lang) {
         showNotification(`Idioma cambiado a ${getLanguageName(lang)}`, 'success');
         state.metrics.translationsMade++;
         updateMetricsChart();
-
-        // Aquí podrías traducir los mensajes existentes si es necesario
     } catch (error) {
         console.error('Error cambiando idioma:', error);
         showNotification('Error cambiando idioma', 'error');
@@ -320,36 +600,36 @@ function updateMetricsChart() {
         }]
     };
 
-    // Configuración del gráfico
-    const config = {
-        type: 'bar',
-        data: data,
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Métricas de Uso'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    };
-
     // Destruir el gráfico anterior si existe
     if (window.metricsChart) {
         window.metricsChart.destroy();
     }
 
-    // Crear nuevo gráfico
-    window.metricsChart = new Chart(ctx, config);
+    // Verificar si Chart.js está disponible
+    if (typeof Chart !== 'undefined') {
+        // Crear nuevo gráfico
+        window.metricsChart = new Chart(ctx, {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Métricas de Uso'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
 }
 
 function toggleMetricsDashboard() {
@@ -397,8 +677,7 @@ function handleFileUpload(event) {
         reader.readAsDataURL(file);
     }
 
-    // Aquí iría la subida real al servidor
-    // Simulamos la subida con un setTimeout
+    // Simular subida
     showNotification(`Subiendo ${file.name}...`, 'info');
     
     setTimeout(() => {
@@ -435,10 +714,7 @@ function showPushNotification(title, options) {
         return;
     }
 
-    // Mostrar notificación
     const notification = new Notification(title, options);
-
-    // Cerrar notificación después de 5 segundos
     setTimeout(() => notification.close(), 5000);
 }
 
@@ -466,33 +742,15 @@ function showSmartSuggestions(context) {
 }
 
 function getSuggestionsBasedOnContext(context) {
-    // Esta función debería analizar el contexto y devolver sugerencias relevantes
-    // Por ahora devolvemos algunas sugerencias genéricas
-    if (state.waitingForAlarmNumber) {
+    if (state.waitingForAlarmNumber || context.currentState === 'await_alarm_number') {
         return ['12345', '67890', '54321'];
-    } else if (state.waitingForElementName) {
+    } else if (state.waitingForElementName || context.currentState === 'await_element_name') {
         return ['Motor principal', 'Válvula de seguridad', 'Sensor de temperatura'];
     } else if (state.isEmergency) {
         return ['¡Necesito ayuda urgente!', 'Fallo crítico en el sistema', 'Accidente en la zona 5'];
+    } else if (!state.conversationStarted) {
+        return ['1', '2', '3', '4', '5', '6'];
     } else {
-        return ['Consulta de alarma', 'Historial de alarmas', 'Contactar con soporte'];
+        return ['menu', '1', 'help'];
     }
-}
-
-// El resto de las funciones (handleSubmit, processMessage, etc.) permanecen igual que en tu código original
-// Solo necesitarías actualizar las que interactúan con las nuevas funcionalidades
-
-// Ejemplo de actualización de processMessage para incluir sugerencias
-async function processMessage(message, retryCount = 0) {
-    // ... (código existente)
-    
-    // Después de procesar el mensaje, mostrar sugerencias
-    showSmartSuggestions({
-        lastMessage: message,
-        currentState: state.waitingForAlarmNumber ? 'await_alarm_number' : 
-                    state.waitingForElementName ? 'await_element_name' : '',
-        isEmergency: state.isEmergency
-    });
-    
-    // ... (resto del código existente)
 }
