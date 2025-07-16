@@ -1,822 +1,690 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Asesor Claro</title>
-  <link rel="icon" href="/claro-logo.png" type="image/png">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      min-height: 100vh;
-      background: #f8f9fa;
-      font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-      position: relative;
-      overflow-x: hidden;
-    }
-    #bg-video-container {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      z-index: -2;
-      overflow: hidden;
-      pointer-events: none;
-    }
-    #bg-video {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      opacity: 0.5;
-      filter: blur(2px) brightness(0.85) grayscale(10%);
-      transition: opacity 0.5s;
-    }
-    .bg-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: linear-gradient(120deg, #fff8 0%, #f8d7da99 100%);
-      z-index: -1;
-      pointer-events: none;
-    }
-    .container.info-core {
-      text-align: center;
-      padding: 3rem 1rem 1rem 1rem;
-      z-index: 2;
-      position: relative;
-    }
-    .img-trabajo {
-      width: 340px;
-      border-radius: 600px;
-      margin-bottom: 1%;
-      box-shadow: 0 4px 32px #dc354520;
-      border: 4px solid #fff;
-      transition: box-shadow 0.3s;
-    }
-    .img-trabajo:hover {
-      box-shadow: 0 8px 48px #dc354540;
-    }
-    .info-core h1 {
-      color: #d41528;
-      font-weight: bold;
-      text-shadow: 0 2px 8px #fff8;
-      letter-spacing: 2px;
-      font-size: 2.2rem;
-    }
-    .chat-container {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      width: 95%;
-      max-width: 440px;
-      max-height: 88vh;
-      background: rgba(255,255,255,0.98);
-      border-radius: 1.2rem;
-      box-shadow: 0 0 32px 0 #dc354540;
-      overflow: hidden;
-      display: none;
-      flex-direction: column;
-      z-index: 1000;
-      transition: all 0.3s cubic-bezier(.4,1.4,.6,1);
-      border: 1.5px solid #f8d7da;
-      backdrop-filter: blur(2px);
-    }
-    .chat-container.mostrar {
-      display: flex;
-    }
-    .chat-container.expandido {
-      width: 100vw;
-      max-width: 900px;
-      max-height: 97vh;
-      height: 97vh;
-      right: 0;
-      left: 0;
-      margin: auto;
-      border-radius: 1.5rem;
-    }
-    .burbuja-chat {
-      position: fixed;
-      bottom: 100px;
-      right: 30px;
-      background: linear-gradient(135deg, #d41528 70%, #f8d7da 100%);
-      color: white;
-      padding: 18px 19px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 34px;
-      box-shadow: 0 4px 16px #dc354540;
-      z-index: 1001;
-      border: 2px solid #fff;
-      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-    }
-    .burbuja-chat:hover {
-      background: linear-gradient(135deg, #b3121f 80%, #f8d7da 100%);
-      box-shadow: 0 8px 32px #dc354540;
-      transform: scale(1.08) rotate(-6deg);
-    }
-    .chat-box {
-      padding: 1.2rem 1rem 1rem 1rem;
-      overflow-y: auto;
-      flex-grow: 1;
-      background: linear-gradient(120deg, #fff 80%, #f8d7da 100%);
-      scroll-behavior: smooth;
-      display: flex;
-      flex-direction: column;
-    }
-    .user-msg, .bot-msg {
-      padding: 0.7rem 1.1rem;
-      border-radius: 1.2rem;
-      margin-bottom: 0.7rem;
-      max-width: 85%;
-      animation: fadeInUp 0.4s cubic-bezier(.4,1.4,.6,1);
-      box-shadow: 0 2px 8px #dc354510;
-      position: relative;
-      font-size: 15px;
-      word-break: break-word;
-    }
-    .user-msg {
-      background: #d1e7dd;
-      align-self: flex-end;
-      border-bottom-right-radius: 0.2rem;
-      border: 1px solid #b7e4c7;
-      font-weight: 500;
-      color: #155724;
-    }
-    .bot-msg {
-      background: linear-gradient(90deg, #f8d7da 80%, #fff 100%);
-      border-left: 4px solid #dc3545;
-      position: relative;
-      padding-left: 54px;
-      border: 1px solid #f8d7da;
-      color: #222;
-    }
-    .bot-msg .bot-avatar {
-      position: absolute;
-      left: 8px;
-      top: 8px;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      margin-right: 8px;
-      border: 2px solid #dc3545;
-      background: url('/static/claro-logo.png') center/cover no-repeat, #fff;
-      animation: botWave 1.2s infinite alternate;
-      display: inline-block;
-      vertical-align: middle;
-      box-shadow: 0 2px 8px #dc354540;
-    }
-    @keyframes botWave {
-      0% { box-shadow: 0 0 0 0 #dc354580; }
-      100% { box-shadow: 0 0 12px 6px #dc354520; }
-    }
-    .badge-experto {
-      background: linear-gradient(90deg, #dc3545 60%, #f8d7da 100%);
-      color: #fff;
-      font-size: 11px;
-      font-weight: bold;
-      border-radius: 8px;
-      padding: 2px 8px;
-      margin-left: 8px;
-      letter-spacing: 1px;
-      box-shadow: 0 1px 4px #dc354540;
-    }
-    .typing-indicator {
-      display: flex;
-      align-items: center;
-      margin-left: 8px;
-      height: 24px;
-    }
-    .typing-dot {
-      width: 6px;
-      height: 6px;
-      background: #dc3545;
-      border-radius: 50%;
-      margin: 0 2px;
-      animation: blink 1.2s infinite both;
-    }
-    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes blink {
-      0%, 80%, 100% { opacity: 0.2; }
-      40% { opacity: 1; }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .bot-tip {
-      background: #fff3cd;
-      color: #856404;
-      border-left: 4px solid #ffc107;
-      border-radius: 8px;
-      padding: 6px 12px;
-      margin: 8px 0 0 0;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 2px 8px #ffc10722;
-    }
-    .tabla-alarma-responsive {
-      width: 100%;
-      overflow-x: auto;
-      margin: 8px 0;
-    }
-    .tabla-alarma {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      font-size: 13px;
-      box-shadow: 0 2px 8px #dc354520;
-      border-radius: 8px;
-      overflow: hidden;
-      animation: tablaFadeIn 0.7s cubic-bezier(.4,1.4,.6,1) both;
-    }
-    @keyframes tablaFadeIn {
-      0% {
-        opacity: 0;
-        transform: translateY(30px) scale(0.98);
-        box-shadow: 0 8px 32px #dc354540;
-      }
-      60% {
-        opacity: 1;
-        transform: translateY(-4px) scale(1.01);
-        box-shadow: 0 4px 16px #dc354530;
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        box-shadow: 0 2px 8px #dc354520;
-      }
-    }
-    .tabla-alarma tr {
-      animation: filaFadeIn 0.6s cubic-bezier(.4,1.4,.6,1) both;
-    }
-    @keyframes filaFadeIn {
-      0% {
-        opacity: 0;
-        transform: translateX(-30px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-    .tabla-alarma th, .tabla-alarma td {
-      padding: 8px 12px;
-      text-align: left;
-      border-bottom: 1px solid #f1f1f1;
-      vertical-align: middle;
-    }
-    .tabla-alarma th {
-      background: linear-gradient(90deg, #f8d7da 80%, #fff 100%);
-      color: #a71d2a;
-      font-weight: bold;
-      font-size: 14px;
-      letter-spacing: 1px;
-      border-bottom: 2px solid #dc3545;
-    }
-    .tabla-alarma tr:last-child td {
-      border-bottom: none;
-    }
-    .tabla-alarma td b {
-      color: #dc3545;
-      font-weight: bold;
-      font-size: 15px;
-      letter-spacing: 1px;
-    }
-    .sev {
-      display: inline-block;
-      padding: 2px 14px;
-      border-radius: 14px;
-      font-weight: bold;
-      color: #fff;
-      font-size: 13px;
-      box-shadow: 0 1px 4px #dc354520;
-      letter-spacing: 1px;
-      text-shadow: 0 1px 2px #0001;
-    }
-    .sev-baja {
-      background: linear-gradient(90deg, #28a745 80%, #b7e4c7 100%);
-      color: #fff;
-      border: 1px solid #28a745;
-    }
-    .sev-media {
-      background: linear-gradient(90deg, #ffc107 80%, #fff3cd 100%);
-      color: #856404;
-      border: 1px solid #ffc107;
-    }
-    .sev-alta {
-      background: linear-gradient(90deg, #dc3545 80%, #f8d7da 100%);
-      color: #fff;
-      border: 1px solid #dc3545;
-    }
-    .tabla-alarma tr.destacada {
-      animation: highlightRow 1.2s cubic-bezier(.4,1.4,.6,1);
-      background: linear-gradient(90deg, #fff6f6 60%, #f8d7da 100%);
-    }
-    @keyframes highlightRow {
-      0% { background: #fffbe6; }
-      50% { background: #ffeaea; }
-      100% { background: linear-gradient(90deg, #fff6f6 60%, #f8d7da 100%); }
-    }
-    .tabla-alarma td[data-tooltip] {
-      position: relative;
-      cursor: help;
-      transition: background 0.2s;
-    }
-    .tabla-alarma td[data-tooltip]:hover::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      left: 0;
-      top: 100%;
-      background: #343a40;
-      color: #fff;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      white-space: pre-line;
-      z-index: 10;
-      min-width: 120px;
-      box-shadow: 0 2px 8px #0002;
-      margin-top: 2px;
-      opacity: 0.98;
-    }
-    .tabla-alarma .copiar-celda {
-      margin-left: 6px;
-      color: #dc3545;
-      cursor: pointer;
-      font-size: 13px;
-      opacity: 0.7;
-      transition: opacity 0.2s, color 0.2s;
-    }
-    .tabla-alarma .copiar-celda:hover {
-      opacity: 1;
-      color: #a71d2a;
-      text-shadow: 0 1px 2px #dc354540;
-    }
-    footer {
-      position: fixed;
-      bottom: 0;
-      width: 100vw;
-      background: rgba(255, 255, 255, 0.95);
-      text-align: center;
-      font-size: 13px;
-      padding: 6px;
-      z-index: 999;
-      border-top: 1px solid #ddd;
-      left: 0;
-      letter-spacing: 1px;
-    }
-    @media (max-width: 600px) {
-      .img-trabajo { width: 90vw; }
-      .chat-container { right: 0; left: 0; margin: auto; }
-      .burbuja-chat { right: 10px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataformas Core - Claro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .logo-text {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .hero {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 4rem 0;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #64b5f6;
+        }
+
+        .feature-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* Chatbot */
+        .burbuja-chat {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #d41528 70%, #f8d7da 100%);
+            color: white;
+            padding: 18px 19px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 34px;
+            box-shadow: 0 4px 16px rgba(220, 53, 69, 0.25);
+            z-index: 1001;
+            border: 2px solid #fff;
+            transition: all 0.3s ease;
+        }
+
+        .burbuja-chat:hover {
+            background: linear-gradient(135deg, #b3121f 80%, #f8d7da 100%);
+            box-shadow: 0 8px 32px rgba(220, 53, 69, 0.25);
+            transform: scale(1.08);
+        }
+
+        .chat-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 95%;
+            max-width: 440px;
+            max-height: 88vh;
+            background: white;
+            border-radius: 1.2rem;
+            box-shadow: 0 0 32px rgba(220, 53, 69, 0.25);
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            border: 1px solid #f8d7da;
+        }
+
+        .chat-container.mostrar {
+            display: flex;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-experto {
+            background: white;
+            color: #764ba2;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 8px;
+            padding: 2px 8px;
+            margin-left: 8px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-box {
+            padding: 1.2rem 1rem;
+            overflow-y: auto;
+            flex-grow: 1;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-msg, .bot-msg {
+            padding: 0.7rem 1.1rem;
+            border-radius: 1.2rem;
+            margin-bottom: 0.7rem;
+            max-width: 85%;
+            animation: fadeInUp 0.4s ease;
+            position: relative;
+            font-size: 15px;
+            word-break: break-word;
+        }
+
+        .user-msg {
+            background: #d1e7dd;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.2rem;
+            border: 1px solid #b7e4c7;
+            color: #155724;
+        }
+
+        .bot-msg {
+            background: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.2rem;
+            border: 1px solid #e0e0e0;
+            color: #333;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.2rem;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #666;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 1rem;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            gap: 0.5rem;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 25px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background: #5a67d8;
+        }
+
+        .suggestions-container {
+            padding: 0 1rem 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .suggestion-btn {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion-btn:hover {
+            background: #1976d2;
+            color: white;
+        }
+
+        .sev {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .sev-baja {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .sev-media {
+            background: #fff3c4;
+            color: #f57c00;
+        }
+
+        .sev-alta {
+            background: #ffcdd2;
+            color: #d32f2f;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-container {
+                width: 100%;
+                right: 0;
+                border-radius: 0;
+            }
+        }
+    </style>
 </head>
 <body>
-<div id="bg-video-container">
-  <video autoplay muted loop id="bg-video">
-    <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
-  </video>
-  <div class="bg-overlay"></div>
-</div>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iI0ZGRkZGRiIvPgo8cGF0aCBkPSJNMTAgMTBIMzBWMzBIMTBWMTBaIiBmaWxsPSIjRTUzMTM1Ii8+CjxwYXRoIGQ9Ik0xNSAxNUgyNVYyNUgxNVYxNVoiIGZpbGw9IiNGRkZGRkYiLz4KPC9zdmc+Cg==" alt="Claro">
+                <span class="logo-text">Claro</span>
+            </div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#home">Inicio</a></li>
+                    <li><a href="#platforms">Plataformas</a></li>
+                    <li><a href="#monitoring">Monitoreo</a></li>
+                    <li><a href="#support">Soporte</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-<div class="container info-core">
-  <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Imagen trabajo" class="img-trabajo">
-  <h1>Plataformas Core</h1>
-</div>
+    <!-- Main Content -->
+    <main class="main-content">
+        <section class="hero">
+            <h1>Plataformas Core</h1>
+            <p>Sistema integral de monitoreo y gestión de alarmas para infraestructura crítica</p>
+        </section>
 
-<div id="burbuja-toggle" class="burbuja-chat" title="Abrir chat de asesor">💬</div>
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3>Gestión de Alarmas</h3>
+                <p>Consulta y gestiona alarmas en tiempo real con información detallada sobre severidad y acciones recomendadas.</p>
+            </div>
 
-<div class="chat-container" id="chat-container">
-  <div class="header">
-    <div class="d-flex align-items-center gap-2">
-      <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro Logo" class="logo"/>
-      <h2 class="m-0 fs-6">Asesor de Plataformas Core <span class="badge-experto">EXPERTO</span></h2>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>Documentación</h3>
+                <p>Accede a manuales técnicos, guías de procedimientos y documentación actualizada de todas las plataformas.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Incidentes Activos</h3>
+                <p>Monitorea incidentes en tiempo real y recibe notificaciones sobre el estado operativo de los sistemas.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Estado Operativo</h3>
+                <p>Visualiza el rendimiento y estado de salud de todas las plataformas en un dashboard centralizado.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <h3>Gestión de Cambios</h3>
+                <p>Programa y rastrea cambios en las plataformas con control de versiones y aprobaciones.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-user-cog"></i>
+                </div>
+                <h3>Soporte Técnico</h3>
+                <p>Contacta directamente con el equipo de administración para soporte especializado 24/7.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Chatbot -->
+    <div id="burbuja-chat" class="burbuja-chat">💬</div>
+
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            <h3><i class="fas fa-robot"></i> Asistente Core <span class="badge-experto">EXPERTO</span></h3>
+            <button class="close-btn" id="close-chat">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="chat-box" id="chat-box"></div>
+        
+        <div class="typing-indicator" id="typing-indicator">
+            <span>Escribiendo</span>
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+        
+        <div id="suggestions-container" class="suggestions-container"></div>
+        
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Escribe tu mensaje...">
+            <button class="send-btn" id="send-btn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
     </div>
-    <button id="expandir-chat" class="btn btn-sm btn-light text-danger" title="Expandir chat">⛶</button>
-  </div>
-  <div class="chat-box" id="chat-box"></div>
-  <div id="suggestions-container" style="padding: 0 1rem 0.5rem 1rem;"></div>
-  <form id="chat-form" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; border-top: 1px solid #dee2e6;">
-    <input type="text" id="user-input" class="form-control" placeholder="Escribe tu mensaje..." autocomplete="off"/>
-    <div style="display: flex; gap: 0.3rem;">
-      <button type="button" class="btn btn-light" title="Hablar" onclick="activarMicrofono()">🎙️</button>
-      <button type="button" class="btn btn-light" title="Ayuda rápida" onclick="mostrarAyuda()">❓</button>
-      <button type="button" class="btn btn-light" title="Exportar historial" onclick="exportarHistorial()">⬇️</button>
-    </div>
-    <button type="submit" class="btn btn-danger">Enviar</button>
-  </form>
-</div>
 
-<footer>
-  © 2025 Claro • <a href="#" style="color:#dc3545">Políticas de Privacidad</a> • <a href="#" style="color:#dc3545">Soporte</a>
-</footer>
+    <script>
+        // Elementos del DOM
+        const chatContainer = document.getElementById('chat-container');
+        const chatBox = document.getElementById('chat-box');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const burbujaChat = document.getElementById('burbuja-chat');
+        const closeChat = document.getElementById('close-chat');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const suggestionsContainer = document.getElementById('suggestions-container');
 
-<script>
-  const form = document.getElementById("chat-form");
-  const input = document.getElementById("user-input");
-  const chatBox = document.getElementById("chat-box");
-  const burbuja = document.getElementById("burbuja-toggle");
-  const chat = document.getElementById("chat-container");
+        // Mostrar/ocultar chat
+        burbujaChat.addEventListener('click', () => {
+            chatContainer.classList.toggle('mostrar');
+            if (chatContainer.classList.contains('mostrar')) {
+                messageInput.focus();
+                // Mensaje de bienvenida inicial
+                if (chatBox.children.length === 0) {
+                    addBotMessage('¡Hola! Soy tu asistente de Plataformas Core. ¿En qué puedo ayudarte hoy?');
+                }
+            }
+        });
 
-  // Función: Muestra un mensaje del bot en el chat
-  function mostrarMensajeBot(respuesta, esTip = false) {
-    let html = `<div class=\"bot-msg\">`;
-    html += `<span class=\"bot-avatar\"></span>`;
-    html += respuesta.replace(/\n/g, "<br>");
-    html += `</div>`;
-    if (esTip) {
-      html += `<div class=\"bot-tip\">💡 <b>Tip:</b> ${respuesta}</div>`;
-    }
-    chatBox.innerHTML += html;
-    guardarMensaje("bot-msg", respuesta);
-    chatBox.scrollTop = chatBox.scrollHeight;
-    // Sonido si es alerta
-    if (respuesta.includes('Alerta CRÍTICA')) playAlertaAudio('critical');
-    else if (respuesta.includes('Alerta MAYOR')) playAlertaAudio('major');
-  }
+        closeChat.addEventListener('click', () => {
+            chatContainer.classList.remove('mostrar');
+        });
 
-  // Función: Muestra el indicador de "El experto está escribiendo..."
-  function mostrarEscribiendo() {
-    const typing = `<div class=\"typing-indicator\" id=\"typing-indicator\"><span class=\"typing-dot\"></span><span class=\"typing-dot\"></span><span class=\"typing-dot\"></span> <span style=\"font-size:12px;color:#dc3545;\">El experto está escribiendo...</span></div>`;
-    chatBox.innerHTML += typing;
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
+        // Enviar mensaje
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            // Agregar mensaje del usuario
+            addUserMessage(message);
+            messageInput.value = '';
+            
+            // Mostrar indicador de typing
+            showTyping();
+            
+            // Simular respuesta del bot después de un retraso
+            setTimeout(() => {
+                hideTyping();
+                
+                // Respuesta basada en el mensaje del usuario
+                let response = '';
+                if (message.toLowerCase().includes('alarma')) {
+                    response = `He encontrado información sobre alarmas:<br><br>
+                    <strong>Alarma #12345</strong><br>
+                    <strong>Severidad:</strong> <span class="sev sev-media">Media</span><br>
+                    <strong>Descripción:</strong> Uso de CPU elevado en servidor principal<br>
+                    <strong>Acción recomendada:</strong> Verificar procesos en ejecución`;
+                    
+                    // Agregar sugerencias relacionadas
+                    showSuggestions(['Ver todas las alarmas', 'Documentación de alarmas', 'Contactar soporte']);
+                } else if (message.toLowerCase().includes('hola') || message.toLowerCase().includes('buenos')) {
+                    response = '¡Hola! ¿En qué puedo ayudarte hoy? Puedes preguntarme sobre alarmas, documentación o el estado de las plataformas.';
+                    showSuggestions(['Consultar alarmas', 'Ver documentación', 'Estado de plataformas']);
+                } else {
+                    response = 'Entendido. ¿Necesitas ayuda con algo más específico? Puedo ayudarte con:<br>- Consulta de alarmas<br>- Documentación técnica<br- Estado operativo de plataformas';
+                    showSuggestions(['Consultar alarmas', 'Ver documentación', 'Estado de plataformas']);
+                }
+                
+                addBotMessage(response);
+            }, 1500);
+        }
 
-  // Función: Oculta el indicador de "El experto está escribiendo..."
-  function ocultarEscribiendo() {
-    const typing = document.getElementById("typing-indicator");
-    if (typing) typing.remove();
-  }
+        // Manejar el evento de enviar mensaje
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
 
-  // Función: Muestra un tip aleatorio en el chat
-  function mostrarTipAleatorio() {
-    const tip = tips[Math.floor(Math.random() * tips.length)];
-    chatBox.innerHTML += `<div class=\"bot-tip\">💡 <b>Tip:</b> ${tip}</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
+        // Funciones auxiliares
+        function addUserMessage(message) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'user-msg';
+            msgDiv.textContent = message;
+            chatBox.appendChild(msgDiv);
+            scrollToBottom();
+        }
 
-  // Evento: Muestra/oculta el chat y muestra mensaje de bienvenida y menú
-  burbuja.addEventListener("click", () => {
-    chat.classList.toggle("mostrar");
-    if (chat.classList.contains("mostrar")) {
-      mostrarMensajeBot("<b>👋 ¡Hola! Soy tu asesor experto en Plataformas Core.</b> ¿En qué puedo ayudarte hoy?");
-      setTimeout(() => {
-        mostrarBotonesMenu();
-        setTimeout(mostrarTipAleatorio, 1200);
-      }, 1800);
-    }
-  });
+        function addBotMessage(message) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'bot-msg';
+            msgDiv.innerHTML = message;
+            chatBox.appendChild(msgDiv);
+            scrollToBottom();
+        }
 
-  // Evento: Expande o contrae el chat
-  document.getElementById("expandir-chat").addEventListener("click", () => {
-    chat.classList.toggle("expandido");
-    const btn = document.getElementById("expandir-chat");
-    btn.textContent = chat.classList.contains("expandido") ? "🗕" : "⛶";
-  });
+        function showTyping() {
+            typingIndicator.style.display = 'flex';
+            scrollToBottom();
+        }
 
-  // Función: Muestra los botones del menú principal en el chat
-  function mostrarBotonesMenu() {
-    const opciones = [
-      "1. Alarmas de plataformas",
-      "2. Documentación de las plataformas",
-      "3. Incidentes activos de las plataformas",
-      "4. Estado operativo de las plataformas",
-      "5. Cambios activos de las plataformas",
-      "6. Hablar con el administrador"
-    ];
-    let html = '<div class="bot-msg">📋 <b>Menú principal:</b><br>';
-    opciones.forEach(op => {
-      html += `<button class="btn btn-sm btn-outline-danger m-1" onclick="enviarOpcion('${op[0]}')">${op}</button><br>`;
-    });
-    html += '</div>';
-    chatBox.innerHTML += html;
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
+        function hideTyping() {
+            typingIndicator.style.display = 'none';
+        }
 
-  // Función: Envía la opción seleccionada del menú como mensaje de usuario
-  function enviarOpcion(valor) {
-    input.value = valor;
-    form.dispatchEvent(new Event('submit'));
-  }
+        function showSuggestions(suggestions) {
+            suggestionsContainer.innerHTML = '';
+            suggestions.forEach(suggestion => {
+                const btn = document.createElement('button');
+                btn.className = 'suggestion-btn';
+                btn.textContent = suggestion;
+                btn.addEventListener('click', () => {
+                    messageInput.value = suggestion;
+                    sendMessage();
+                });
+                suggestionsContainer.appendChild(btn);
+            });
+        }
 
-  // Función: Guarda un mensaje en el historial local del chat
-  function guardarMensaje(tipo, texto) {
-    const historial = JSON.parse(localStorage.getItem("chatHistorial")) || [];
-    historial.push({ tipo, texto });
-    localStorage.setItem("chatHistorial", JSON.stringify(historial));
-  }
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
 
-  // Función: Muestra un mensaje del bot en el chat (versión simple)
-  function mostrarMensajeBot(respuesta) {
-    chatBox.innerHTML += `<div class="bot-msg">${respuesta.replace(/\n/g, "<br>")}</div>`;
-    guardarMensaje("bot-msg", respuesta);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
-  // Evento: Maneja el envío del formulario de chat (envía mensaje al backend)
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const message = input.value.trim();
-    if (!message) return;
-    chatBox.innerHTML += `<div class=\"user-msg\">${message}</div>`;
-    guardarMensaje("user-msg", message);
-    input.value = "";
-    mostrarEscribiendo();
-    try {
-      const res = await fetch("https://chatbot-claro.onrender.com/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
-      });
-      if (!res.ok) throw new Error("Respuesta inválida del servidor");
-      const data = await res.json();
-      ocultarEscribiendo();
-      mostrarMensajeBot(data.response);
-      if (data.suggestions && Array.isArray(data.suggestions)) {
-        mostrarSugerencias(data.suggestions);
-      } else {
-        mostrarSugerencias([]);
-      }
-      if (Math.random() < 0.3) setTimeout(mostrarTipAleatorio, 1000); // 30% chance of tip
-    } catch (err) {
-      ocultarEscribiendo();
-      console.error("❌ Error conectando al backend:", err);
-      mostrarMensajeBot("⚠️ No se pudo conectar con el servidor. Intenta de nuevo más tarde.");
-    }
-  });
-
-  // Función: Muestra mensaje de función de voz no disponible
-  function activarMicrofono() {
-    mostrarMensajeBot("🎙 Función de voz no disponible aún.");
-  }
-
-  // Función: Muestra opciones rápidas de ayuda en el chat
-  function mostrarAyuda() {
-    const ayuda = `
-      <b>🆘 Opciones rápidas:</b><br>
-      📄 <a href="https://tu-pdf-hosting.com/manual.pdf" target="_blank">Ver manual PDF</a><br>
-      👨‍💼 <a href="mailto:jefe.plataformas@claro.com.co">Contactar administrador</a><br>
-      🔍 <a href="https://jefatura-url-de-alarmas.sharepoint.com">Revisar alarmas</a>
-    `;
-    mostrarMensajeBot(ayuda);
-  }
-
-  // Función: Abre el manual PDF en una nueva pestaña
-  function abrirManual() {
-    window.open("https://tudominio.com/manual.pdf", "_blank");
-  }
-
-  // Función: Abre el correo para contactar al administrador
-  function contactarAdmin() {
-    const mensaje = "Hola, necesito ayuda con el sistema de alarmas.";
-    const correo = "mailto:admin@claro.com.co?subject=Asistencia%20Chatbot&body=" + encodeURIComponent(mensaje);
-    window.open(correo, "_blank");
-  }
-
-  // Función: Exporta el historial del chat a un archivo de texto
-  function exportarHistorial() {
-    const historial = JSON.parse(localStorage.getItem("chatHistorial")) || [];
-    let texto = 'Historial de chat:\n';
-    historial.forEach(msg => {
-      texto += `[${msg.tipo === 'user-msg' ? 'Usuario' : 'Bot'}] ${msg.texto.replace(/<[^>]+>/g, '').replace(/\n/g, ' ')}\n`;
-    });
-    const blob = new Blob([texto], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'historial_chat.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  // Función: Muestra sugerencias inteligentes debajo del chat
-  function mostrarSugerencias(sugerencias) {
-    const cont = document.getElementById('suggestions-container');
-    cont.innerHTML = '';
-    if (!sugerencias || !sugerencias.length) return;
-    sugerencias.forEach(sug => {
-      const btn = document.createElement('button');
-      btn.className = 'btn btn-sm btn-outline-secondary m-1';
-      btn.textContent = sug;
-      btn.onclick = () => {
-        input.value = sug;
-        form.dispatchEvent(new Event('submit'));
-        cont.innerHTML = '';
-      };
-      cont.appendChild(btn);
-    });
-    cont.classList.add('show');
-  }
-
-  // Evento: Detecta palabras clave en el input y muestra sugerencias relacionadas
-  input.addEventListener('input', () => {
-    const val = input.value.toLowerCase();
-    if (val.includes('alarma')) mostrarSugerencias(['Consultar alarma', 'Listado de alarmas', 'Manual de alarmas']);
-    else if (val.includes('incidente')) mostrarSugerencias(['Incidentes activos', 'Reportar incidente']);
-    else if (val.includes('documentación')) mostrarSugerencias(['Ver documentación', 'Manual PDF']);
-    else mostrarSugerencias([]);
-  });
-
-  // Evento: Permite copiar el contenido de una celda de tabla al portapapeles
-  document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('copiar-celda')) {
-      const text = e.target.closest('td').dataset.copiar || e.target.closest('td').innerText;
-      navigator.clipboard.writeText(text);
-      e.target.textContent = '✅';
-      setTimeout(() => { e.target.textContent = '📋'; }, 1200);
-    }
-  });
-
-  // Función: Reproduce un sonido de alerta según el tipo de alarma
-  function playAlertaAudio(tipo) {
-    let audioUrl = '';
-    if (tipo === 'critical') {
-      audioUrl = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa4c7e.mp3'; // Sonido crítico
-    } else if (tipo === 'major') {
-      audioUrl = 'https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa4c7e.mp3'; // Puedes cambiar por otro sonido si lo deseas
-    }
-    if (audioUrl) {
-      const audio = new Audio(audioUrl);
-      audio.volume = 0.5;
-      audio.play();
-    }
-  }
-
-  // Renderizar tabla con tooltips y copiar (ejemplo de uso en backend)
-  // En el backend, agrega data-tooltip y el icono 📋 en las celdas que quieras:
-  // <td data-tooltip="Texto de ayuda" data-copiar="valor a copiar">valor <span class='copiar-celda'>📋</span></td>
-
-  // Ejemplo de respuesta con tabla (simulando respuesta del backend)
-  setTimeout(() => {
-    const tablaHtml = `
-      <div class="tabla-alarma-responsive">
-        <table class="tabla-alarma">
-          <thead>
-            <tr>
-              <th>Acciones</th>
-              <th>Significado</th>
-              <th>Severidad</th>
-              <th>Descripción alarma</th>
-              <th>Número alarma</th>
-              <th>Nombre del elemento</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td data-tooltip="Acción recomendada" data-copiar="Revisar sistema">
-                <span class="fw-semibold text-primary">Revisar sistema</span> <span class='copiar-celda'>📋</span>
-              </td>
-              <td data-tooltip="Significado de la alarma" data-copiar="Falla menor">
-                <span class="text-secondary">Falla menor</span> <span class='copiar-celda'>📋</span>
-              </td>
-              <td>
-                <span class="sev sev-baja shadow-sm px-3 py-1" style="letter-spacing:1px;text-transform:uppercase;">baja</span>
-              </td>
-              <td data-tooltip="Descripción detallada" data-copiar="Temperatura fuera de rango">
-                <span class="fst-italic">Temperatura fuera de rango</span> <span class='copiar-celda'>📋</span>
-              </td>
-              <td data-tooltip="Identificador único de la alarma" data-copiar="12345">
-                <b class="text-danger fs-6">12345</b> <span class='copiar-celda'>📋</span>
-              </td>
-              <td data-tooltip="Elemento afectado" data-copiar="Servidor A">
-                <span class="fw-semibold">Servidor A</span> <span class='copiar-celda'>📋</span>
-              </td>
-            </tr>
-            <tr>
-              <td data-tooltip="Acción recomendada" data-copiar="Escalar a soporte">
-                <span class="fw-semibold text-primary">Escalar a soporte</span> <span class='copiar-celda'>📋</span>
-              </td>
-              <td data-tooltip="Significado de la alarma" data-copiar="Falla crítica">
-                <span class="text-danger">Falla crítica</span> <span class='copiar-celda'>📋</span>
-              </td>
-              <td>
-                <span class="sev sev-alta shadow-sm px-3 py-1" style="letter-spacing:1px;text-transform:uppercase;">alta</span>
-              </td>
-              <td data-tooltip="Descripción detallada" data-copiar="Pérdida de conectividad">
-                <span class="fst-italic">Pérdida de conectividad</span> <span class='copiar-celda'>📋</span>
-              </td>
-              <td data-tooltip="Identificador único de la alarma" data-copiar="67890">
-                <b class="text-danger fs-6">67890</b> <span class='copiar-celda'>📋</span>
-              </td>
-              <td data-tooltip="Elemento afectado" data-copiar="Router B">
-                <span class="fw-semibold">Router B</span> <span class='copiar-celda'>📋</span>
-              </td>
-            </tr>
-            <tr>
-              <td data-tooltip="Acción recomendada" data-copiar="Monitorear">
-                <span class="fw-semibold text-primary">Monitorear</span> <span class='copiar-celda'>📋</span>
-              </td>
-              <td data-tooltip="Significado de la alarma" data-copiar="Advertencia">
-                <span class="text-warning">Advertencia</span> <span class='copiar-celda'>📋</span>
-              </td>
-              <td>
-                <span class="sev sev-media shadow-sm px-3 py-1" style="letter-spacing:1px;text-transform:uppercase;">media</span>
-              </td>
-              <td data-tooltip="Descripción detallada" data-copiar="Uso de CPU elevado">
-                <span class="fst-italic">Uso de CPU elevado</span> <span class='copiar-celda'>📋</span>
-              </td>
-              <td data-tooltip="Identificador único de la alarma" data-copiar="54321">
-                <b class="text-danger fs-6">54321</b> <span class='copiar-celda'>📋</span>
-              </td>
-              <td data-tooltip="Elemento afectado" data-copiar="Switch C">
-                <span class="fw-semibold">Switch C</span> <span class='copiar-celda'>📋</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    `;
-    mostrarMensajeBot(tablaHtml);
-  }, 2000);
-
-
-   <div class="tabla-alarma-responsive">
-     <table class="tabla-alarma">
-       <thead>
-         <tr>
-           <th>Acciones</th>
-           <th>Significado</th>
-           <th>Severidad</th>
-           <th>Descripción alarma</th>
-           <th>Número alarma</th>
-           <th>Nombre del elemento</th>
-         </tr>
-       </thead>
-       <tbody>
-         <tr>
-           <td data-tooltip="Acción recomendada" data-copiar="Revisar sistema">
-             <span class="fw-semibold text-primary">Revisar sistema</span> <span class='copiar-celda'>📋</span>
-           </td>
-           <td data-tooltip="Significado de la alarma" data-copiar="Falla menor">
-             <span class="text-secondary">Falla menor</span> <span class='copiar-celda'>📋</span>
-           </td>
-           <td>
-             <span class="sev sev-baja shadow-sm px-3 py-1" style="letter-spacing:1px;text-transform:uppercase;">baja</span>
-           </td>
-           <td data-tooltip="Descripción detallada" data-copiar="Temperatura fuera de rango">
-             <span class="fst-italic">Temperatura fuera de rango</span> <span class='copiar-celda'>📋</span>
-           </td>
-           <td data-tooltip="Identificador único de la alarma" data-copiar="12345">
-             <b class="text-danger fs-6">12345</b> <span class='copiar-celda'>📋</span>
-           </td>
-           <td data-tooltip="Elemento afectado" data-copiar="Servidor A">
-             <span class="fw-semibold">Servidor A</span> <span class='copiar-celda'>📋</span>
-           </td>
-         </tr>
-         <tr>
-           <td data-tooltip="Acción recomendada" data-copiar="Escalar a soporte">
-             <span class="fw-semibold text-primary">Escalar a soporte</span> <span class='copiar-celda'>📋</span>
-           </td>
-           <td data-tooltip="Significado de la alarma" data-copiar="Falla crítica">
-             <span class="text-danger">Falla crítica</span> <span class='copiar-celda'>📋</span>
-           </td>
-           <td>
-             <span class="sev sev-alta shadow-sm px-3 py-1" style="letter-spacing:1px;text-transform:uppercase;">alta</span>
-           </td>
-           <td data-tooltip="Descripción detallada" data-copiar="Pérdida de conectividad">
-             <span class="fst-italic">Pérdida de conectividad</span> <span class='copiar-celda'>📋</span>
-           </td>
-           <td data-tooltip="Identificador único de la alarma" data-copiar="67890">
-             <b class="text-danger fs-6">67890</b> <span class='copiar-celda'>📋</span>
-           </td>
-           <td data-tooltip="Elemento afectado" data-copiar="Router B">
-             <span class="fw-semibold">Router B</span> <span class='copiar-celda'>📋</span>
-           </td>
-         </tr>
-         <tr>
-           <td data-tooltip="Acción recomendada" data-copiar="Monitorear">
-             <span class="fw-semibold text-primary">Monitorear</span> <span class='copiar-celda'>📋</span>
-           </td>
-           <td data-tooltip="Significado de la alarma" data-copiar="Advertencia">
-             <span class="text-warning">Advertencia</span> <span class='copiar-celda'>📋</span>
-           </td>
-           <td>
-             <span class="sev sev-media shadow-sm px-3 py-1" style="letter-spacing:1px;text-transform:uppercase;">media</span>
-           </td>
-           <td data-tooltip="Descripción detallada" data-copiar="Uso de CPU elevado">
-             <span class="fst-italic">Uso de CPU elevado</span> <span class='copiar-celda'>📋</span>
-           </td>
-           <td data-tooltip="Identificador único de la alarma" data-copiar="54321">
-             <b class="text-danger fs-6">54321</b> <span class='copiar-celda'>📋</span>
-           </td>
-           <td data-tooltip="Elemento afectado" data-copiar="Switch C">
-             <span class="fw-semibold">Switch C</span> <span class='copiar-celda'>📋</span>
-           </td>
-         </tr>
-       </tbody>
-     </table>
-   </div>
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        // Animación de las cards de características
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.feature-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
 </body>
 </html>
