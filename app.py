@@ -2,8 +2,6 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import pandas as pd
 import os
-import datetime
-from collections import defaultdict
 
 app = Flask(__name__)
 
@@ -12,8 +10,6 @@ app = Flask(__name__)
 CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
 
 usuarios = {}
-conversaciones = []
-metricas = defaultdict(int)
 
 # ✅ Ruta robusta que funciona tanto en local como en Render
 ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
@@ -69,46 +65,26 @@ def chat():
             resp["suggestions"] = sugerencias
         if extra:
             resp.update(extra)
-        # Registro de conversación
-        conversaciones.append({
-            "timestamp": datetime.datetime.now().isoformat(),
-            "usuario": user_id,
-            "mensaje": msg,
-            "respuesta": texto,
-            "estado": estado
-        })
-        metricas[user_id] += 1
-        if estado == "inicio":
-            metricas["inicio"] += 1
-        elif estado == "espera_alarma":
-            metricas["consulta_alarma"] += 1
-        elif estado == "espera_elemento":
-            metricas["consulta_elemento"] += 1
         return jsonify(resp)
 
     # Saludo inicial profesional y menú experto
     if estado == "inicio":
         if msg in ["hola", "buen día", "buenos días", "buenas", "saludo", "inicio"]:
             saludo = (
-                "<b>👋 Bienvenido al asistente experto de plataformas Core.</b><br>"
-                "¿En qué puedo ayudarte hoy?<br><br>"
-                "<ol>"
-                "<li><b>Alarmas de plataformas</b>: Consulta alarmas activas, severidad y acciones recomendadas.</li>"
-                "<li><b>Documentación</b>: Accede a manuales, procedimientos y recursos técnicos.</li>"
-                "<li><b>Incidentes activos</b>: Revisa incidentes críticos y su estado actual.</li>"
-                "<li><b>Estado operativo</b>: Verifica el estado de operación de cada plataforma.</li>"
-                "<li><b>Cambios activos</b>: Consulta cambios programados y su impacto.</li>"
-                "<li><b>Hablar con el administrador</b>: Contacta directamente al responsable técnico.</li>"
-                "</ol>"
-                "<i>Selecciona una opción (1-6) o describe tu consulta.</i>"
+                "Buen día, hablemos de nuestras plataformas de Core. Que te gustaría consultar el día de hoy:\n\n"
+                "Alarmas de plataformas.\n"
+                "Documentación de las plataformas.\n"
+                "Incidentes activos de las plataformas.\n"
+                "Estado operativo de las plataformas.\n"
+                "Cambios activos en las plataformas.\n"
+                "Hablar con el administrador de la plataforma."
             )
-            return respuesta_enriquecida(saludo, ["1", "2", "3", "4", "5", "6"])
-        if msg == "1":
+            return respuesta_enriquecida(saludo, ["Alarmas de plataformas", "Documentación de las plataformas", "Incidentes activos de las plataformas", "Estado operativo de las plataformas", "Cambios activos en las plataformas", "Hablar con el administrador de la plataforma"])
+        if msg in ["1", "alarmas de plataformas"]:
             usuarios[user_id]["estado"] = "espera_alarma"
             return respuesta_enriquecida(
-                "🔎 <b>Consulta experta de alarmas:</b><br>Por favor ingresa el <b>número de alarma</b> que deseas consultar.<br><i>Ejemplo: 12345</i>",
-                ["12345", "67890", "54321"],
-                {"help": "Puedes buscar por coincidencia parcial o total."}
+                "por favor ingrese el número de alarma que desea consultar",
+                ["12345", "67890", "54321"]
             )
         elif msg == "2":
             return respuesta_enriquecida(
@@ -160,9 +136,8 @@ def chat():
     elif estado == "espera_alarma":
         usuarios[user_id]["numero_alarma"] = msg
         usuarios[user_id]["estado"] = "espera_elemento"
-        metricas["alarma_solicitada"] += 1
         return respuesta_enriquecida(
-            "Por favor ingresa el nombre del elemento que reporta la alarma.",
+            "Por favor ingresa el nombre del elemento que reporta la alarma",
             ["Motor principal", "Válvula de seguridad", "Sensor de temperatura"]
         )
 
@@ -170,7 +145,6 @@ def chat():
         numero = usuarios[user_id]["numero_alarma"]
         elemento = msg.strip().lower()
         usuarios[user_id]["estado"] = "inicio"
-        metricas["elemento_solicitado"] += 1
 
         resultado = df[
             df["numero alarma"].str.contains(numero) &
@@ -241,14 +215,6 @@ def chat():
         return respuesta_enriquecida(respuesta, sugerencias)
 
     return respuesta_enriquecida("❌ Algo salió mal. Intenta de nuevo.", ["Volver al menú principal"])
-
-# Endpoint opcional para ver métricas y registro de conversaciones
-@app.route("/metrics")
-def metrics():
-    return jsonify({
-        "metricas": dict(metricas),
-        "conversaciones": conversaciones[-10:]  # últimas 10 conversaciones
-    })
 
 def severidad_class(severidad):
     sev = str(severidad).strip().lower()
