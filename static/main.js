@@ -1,780 +1,200 @@
-// Configuración
-const config = {
-    timeout: 5000,
-    maxRetries: 3,
-    retryDelay: 2000,
-    supportedLanguages: ['es', 'en', 'fr', 'de', 'pt'],
-    maxFileSize: 5 * 1024 * 1024, // 5MB
-    apiUrl: 'http://localhost:5000'
+// Estados del chat
+let chatState = {
+    currentStep: 'welcome',
+    selectedOption: null,
+    alarmNumber: null,
+    elementName: null
 };
 
-// Estado global
-const state = {
-    isOpen: false,
-    isExpanded: false,
-    isTyping: false,
-    isEmergency: false,
-    userId: generateUserId(),
-    lastActivity: Date.now(),
-    messageQueue: [],
-    conversationStarted: false,
-    waitingForAlarmNumber: false,
-    waitingForElementName: false,
-    currentAlarmNumber: null,
-    currentLanguage: navigator.language.split('-')[0] || 'es',
-    darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
-    voiceRecognition: null,
-    currentState: '',
-    metrics: {
-        messagesSent: 0,
-        alarmsChecked: 0,
-        emergencies: 0,
-        satisfaction: 4.5,
-        responseTime: 0,
-        sessionsToday: 1,
-        voiceCommandsUsed: 0,
-        translationsMade: 0,
-        filesUploaded: 0
-    }
-};
-
-// Mapeo de estados backend-frontend
-const STATE_MAPPING = {
-    'await_alarm_number': 'request_alarm_number',
-    'await_element_name': 'request_element_name',
-    '': 'provide_alarm_details'
-};
-
-// Función para generar ID único de usuario
-function generateUserId() {
-    return 'user_' + Math.random().toString(36).substr(2, 9);
+// Función para cargar alarmas desde Flask
+async function fetchAlarms() {
+    const response = await fetch('/api/alarms');
+    return await response.json();
 }
 
-// Inicialización
+// Función para buscar una alarma específica
+async function fetchSpecificAlarm(alarmNumber, elementName) {
+    const response = await fetch(`/api/alarms?number=${alarmNumber}&element=${elementName}`);
+    return await response.json();
+}
+
+// Mostrar opciones iniciales
+function showWelcomeOptions() {
+    const options = [
+        "1. Alarmas de plataformas",
+        "2. Documentación de las plataformas",
+        "3. Incidentes activos de las plataformas",
+        "4. Estado operativo de las plataformas",
+        "5. Cambios activos en las plataformas",
+        "6. Hablar con el administrador de la plataforma"
+    ];
+    
+    addBotMessage(`Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar hoy?<br><br>${options.join('<br>')}`);
+}
+
+// Mostrar alarmas en el chat
+async function handleAlarmCommand() {
+    const alarms = await fetchAlarms();
+    const chatBox = document.getElementById('chat-box');
+    
+    // Limitar a 5 alarmas para no saturar
+    const recentAlarms = alarms.slice(0, 5); 
+    
+    recentAlarms.forEach(alarm => {
+        const alarmElement = document.createElement('div');
+        alarmElement.className = 'bot-msg';
+        alarmElement.innerHTML = `
+            <strong>${alarm.Nombre || 'Alarma'}</strong>
+            <div class="alarma-info">
+                <p><b>ID:</b> ${alarm.ID}</p>
+                <p><b>Severidad:</b> <span style="color: ${getSeverityColor(alarm.Severidad)}">${alarm.Severidad}</span></p>
+                <p><b>Descripción:</b> ${alarm.Descripción || 'N/A'}</p>
+            </div>
+        `;
+        chatBox.appendChild(alarmElement);
+    });
+}
+
+// Procesar consulta de alarma específica
+async function processSpecificAlarm() {
+    const alarm = await fetchSpecificAlarm(chatState.alarmNumber, chatState.elementName);
+    const chatBox = document.getElementById('chat-box');
+    
+    if (alarm && alarm.ID) {
+        const alarmElement = document.createElement('div');
+        alarmElement.className = 'bot-msg';
+        alarmElement.innerHTML = `
+            <strong>Alarma ${alarm.ID}</strong>
+            <div class="alarma-info">
+                <p><b>Elemento:</b> ${alarm.Elemento || 'N/A'}</p>
+                <p><b>Severidad:</b> <span style="color: ${getSeverityColor(alarm.Severidad)}">${alarm.Severidad}</span></p>
+                <p><b>Descripción:</b> ${alarm.Descripción || 'N/A'}</p>
+                <p><b>Fecha:</b> ${alarm.Fecha || 'N/A'}</p>
+                <p><b>Estado:</b> ${alarm.Estado || 'N/A'}</p>
+            </div>
+        `;
+        chatBox.appendChild(alarmElement);
+    } else {
+        addBotMessage('No se encontró la alarma. Verifica el número y elemento.');
+    }
+    
+    resetConversation();
+}
+
+// Color basado en severidad
+function getSeverityColor(severity) {
+    switch (severity?.toLowerCase()) {
+        case 'alta': return '#ff4444';
+        case 'media': return '#ffbb33';
+        case 'baja': return '#00C851';
+        default: return '#aaaaaa';
+    }
+}
+
+// Función auxiliar para agregar mensajes del bot
+function addBotMessage(text) {
+    const chatBox = document.getElementById('chat-box');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'bot-msg';
+    msgDiv.innerHTML = text;
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Reiniciar conversación
+function resetConversation() {
+    chatState = {
+        currentStep: 'welcome',
+        selectedOption: null,
+        alarmNumber: null,
+        elementName: null
+    };
+    setTimeout(showWelcomeOptions, 3000);
+}
+
+// Manejar mensajes del usuario
+function handleUserMessage(message) {
+    const lowerMsg = message.toLowerCase();
+    
+    switch(chatState.currentStep) {
+        case 'welcome':
+            if (/^[1-6]$/.test(message)) {
+                handleMainMenu(parseInt(message));
+            } else {
+                addBotMessage("Por favor selecciona una opción válida (1-6).");
+                showWelcomeOptions();
+            }
+            break;
+            
+        case 'alarm_input':
+            chatState.alarmNumber = message;
+            chatState.currentStep = 'element_input';
+            addBotMessage('Por favor ingresa el nombre del elemento que reporta la alarma:');
+            break;
+            
+        case 'element_input':
+            chatState.elementName = message;
+            processSpecificAlarm();
+            break;
+            
+        default:
+            addBotMessage("No entendí tu solicitud. Por favor selecciona una opción válida.");
+            showWelcomeOptions();
+    }
+}
+
+// Manejar selección de menú principal
+function handleMainMenu(option) {
+    switch(option) {
+        case 1:
+            chatState.selectedOption = 'alarms';
+            chatState.currentStep = 'alarm_input';
+            addBotMessage('Por favor ingresa el número de alarma que deseas consultar:');
+            break;
+            
+        case 2:
+            addBotMessage('Documentación disponible:<br>- <a href="#">Manual de plataformas Core</a><br>- <a href="#">Procedimientos operativos</a>');
+            resetConversation();
+            break;
+            
+        case 3:
+            addBotMessage('🔴 Incidentes activos:<br>- INC-001: Caída parcial en plataforma X (En investigación)');
+            resetConversation();
+            break;
+            
+        case 6:
+            addBotMessage('Conectando con el administrador de plataforma...<br><button class="suggestion-btn">Iniciar chat directo</button>');
+            resetConversation();
+            break;
+            
+        default:
+            addBotMessage('Opción en desarrollo. Por favor selecciona otra opción.');
+            showWelcomeOptions();
+    }
+}
+
+// Integración con el chatbot existente
 document.addEventListener('DOMContentLoaded', () => {
-    initChat();
-    setupEventListeners();
-    showWelcomeMessage();
-    startConnectionMonitor();
-    initVoiceRecognition();
-    applyThemePreference();
-    initMetricsDashboard();
-    checkNotificationPermission();
+    const sendBtn = document.getElementById('send-btn');
+    const messageInput = document.getElementById('message-input');
+
+    // Mostrar opciones iniciales al cargar
+    showWelcomeOptions();
+
+    // Manejar envío de mensajes
+    sendBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (messageInput.value.trim()) {
+            handleUserMessage(messageInput.value.trim());
+            messageInput.value = '';
+        }
+    });
+
+    // Manejar Enter
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && messageInput.value.trim()) {
+            handleUserMessage(messageInput.value.trim());
+            messageInput.value = '';
+        }
+    });
 });
-
-// Funciones principales
-function initChat() {
-    const chatContainer = document.getElementById('chat-container');
-    const chatBubble = document.getElementById('chat-bubble');
-    
-    // Asegurarse de que el chat esté oculto inicialmente
-    chatContainer.classList.add('hidden');
-    chatContainer.classList.remove('show');
-    
-    // Event listeners
-    chatBubble.addEventListener('click', toggleChat);
-    document.getElementById('expand-chat').addEventListener('click', toggleChatExpand);
-    document.getElementById('minimize-chat').addEventListener('click', toggleChat);
-    document.getElementById('chat-form').addEventListener('submit', handleSubmit);
-    
-    // Auto-focus en el input cuando se abre
-    chatContainer.addEventListener('transitionend', () => {
-        if (state.isOpen) {
-            document.getElementById('chat-input').focus();
-        }
-    });
-}
-
-function setupEventListeners() {
-    const emergencyBtn = document.getElementById('emergency-btn');
-    if (emergencyBtn) {
-        emergencyBtn.addEventListener('click', () => {
-            activateEmergencyMode(true);
-            processMessage("¡Necesito ayuda urgente!");
-        });
-    }
-
-    // Prevenir cierre accidental del chat
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && state.isOpen) {
-            toggleChat();
-        }
-    });
-
-    // Inactividad
-    setInterval(checkInactivity, 300000); // 5 minutos
-    document.addEventListener('mousemove', updateActivity);
-    document.addEventListener('keypress', updateActivity);
-
-    // Botón de voz
-    const voiceBtn = document.getElementById('voice-btn');
-    if (voiceBtn) {
-        voiceBtn.addEventListener('click', toggleVoiceRecognition);
-    }
-
-    // Botón de adjuntar archivo
-    const fileBtn = document.getElementById('file-btn');
-    if (fileBtn) {
-        fileBtn.addEventListener('click', () => document.getElementById('file-input').click());
-    }
-
-    // Input de archivo
-    const fileInput = document.getElementById('file-input');
-    if (fileInput) {
-        fileInput.addEventListener('change', handleFileUpload);
-    }
-
-    // Botón de traducción
-    const translateBtn = document.getElementById('translate-btn');
-    if (translateBtn) {
-        translateBtn.addEventListener('click', showLanguageSelector);
-    }
-
-    // Botón de tema oscuro/ligero
-    const themeBtn = document.getElementById('theme-btn');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', toggleTheme);
-    }
-
-    // Botón de métricas
-    const metricsBtn = document.getElementById('metrics-btn');
-    if (metricsBtn) {
-        metricsBtn.addEventListener('click', toggleMetricsDashboard);
-    }
-}
-
-function showWelcomeMessage() {
-    if (!state.conversationStarted) {
-        // Iniciar conversación automáticamente
-        processMessage("inicio");
-    }
-}
-
-function toggleChat() {
-    state.isOpen = !state.isOpen;
-    const chatContainer = document.getElementById('chat-container');
-    const chatBubble = document.getElementById('chat-bubble');
-    
-    if (state.isOpen) {
-        chatContainer.classList.remove('hidden');
-        chatContainer.classList.add('show');
-        chatBubble.classList.add('hidden');
-        
-        // Focus en el input
-        setTimeout(() => {
-            document.getElementById('chat-input').focus();
-        }, 300);
-    } else {
-        chatContainer.classList.remove('show');
-        chatContainer.classList.add('hidden');
-        chatBubble.classList.remove('hidden');
-    }
-}
-
-function toggleChatExpand() {
-    state.isExpanded = !state.isExpanded;
-    const chatContainer = document.getElementById('chat-container');
-    
-    if (state.isExpanded) {
-        chatContainer.classList.add('expanded');
-    } else {
-        chatContainer.classList.remove('expanded');
-    }
-}
-
-function handleSubmit(e) {
-    e.preventDefault();
-    const input = document.getElementById('chat-input');
-    const message = input.value.trim();
-    
-    if (message) {
-        processMessage(message);
-        input.value = '';
-    }
-}
-
-async function processMessage(message, retryCount = 0) {
-    try {
-        // Mostrar mensaje del usuario
-        if (message !== "inicio") {
-            addMessage(message, 'user');
-        }
-        
-        // Mostrar indicador de escritura
-        showTypingIndicator();
-        
-        // Actualizar métricas
-        state.metrics.messagesSent++;
-        updateMetricsChart();
-        
-        // Preparar datos para el servidor
-        const requestData = {
-            message: message,
-            user_id: state.userId,
-            isEmergency: state.isEmergency,
-            current_state: state.currentState,
-            alarm_number: state.currentAlarmNumber
-        };
-        
-        let response;
-        
-        // Determinar qué endpoint usar
-        if (state.currentState === 'await_alarm_number' || state.currentState === 'await_element_name') {
-            // Usar endpoint handle_state para estados específicos
-            response = await fetch(`${config.apiUrl}/handle_state`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData),
-                timeout: config.timeout
-            });
-        } else {
-            // Usar endpoint chat para mensajes generales
-            response = await fetch(`${config.apiUrl}/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData),
-                timeout: config.timeout
-            });
-        }
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Ocultar indicador de escritura
-        hideTypingIndicator();
-        
-        // Mostrar respuesta del bot
-        addMessage(data.response, 'bot', data.type);
-        
-        // Actualizar estado según la respuesta
-        if (data.next_step) {
-            state.currentState = data.next_step;
-            
-            if (data.next_step === 'await_alarm_number') {
-                state.waitingForAlarmNumber = true;
-                state.waitingForElementName = false;
-            } else if (data.next_step === 'await_element_name') {
-                state.waitingForAlarmNumber = false;
-                state.waitingForElementName = true;
-                state.currentAlarmNumber = data.alarm_number;
-            }
-        } else {
-            // Reset states
-            state.currentState = '';
-            state.waitingForAlarmNumber = false;
-            state.waitingForElementName = false;
-            state.currentAlarmNumber = null;
-        }
-        
-        // Marcar conversación como iniciada
-        state.conversationStarted = true;
-        
-        // Actualizar métricas si es consulta de alarma
-        if (data.type === 'alarm_resolved') {
-            state.metrics.alarmsChecked++;
-            updateMetricsChart();
-        }
-        
-        // Mostrar sugerencias inteligentes
-        showSmartSuggestions({
-            lastMessage: message,
-            currentState: state.currentState,
-            isEmergency: state.isEmergency
-        });
-        
-    } catch (error) {
-        console.error('Error procesando mensaje:', error);
-        hideTypingIndicator();
-
-        // Reintentar si es necesario
-        if (retryCount < config.maxRetries) {
-            setTimeout(() => {
-                processMessage(message, retryCount + 1);
-            }, config.retryDelay * (retryCount + 1));
-        } else {
-            addMessage('Lo siento, hubo un problema de conexión. Por favor intenta nuevamente.', 'bot', 'error');
-        }
-    }
-}
-
-function addMessage(message, sender, type = 'normal') {
-    const messagesContainer = document.getElementById('chat-messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}-message`;
-    
-    // Añadir clases adicionales según el tipo
-    if (type === 'error') {
-        messageDiv.classList.add('error-message');
-    } else if (type === 'system') {
-        messageDiv.classList.add('system-message');
-    } else if (type === 'alarm_resolved') {
-        messageDiv.classList.add('success-message');
-    }
-    
-    // Formatear mensaje (convertir saltos de línea a HTML)
-    const formattedMessage = message.replace(/\n/g, '<br>');
-    messageDiv.innerHTML = `
-        <div class="message-content">${formattedMessage}</div>
-        <div class="message-timestamp">${new Date().toLocaleTimeString()}</div>
-    `;
-    
-    messagesContainer.appendChild(messageDiv);
-    scrollToBottom();
-
-    if (sender === 'bot' && !state.isOpen) {
-        notifyNewMessage();
-    }
-}
-
-// Notificación visual en la burbuja cuando hay mensaje nuevo y el chat está cerrado
-function notifyNewMessage() {
-    const chatBubble = document.getElementById('chat-bubble');
-    if (!state.isOpen && chatBubble) {
-        chatBubble.classList.add('nuevo-mensaje');
-        // Opcional: agregar badge de notificación
-        if (!chatBubble.querySelector('.badge-notif')) {
-            const badge = document.createElement('span');
-            badge.className = 'badge-notif';
-            badge.textContent = '1';
-            chatBubble.appendChild(badge);
-        }
-    }
-}
-
-// Quitar notificación visual al abrir el chat
-function clearNewMessageNotification() {
-    const chatBubble = document.getElementById('chat-bubble');
-    if (chatBubble) {
-        chatBubble.classList.remove('nuevo-mensaje');
-        const badge = chatBubble.querySelector('.badge-notif');
-        if (badge) badge.remove();
-    }
-}
-
-// Llama a clearNewMessageNotification() al abrir el chat
-function toggleChat() {
-    state.isOpen = !state.isOpen;
-    const chatContainer = document.getElementById('chat-container');
-    const chatBubble = document.getElementById('chat-bubble');
-    
-    if (state.isOpen) {
-        chatContainer.classList.remove('hidden');
-        chatContainer.classList.add('show');
-        chatBubble.classList.add('hidden');
-        
-        // Focus en el input
-        setTimeout(() => {
-            document.getElementById('chat-input').focus();
-        }, 300);
-
-        clearNewMessageNotification();
-    } else {
-        chatContainer.classList.remove('show');
-        chatContainer.classList.add('hidden');
-        chatBubble.classList.remove('hidden');
-    }
-}
-
-function toggleChatExpand() {
-    state.isExpanded = !state.isExpanded;
-    const chatContainer = document.getElementById('chat-container');
-    
-    if (state.isExpanded) {
-        chatContainer.classList.add('expanded');
-    } else {
-        chatContainer.classList.remove('expanded');
-    }
-}
-
-function handleSubmit(e) {
-    e.preventDefault();
-    const input = document.getElementById('chat-input');
-    const message = input.value.trim();
-    
-    if (message) {
-        processMessage(message);
-        input.value = '';
-    }
-}
-
-async function processMessage(message, retryCount = 0) {
-    try {
-        // Mostrar mensaje del usuario
-        if (message !== "inicio") {
-            addMessage(message, 'user');
-        }
-        
-        // Mostrar indicador de escritura
-        showTypingIndicator();
-        
-        // Actualizar métricas
-        state.metrics.messagesSent++;
-        updateMetricsChart();
-        
-        // Preparar datos para el servidor
-        const requestData = {
-            message: message,
-            user_id: state.userId,
-            isEmergency: state.isEmergency,
-            current_state: state.currentState,
-            alarm_number: state.currentAlarmNumber
-        };
-        
-        let response;
-        
-        // Determinar qué endpoint usar
-        if (state.currentState === 'await_alarm_number' || state.currentState === 'await_element_name') {
-            // Usar endpoint handle_state para estados específicos
-            response = await fetch(`${config.apiUrl}/handle_state`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData),
-                timeout: config.timeout
-            });
-        } else {
-            // Usar endpoint chat para mensajes generales
-            response = await fetch(`${config.apiUrl}/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData),
-                timeout: config.timeout
-            });
-        }
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Ocultar indicador de escritura
-        hideTypingIndicator();
-        
-        // Mostrar respuesta del bot
-        addMessage(data.response, 'bot', data.type);
-        
-        // Actualizar estado según la respuesta
-        if (data.next_step) {
-            state.currentState = data.next_step;
-            
-            if (data.next_step === 'await_alarm_number') {
-                state.waitingForAlarmNumber = true;
-                state.waitingForElementName = false;
-            } else if (data.next_step === 'await_element_name') {
-                state.waitingForAlarmNumber = false;
-                state.waitingForElementName = true;
-                state.currentAlarmNumber = data.alarm_number;
-            }
-        } else {
-            // Reset states
-            state.currentState = '';
-            state.waitingForAlarmNumber = false;
-            state.waitingForElementName = false;
-            state.currentAlarmNumber = null;
-        }
-        
-        // Marcar conversación como iniciada
-        state.conversationStarted = true;
-        
-        // Actualizar métricas si es consulta de alarma
-        if (data.type === 'alarm_resolved') {
-            state.metrics.alarmsChecked++;
-            updateMetricsChart();
-        }
-        
-        // Mostrar sugerencias inteligentes
-        showSmartSuggestions({
-            lastMessage: message,
-            currentState: state.currentState,
-            isEmergency: state.isEmergency
-        });
-        
-    } catch (error) {
-        console.error('Error procesando mensaje:', error);
-        hideTypingIndicator();
-
-        // Reintentar si es necesario
-        if (retryCount < config.maxRetries) {
-            setTimeout(() => {
-                processMessage(message, retryCount + 1);
-            }, config.retryDelay * (retryCount + 1));
-        } else {
-            addMessage('Lo siento, hubo un problema de conexión. Por favor intenta nuevamente.', 'bot', 'error');
-        }
-    }
-}
-
-function addMessage(message, sender, type = 'normal') {
-    const messagesContainer = document.getElementById('chat-messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}-message`;
-    
-    // Añadir clases adicionales según el tipo
-    if (type === 'error') {
-        messageDiv.classList.add('error-message');
-    } else if (type === 'system') {
-        messageDiv.classList.add('system-message');
-    } else if (type === 'alarm_resolved') {
-        messageDiv.classList.add('success-message');
-    }
-    
-    // Formatear mensaje (convertir saltos de línea a HTML)
-    const formattedMessage = message.replace(/\n/g, '<br>');
-    messageDiv.innerHTML = `
-        <div class="message-content">${formattedMessage}</div>
-        <div class="message-timestamp">${new Date().toLocaleTimeString()}</div>
-    `;
-    
-    messagesContainer.appendChild(messageDiv);
-    scrollToBottom();
-
-    if (sender === 'bot' && !state.isOpen) {
-        notifyNewMessage();
-    }
-}
-
-// Notificación visual en la burbuja cuando hay mensaje nuevo y el chat está cerrado
-function notifyNewMessage() {
-    const chatBubble = document.getElementById('chat-bubble');
-    if (!state.isOpen && chatBubble) {
-        chatBubble.classList.add('nuevo-mensaje');
-        // Opcional: agregar badge de notificación
-        if (!chatBubble.querySelector('.badge-notif')) {
-            const badge = document.createElement('span');
-            badge.className = 'badge-notif';
-            badge.textContent = '1';
-            chatBubble.appendChild(badge);
-        }
-    }
-}
-
-// Quitar notificación visual al abrir el chat
-function clearNewMessageNotification() {
-    const chatBubble = document.getElementById('chat-bubble');
-    if (chatBubble) {
-        chatBubble.classList.remove('nuevo-mensaje');
-        const badge = chatBubble.querySelector('.badge-notif');
-        if (badge) badge.remove();
-    }
-}
-
-// Llama a clearNewMessageNotification() al abrir el chat
-function toggleChat() {
-    state.isOpen = !state.isOpen;
-    const chatContainer = document.getElementById('chat-container');
-    const chatBubble = document.getElementById('chat-bubble');
-    
-    if (state.isOpen) {
-        chatContainer.classList.remove('hidden');
-        chatContainer.classList.add('show');
-        chatBubble.classList.add('hidden');
-        
-        // Focus en el input
-        setTimeout(() => {
-            document.getElementById('chat-input').focus();
-        }, 300);
-
-        clearNewMessageNotification();
-    } else {
-        chatContainer.classList.remove('show');
-        chatContainer.classList.add('hidden');
-        chatBubble.classList.remove('hidden');
-    }
-}
-
-function toggleChatExpand() {
-    state.isExpanded = !state.isExpanded;
-    const chatContainer = document.getElementById('chat-container');
-    
-    if (state.isExpanded) {
-        chatContainer.classList.add('expanded');
-    } else {
-        chatContainer.classList.remove('expanded');
-    }
-}
-
-function handleSubmit(e) {
-    e.preventDefault();
-    const input = document.getElementById('chat-input');
-    const message = input.value.trim();
-    
-    if (message) {
-        processMessage(message);
-        input.value = '';
-    }
-}
-
-async function processMessage(message, retryCount = 0) {
-    try {
-        // Mostrar mensaje del usuario
-        if (message !== "inicio") {
-            addMessage(message, 'user');
-        }
-        
-        // Mostrar indicador de escritura
-        showTypingIndicator();
-        
-        // Actualizar métricas
-        state.metrics.messagesSent++;
-        updateMetricsChart();
-        
-        // Preparar datos para el servidor
-        const requestData = {
-            message: message,
-            user_id: state.userId,
-            isEmergency: state.isEmergency,
-            current_state: state.currentState,
-            alarm_number: state.currentAlarmNumber
-        };
-        
-        let response;
-        
-        // Determinar qué endpoint usar
-        if (state.currentState === 'await_alarm_number' || state.currentState === 'await_element_name') {
-            // Usar endpoint handle_state para estados específicos
-            response = await fetch(`${config.apiUrl}/handle_state`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData),
-                timeout: config.timeout
-            });
-        } else {
-            // Usar endpoint chat para mensajes generales
-            response = await fetch(`${config.apiUrl}/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData),
-                timeout: config.timeout
-            });
-        }
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Ocultar indicador de escritura
-        hideTypingIndicator();
-        
-        // Mostrar respuesta del bot
-        addMessage(data.response, 'bot', data.type);
-        
-        // Actualizar estado según la respuesta
-        if (data.next_step) {
-            state.currentState = data.next_step;
-            
-            if (data.next_step === 'await_alarm_number') {
-                state.waitingForAlarmNumber = true;
-                state.waitingForElementName = false;
-            } else if (data.next_step === 'await_element_name') {
-                state.waitingForAlarmNumber = false;
-                state.waitingForElementName = true;
-                state.currentAlarmNumber = data.alarm_number;
-            }
-        } else {
-            // Reset states
-            state.currentState = '';
-            state.waitingForAlarmNumber = false;
-            state.waitingForElementName = false;
-            state.currentAlarmNumber = null;
-        }
-        
-        // Marcar conversación como iniciada
-        state.conversationStarted = true;
-        
-        // Actualizar métricas si es consulta de alarma
-        if (data.type === 'alarm_resolved') {
-            state.metrics.alarmsChecked++;
-            updateMetricsChart();
-        }
-        
-        // Mostrar sugerencias inteligentes
-        showSmartSuggestions({
-            lastMessage: message,
-            currentState: state.currentState,
-            isEmergency: state.isEmergency
-        });
-        
-    } catch (error) {
-        console.error('Error procesando mensaje:', error);
-        hideTypingIndicator();
-
-        // Reintentar si es necesario
-        if (retryCount < config.maxRetries) {
-            setTimeout(() => {
-                processMessage(message, retryCount + 1);
-            }, config.retryDelay * (retryCount + 1));
-        } else {
-            addMessage('Lo siento, hubo un problema de conexión. Por favor intenta nuevamente.', 'bot', 'error');
-        }
-    }
-}
-
-function addMessage(message, sender, type = 'normal') {
-    const messagesContainer = document.getElementById('chat-messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}-message`;
-    
-    // Añadir clases adicionales según el tipo
-    if (type === 'error') {
-        messageDiv.classList.add('error-message');
-    } else if (type === 'system') {
-        messageDiv.classList.add('system-message');
-    } else if (type === 'alarm_resolved') {
-        messageDiv.classList.add('success-message');
-    }
-    
-    // Formatear mensaje (convertir saltos de línea a HTML)
-    const formattedMessage = message.replace(/\n/g, '<br>');
-    messageDiv.innerHTML = `
-        <div class="message-content">${formattedMessage}</div>
-        <div class="message-timestamp">${new Date().toLocaleTimeString()}</div>
-    `;
-    
-    messagesContainer.appendChild(messageDiv);
-    scrollToBottom();
-
-    if (sender === 'bot' && !state.isOpen) {
-        notifyNewMessage();
-    }
-}
-
-// Notificación visual en la burbuja cuando hay mensaje nuevo y el chat está cerrado
-function notifyNewMessage() {
-    const chatBubble = document.getElementById('chat-bubble');
-    if (!state.isOpen && chatBubble) {
-        chatBubble.classList.add('nuevo-mensaje');
-        // Opcional: agregar badge de notificación
-        if (!chatBubble.querySelector('.badge-notif')) {
-            const badge = document.createElement('span');
-            badge.className = 'badge-notif';
-            badge.textContent = '1';
-            chatBubble.appendChild(badge);
-        }
-    }
-}
-
-// Quitar notificación visual al abrir el chat
-function clearNewMessageNotification() {
-    const chatBubble = document.getElementById('chat-bubble');
-    if (chatBubble) {
-        chatBubble.classList.remove('nuevo-mensaje');
-        const badge = chatBubble.querySelector('.badge-notif');
-        if (badge) badge.remove();
-    }}
