@@ -48,7 +48,10 @@ def index():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    msg = request.json.get("message", "").strip().lower()
+    msg = request.json.get("message", "")
+    if not isinstance(msg, str):
+        msg = str(msg)
+    msg = msg.strip().lower()
     user_id = "usuario1"
 
     if user_id not in usuarios:
@@ -62,11 +65,24 @@ def chat():
             resp["suggestions"] = sugerencias
         return jsonify(resp)
 
+    # Saludo inicial profesional y menú
     if estado == "inicio":
+        if msg in ["hola", "buen día", "buenos días", "buenas", "saludo", "inicio"]:
+            saludo = (
+                "<b>Buen día, hablemos de nuestras plataformas de Core.</b><br>"
+                "¿Qué te gustaría consultar el día de hoy?<br><br>"
+                "1. Alarmas de plataformas.<br>"
+                "2. Documentación de las plataformas.<br>"
+                "3. Incidentes activos de las plataformas.<br>"
+                "4. Estado operativo de las plataformas.<br>"
+                "5. Cambios activos en las plataformas.<br>"
+                "6. Hablar con el administrador de la plataforma."
+            )
+            return respuesta_enriquecida(saludo, ["1", "2", "3", "4", "5", "6"])
         if msg == "1":
             usuarios[user_id]["estado"] = "espera_alarma"
             return respuesta_enriquecida(
-                "Por favor ingresa el número de alarma que deseas consultar.",
+                "Por favor ingrese el número de alarma que desea consultar.",
                 ["12345", "67890", "54321"]
             )
         elif msg == "2":
@@ -101,7 +117,7 @@ def chat():
         usuarios[user_id]["numero_alarma"] = msg
         usuarios[user_id]["estado"] = "espera_elemento"
         return respuesta_enriquecida(
-            "Ingresa ahora el nombre del elemento asociado a la alarma.",
+            "Por favor ingresa el nombre del elemento que reporta la alarma.",
             ["Motor principal", "Válvula de seguridad", "Sensor de temperatura"]
         )
 
@@ -110,17 +126,12 @@ def chat():
         elemento = msg.strip().lower()
         usuarios[user_id]["estado"] = "inicio"
 
-        # Conexión directa y búsqueda en el archivo Excel ya cargado en df
         resultado = df[
             df["numero alarma"].str.contains(numero) &
             df["nombre del elemento"].str.contains(elemento)
         ]
 
         def color_severidad(sev):
-            """
-            Devuelve la clase CSS profesional para la severidad de la alarma.
-            Soporta baja, media, alta, major, critical.
-            """
             sev = str(sev).strip().lower()
             if sev == 'baja':
                 return 'sev sev-baja'

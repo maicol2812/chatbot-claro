@@ -1,220 +1,266 @@
-
-
-/* 🎥 Fondo de video */
+/* 🎥 Fondo de video profesional */
 #bg-video {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
+  z-index: -2;
+  opacity: 0.5;
+  filter: blur(2px) brightness(0.85) grayscale(10%);
+  transition: opacity 0.5s;
+}
+.bg-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: linear-gradient(120deg, #fff8 0%, #f8d7da99 100%);
   z-index: -1;
-  opacity: 0.60;
+  pointer-events: none;
 }
 
 /* 🌐 Estilo base */
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
   background: transparent;
   margin: 0;
   padding: 0;
   color: #444444;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* 💬 Burbuja flotante para abrir el chat */
 .burbuja-chat {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: white;
-  padding: 10px;
+  bottom: 100px;
+  right: 30px;
+  background: linear-gradient(135deg, #d41528 70%, #f8d7da 100%);
+  color: white;
+  padding: 18px 19px;
   border-radius: 50%;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   cursor: pointer;
+  font-size: 34px;
+  box-shadow: 0 4px 16px #dc354540;
   z-index: 1001;
+  border: 2px solid #fff;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  animation: burbujaPopIn 0.7s cubic-bezier(.4,1.4,.6,1);
 }
-.chat-container.expandido {
-  width: 95vw;
-  height: 90vh;
-  right: 2.5vw;
-  bottom: 2vh;
-  max-width: none;
-  max-height: none;
-}
-
-
 .burbuja-chat:hover {
-  transform: scale(1.1);
+  background: linear-gradient(135deg, #b3121f 80%, #f8d7da 100%);
+  box-shadow: 0 8px 32px #dc354540;
+  transform: scale(1.08) rotate(-6deg);
+}
+@keyframes burbujaPopIn {
+  0% { transform: scale(0.7) rotate(-10deg); opacity: 0; }
+  60% { transform: scale(1.1) rotate(4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
-/* 🧾 Contenedor del chat oculto por defecto */
-.chat-container {
-  position: fixed;
-  bottom: 80px;
-  left: 20px;
-  width: 100%;
-  max-width: 350px;
-  background: rgba(214, 12, 12, 0.95);
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  z-index: 10;
-  display: none;
-}
-.chat-container.mostrar {
-  display: block;
+/* --- Experiencia de usuario avanzada --- */
+
+/* Sombra y animación sutil al enfocar el input */
+#user-input:focus {
+  outline: 2px solid #dc3545;
+  box-shadow: 0 0 0 2px #f8d7da80;
+  transition: box-shadow 0.2s;
 }
 
-/* 📌 Cabecera */
-.header {
-  background-color: rgba(230, 0, 0, 0.85);
-  color: white;
-  padding: 20px;
-  text-align: center;
-  font-size: 1.3em;
-  font-weight: bold;
+/* Animación de "pulse" para alertas críticas */
+@keyframes alertaPulse {
+  0% { box-shadow: 0 0 0 0 #dc354540; }
+  70% { box-shadow: 0 0 0 12px #dc354500; }
+  100% { box-shadow: 0 0 0 0 #dc354540; }
+}
+.tabla-alarma tr.destacada,
+.sev-alta {
+  animation: alertaPulse 1.5s infinite;
 }
 
-/* 🖼️ Logo */
-.logo {
-  height: 40px;
-  margin-bottom: 10px;
+/* Tooltip con flecha */
+.tabla-alarma td[data-tooltip]:hover::after {
+  /* ...existing code... */
 }
-
-/* 💬 Área de mensajes */
-.chat-box {
-  height: 250px;
-  overflow-y: auto;
-  padding: 10px;
-  background-color: #fff1f1;
-}
-
-/* 💬 Burbujas de mensajes */
-.user-msg, .bot-msg {
-  margin: 10px 0;
-  padding: 12px 16px;
-  border-radius: 20px;
-  max-width: 80%;
-  word-wrap: break-word;
-  font-size: 15px;
-}
-.user-msg {
-  background-color: #da0000;
-  color: rgb(19, 16, 16);
-  align-self: flex-end;
-  text-align: right;
-}
-.bot-msg {
-  background-color: #eaeaea;
-  color: #222;
-  align-self: flex-start;
-}
-
-/* 🧾 Formulario */
-#chat-form {
-  display: flex;
-  border-top: 1px solid #ddd;
-  background-color: white;
-}
-#user-input {
-  flex-grow: 1;
-  padding: 15px;
-  border: none;
-  outline: none;
-  font-size: 15px;
-}
-#chat-form button {
-  background-color: #363333;
-  color: white;
-  border: none;
-  padding: 15px 20px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-#chat-form button:hover {
-  background-color: #221f1f;
-}
-
-/* 🖼 Imagen dentro del cuadro de info-core */
-.info-core img {
-  width: 200%;
-  max-width: 400px;
-  margin-bottom: 100px;
-  border-radius: 120px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-/* 🧱 Bloque informativo central */
-.info-core {
+.tabla-alarma td[data-tooltip]:hover::before {
+  content: "";
   position: absolute;
-  top: 58%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: linear-gradient(145deg, #eceaea, #ac3535);
-  padding: 40px 30px;
-  border-radius: 16px;
-  max-width: 400px;
+  left: 14px;
+  top: 100%;
+  border-width: 0 7px 7px 7px;
+  border-style: solid;
+  border-color: transparent transparent #343a40 transparent;
+  z-index: 11;
+  margin-top: -2px;
+}
+
+/* Scrollbar personalizado para chat-box y tablas */
+.chat-box::-webkit-scrollbar,
+.tabla-alarma-responsive::-webkit-scrollbar {
+  width: 8px;
+  background: #f8d7da33;
+  border-radius: 8px;
+}
+.chat-box::-webkit-scrollbar-thumb,
+.tabla-alarma-responsive::-webkit-scrollbar-thumb {
+  background: #dc354540;
+  border-radius: 8px;
+}
+.chat-box::-webkit-scrollbar-thumb:hover,
+.tabla-alarma-responsive::-webkit-scrollbar-thumb:hover {
+  background: #dc3545;
+}
+
+/* Botón de copiar con animación */
+.tabla-alarma .copiar-celda {
+  /* ...existing code... */
+  transition: opacity 0.2s, color 0.2s, transform 0.2s;
+}
+.tabla-alarma .copiar-celda:active {
+  transform: scale(1.2) rotate(-10deg);
+  color: #28a745;
+}
+
+/* Footer */
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100vw;
+  background: rgba(255, 255, 255, 0.95);
   text-align: center;
-  font-family: 'Segoe UI', 'Arial', sans-serif;
-  box-shadow: 0 12px 30px rgba(216, 210, 210, 0.2);
-  z-index: 5;
-  opacity: 1;
-  transition: opacity 0.6s ease, transform 0.4s ease;
-  animation: fadeInUp 0.8s ease both;
-}
-.info-core.ocultar {
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, -50%) scale(0.95);
-}
-.info-core h1 {
-  color: #e60000;
-  font-size: 28px;
-  margin-bottom: 16px;
-}
-.info-core p {
-  font-size: 16px;
-  color: #ebe3e3;
-  line-height: 1.5;
+  font-size: 13px;
+  padding: 6px;
+  z-index: 999;
+  border-top: 1px solid #ddd;
+  left: 0;
+  letter-spacing: 1px;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* --- Experiencia visual y UX aún más experta --- */
+
+/* Animación de entrada para la ventana del chat */
+.chat-container.mostrar {
+  animation: chatFadeIn 0.7s cubic-bezier(.4,1.4,.6,1);
+}
+@keyframes chatFadeIn {
+  0% { opacity: 0; transform: translateY(60px) scale(0.98);}
+  80% { opacity: 1; transform: translateY(-8px) scale(1.01);}
+  100% { opacity: 1; transform: translateY(0) scale(1);}
 }
 
-.bot-msg, .user-msg {
-  animation: fadeInUp 0.4s ease;
+/* Glow animado para el borde de la burbuja del chat cuando hay mensaje nuevo */
+.burbuja-chat.nuevo-mensaje {
+  box-shadow: 0 0 0 0 #dc3545, 0 0 16px 4px #dc354580;
+  animation: glowPulse 1.2s infinite alternate;
+}
+@keyframes glowPulse {
+  0% { box-shadow: 0 0 0 0 #dc3545, 0 0 16px 4px #dc354580; }
+  100% { box-shadow: 0 0 0 8px #dc354500, 0 0 32px 12px #dc354520; }
 }
 
-.chat-container.expandido {
-  width: 100%;
-  max-width: 600px;
-  height: 95vh;
-  max-height: 95vh;
+/* Animación de "shake" para alertas críticas */
+.sev-alta:active, .tabla-alarma tr.destacada:active {
+  animation: shake 0.3s;
 }
-#chat-form .acciones-extras {
-  display: flex;
-  gap: 0.3rem;
-  align-items: center;
+@keyframes shake {
+  0% { transform: translateX(0);}
+  20% { transform: translateX(-4px);}
+  40% { transform: translateX(4px);}
+  60% { transform: translateX(-2px);}
+  80% { transform: translateX(2px);}
+  100% { transform: translateX(0);}
 }
 
-#chat-form .acciones-extras button {
-  background: #f0f0f0;
-  border: none;
-  padding: 6px 10px;
+/* Botón de copiar con tooltip animado */
+.tabla-alarma .copiar-celda {
+  /* ...existing code... */
+  position: relative;
+}
+.tabla-alarma .copiar-celda:hover::after {
+  content: "Copiar";
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #dc3545;
+  color: #fff;
+  padding: 2px 10px;
   border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-  color: #dc3545;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: 20;
+  animation: fadeInUp 0.3s;
 }
 
-#chat-form .acciones-extras button:hover {
-  background-color: #ececec;
+/* Efecto glass para el chat en desktop */
+@media (min-width: 900px) {
+  .chat-container {
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(4px) saturate(1.2);
+    border: 1.5px solid #f8d7da;
+  }
+}
+
+/* Botón de enviar con efecto de presión */
+#chat-form button[type="submit"]:active {
+  transform: scale(0.96);
+  background: #b3121f;
+  box-shadow: 0 2px 8px #dc354540;
+}
+
+/* Animación de entrada para cada mensaje */
+.user-msg, .bot-msg {
+  /* ...existing code... */
+  animation: fadeInUp 0.4s cubic-bezier(.4,1.4,.6,1);
+  transition: box-shadow 0.2s, background 0.2s;
+}
+.user-msg:active, .bot-msg:active {
+  box-shadow: 0 4px 16px #dc354540;
+  background: #fffbe6;
+}
+
+/* Sombra sutil para la tabla de alarmas al hacer hover */
+.tabla-alarma:hover {
+  box-shadow: 0 8px 32px #dc354540;
+  transition: box-shadow 0.3s;
+}
+
+/* Efecto de resalte para la fila seleccionada en la tabla */
+.tabla-alarma tr.selected {
+  background: linear-gradient(90deg, #ffeaea 60%, #fff 100%);
+  box-shadow: 0 2px 12px #dc354520;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+/* Botón de burbuja con badge de notificación */
+.burbuja-chat .badge-notif {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 50%;
+  padding: 2px 7px;
+  box-shadow: 0 2px 8px #dc354540;
+  animation: fadeInUp 0.5s;
+  z-index: 1010;
+  border: 2px solid #fff;
+  pointer-events: none;
+}
+
+/* --- Fin de mejoras expertas --- */
+
+/* Responsive */
+@media (max-width: 600px) {
+  .img-trabajo { width: 90vw; }
+  .chat-container { right: 0; left: 0; margin: auto; }
+  .burbuja-chat { right: 10px; }
+  .chat-container { max-width: 99vw; }
+  .tabla-alarma th, .tabla-alarma td { font-size: 12px; padding: 6px 6px; }
+  .bot-msg, .user-msg { font-size: 13px; }
 }
