@@ -2,285 +2,390 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import pandas as pd
 import os
+import re
+from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)
 
-# ✅ Habilitar CORS globalmente (mejor para evitar errores)
-
-CORS(app, resources={r"/chat": {"origins": "https://chatbot-claro.onrender.com"}})
-
+# Estado de usuarios
 usuarios = {}
 
-# ✅ Ruta robusta que funciona tanto en local como en Render
+# Configuración del archivo Excel
 ruta_excel = os.path.join(os.path.dirname(__file__), "Ejemplo de alarmas CMM.xlsx")
 
-if not os.path.exists(ruta_excel):
-    raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
+def init_excel():
+    """Inicializa la conexión con el archivo Excel"""
+    if not os.path.exists(ruta_excel):
+        raise FileNotFoundError(f"⚠️ Archivo no encontrado en: {ruta_excel}")
+    
+    df = pd.read_excel(ruta_excel, engine="openpyxl")
+    
+    # Normalizar nombres de columnas
+    df.columns = df.columns.str.strip().str.lower()
+    
+    # Mapear columnas a nombres estándar
+    column_mapping = {
+        'numero alarma': 'numero_alarma',
+        'número alarma': 'numero_alarma',
+        'nombre del elemento': 'elemento',
+        'descripción alarma': 'descripcion',
+        'descripcion alarma': 'descripcion',
+        'severidad': 'severidad',
+        'significado': 'significado',
+        'acciones': 'acciones'
+    }
+    
+    # Renombrar columnas
+    for old_name, new_name in column_mapping.items():
+        if old_name in df.columns:
+            df = df.rename(columns={old_name: new_name})
+    
+    # Verificar columnas necesarias
+    required_columns = ['numero_alarma', 'elemento']
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    
+    if missing_columns:
+        raise KeyError(f"❌ Columnas faltantes: {missing_columns}")
+    
+    # Limpiar y normalizar datos
+    df['numero_alarma'] = df['numero_alarma'].astype(str).str.strip()
+    df['elemento'] = df['elemento'].astype(str).str.lower().str.strip()
+    
+    # Llenar valores NaN con cadenas vacías
+    df = df.fillna('')
+    
+    return df
 
-df = pd.read_excel(ruta_excel, engine="openpyxl")
-df.columns = df.columns.str.strip().str.lower()
+# Inicializar DataFrame
+try:
+    df = init_excel()
+    print("✅ Base de datos de alarmas cargada correctamente")
+except Exception as e:
+    print(f"❌ Error al cargar base de datos: {e}")
+    df = pd.DataFrame()
 
-if "numero alarma" not in df.columns or "nombre del elemento" not in df.columns:
-    raise KeyError("❌ Las columnas necesarias no existen en el archivo Excel.")
+def get_user_state(user_id):
+    """Obtiene el estado del usuario"""
+    if user_id not in usuarios:
+        usuarios[user_id] = {
+            "estado": "inicio",
+            "numero_alarma": None,
+            "elemento": None,
+            "historial": [],
+            "timestamp": datetime.now()
+        }
+    return usuarios[user_id]
 
-df["numero alarma"] = df["numero alarma"].astype(str).str.strip()
-df["nombre del elemento"] = df["nombre del elemento"].str.lower().str.strip()
+def set_user_state(user_id, estado, **kwargs):
+    """Actualiza el estado del usuario"""
+    user_data = get_user_state(user_id)
+    user_data["estado"] = estado
+    user_data["timestamp"] = datetime.now()
+    
+    for key, value in kwargs.items():
+        user_data[key] = value
 
-def menu_principal():
-    return (
-        "📋 Menú principal:\n"
-        "1. Alarmas de plataformas.\n"
-        "2. Documentación de las plataformas.\n"
-        "3. Incidentes activos de las plataformas.\n"
-        "4. Estado operativo de las plataformas.\n"
-        "5. Cambios activos de las plataformas.\n"
-        "6. Hablar con el administrador de la plataforma."
-    )
+def buscar_alarma(numero_alarma, elemento):
+    """Busca una alarma específica en la base de datos"""
+    if df.empty:
+        return None, "Base de datos no disponible"
+    
+    # Búsqueda exacta
+    resultado = df[
+        (df['numero_alarma'].str.contains(numero_alarma, case=False, na=False)) &
+        (df['elemento'].str.contains(elemento, case=False, na=False))
+    ]
+    
+    if not resultado.empty:
+        return resultado.iloc[0].to_dict(), None
+    
+    # Búsqueda parcial por número de alarma
+    resultado_parcial = df[df['numero_alarma'].str.contains(numero_alarma, case=False, na=False)]
+    
+    if not resultado_parcial.empty:
+        return None, f"Se encontraron {len(resultado_parcial)} alarmas con número '{numero_alarma}', pero ninguna coincide con el elemento '{elemento}'"
+    
+    return None, "No se encontró ninguna alarma con esos criterios"
+
+def format_alarm_response(alarm_data):
+    """Formatea la respuesta de una alarma encontrada"""
+    severity_colors = {
+        'baja': '🟢',
+        'media': '🟡', 
+        'alta': '🔴',
+        'major': '🔴',
+        'critical': '🚨'
+    }
+    
+    severidad = str(alarm_data.get('severidad', '')).lower()
+    color_icon = severity_colors.get(severidad, '⚪')
+    
+    response = f"""
+🔔 <b>Alarma encontrada:</b>
+
+📋 <b>Número de alarma:</b> {alarm_data.get('numero_alarma', 'N/A')}
+🔧 <b>Elemento:</b> {alarm_data.get('elemento', 'N/A')}
+📝 <b>Descripción:</b> {alarm_data.get('descripcion', 'N/A')}
+{color_icon} <b>Severidad:</b> {alarm_data.get('severidad', 'N/A')}
+💡 <b>Significado:</b> {alarm_data.get('significado', 'N/A')}
+🛠️ <b>Acciones recomendadas:</b> {alarm_data.get('acciones', 'N/A')}
+"""
+    
+    return response.strip()
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
-
-# Sugerencia de mejora profesional:
-# Puedes permitir que el usuario consulte alarmas por coincidencia parcial (no solo exacta)
-# y mostrar múltiples resultados en una tabla profesional usando render_alarmas_table.
-
 @app.route("/chat", methods=["POST"])
 def chat():
-    msg = request.json.get("message", "")
-    if not isinstance(msg, str):
-        msg = str(msg)
-    msg = msg.strip().lower()
-    user_id = "usuario1"
+    try:
+        data = request.get_json()
+        message = data.get("message", "").strip()
+        user_id = data.get("user_id", "default_user")
+        
+        if not message:
+            return jsonify({"error": "Mensaje vacío"}), 400
+        
+        user_state = get_user_state(user_id)
+        estado_actual = user_state["estado"]
+        
+        # Agregar mensaje al historial
+        user_state["historial"].append({
+            "timestamp": datetime.now(),
+            "message": message,
+            "type": "user"
+        })
+        
+        response_data = process_message(message, user_id, estado_actual)
+        
+        # Agregar respuesta al historial
+        user_state["historial"].append({
+            "timestamp": datetime.now(),
+            "message": response_data["response"],
+            "type": "bot"
+        })
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        print(f"Error en /chat: {e}")
+        return jsonify({
+            "response": "Lo siento, hubo un error interno. Por favor intenta nuevamente.",
+            "type": "error"
+        }), 500
 
-    if user_id not in usuarios:
-        usuarios[user_id] = {"estado": "inicio"}
+def process_message(message, user_id, estado_actual):
+    """Procesa el mensaje según el estado actual del usuario"""
+    message_lower = message.lower().strip()
+    
+    if estado_actual == "inicio":
+        return handle_inicio(message_lower, user_id)
+    elif estado_actual == "esperando_numero_alarma":
+        return handle_numero_alarma(message, user_id)
+    elif estado_actual == "esperando_elemento":
+        return handle_elemento(message, user_id)
+    else:
+        # Estado desconocido, reiniciar
+        set_user_state(user_id, "inicio")
+        return handle_inicio(message_lower, user_id)
 
-    estado = usuarios[user_id]["estado"]
+def handle_inicio(message, user_id):
+    """Maneja el estado inicial y el menú principal"""
+    
+    # Mensaje de bienvenida automático
+    if message in ["inicio", "start", "comenzar", "hola", "buenas", "buen día"]:
+        welcome_message = """Buen día, hablemos de nuestras plataformas de Core.
 
-    def respuesta_enriquecida(texto, sugerencias=None, extra=None):
-        resp = {"response": texto}
-        if sugerencias:
-            resp["suggestions"] = sugerencias
-        if extra:
-            resp.update(extra)
-        return jsonify(resp)
+¿Qué te gustaría consultar el día de hoy?
 
-    # Saludo inicial profesional y menú experto
-    if estado == "inicio":
-        if msg in ["hola", "buen día", "buenos días", "buenas", "saludo", "inicio"]:
-            saludo = (
-                "Buen día, hablemos de nuestras plataformas de Core. Que te gustaría consultar el día de hoy:\n\n"
-                "Alarmas de plataformas.\n"
-                "Documentación de las plataformas.\n"
-                "Incidentes activos de las plataformas.\n"
-                "Estado operativo de las plataformas.\n"
-                "Cambios activos en las plataformas.\n"
-                "Hablar con el administrador de la plataforma."
-            )
-            return respuesta_enriquecida(saludo, ["Alarmas de plataformas", "Documentación de las plataformas", "Incidentes activos de las plataformas", "Estado operativo de las plataformas", "Cambios activos en las plataformas", "Hablar con el administrador de la plataforma"])
-        if msg in ["1", "alarmas de plataformas"]:
-            usuarios[user_id]["estado"] = "espera_alarma"
-            return respuesta_enriquecida(
-                "por favor ingrese el número de alarma que desea consultar",
-                ["12345", "67890", "54321"]
-            )
-        elif msg == "2":
-            return respuesta_enriquecida(
-                "📄 <b>Documentación técnica disponible:</b><br>"
-                "• <a href='https://tu-pdf-hosting.com/manual.pdf' target='_blank'>Manual PDF</a> (Procedimientos, configuraciones)<br>"
-                "• <a href='https://jefatura-url-de-alarmas.sharepoint.com'>SharePoint de alarmas</a> (Histórico y reportes)<br>"
-                "<i>¿Necesitas ayuda con algún documento específico?</i>",
-                ["Manual PDF", "SharePoint de alarmas", "Solicitar procedimiento"]
-            )
-        elif msg == "3":
-            return respuesta_enriquecida(
-                "🚨 <b>Incidentes activos:</b><br>"
-                "• <span style='color:green;'>Ningún incidente crítico reportado.</span><br>"
-                "• Última actualización: <b>09:00 AM</b>.<br>"
-                "• <a href='#' onclick='reportarIncidente()'>Reportar nuevo incidente</a><br>"
-                "<i>¿Deseas ver el historial o detalles de algún incidente?</i>",
-                ["Reportar incidente", "Ver historial", "Ver detalles"]
-            )
-        elif msg == "4":
-            return respuesta_enriquecida(
-                "🟢 <b>Estado operativo:</b><br>"
-                "• Todas las plataformas se encuentran <b>operativas</b>.<br>"
-                "• No se detectan degradaciones ni eventos críticos.<br>"
-                "<i>¿Quieres ver el estado detallado de una plataforma específica?</i>",
-                ["Ver detalles", "Contactar administrador", "Ver histórico"]
-            )
-        elif msg == "5":
-            return respuesta_enriquecida(
-                "🔄 <b>Cambios activos:</b><br>"
-                "• No hay cambios activos en este momento.<br>"
-                "• Última revisión: <b>08:30 AM</b>.<br>"
-                "<i>¿Deseas consultar el historial de cambios o programar uno nuevo?</i>",
-                ["Ver historial de cambios", "Programar cambio"]
-            )
-        elif msg == "6":
-            return respuesta_enriquecida(
-                "👨‍💼 <b>Contacto administrador:</b><br>"
-                "• Puedes contactar al administrador en <a href='mailto:38514121@claro.com.co'>38514121@claro.com.co</a>.<br>"
-                "• <a href='tel:+573213445747'>Llamar al +573213445747</a><br>"
-                "<i>¿Necesitas soporte técnico o agendar una reunión?</i>",
-                ["Enviar correo", "Ver otros contactos", "Agendar reunión"]
-            )
-        else:
-            return respuesta_enriquecida(
-                "<b>❓ No entendí tu consulta.</b><br>Por favor selecciona una opción del menú o describe tu requerimiento.",
-                ["1", "2", "3", "4", "5", "6", "Ayuda"]
-            )
+1. Alarmas de plataformas.
+2. Documentación de las plataformas.
+3. Incidentes activos de las plataformas.
+4. Estado operativo de las plataformas.
+5. Cambios activos en las plataformas.
+6. Hablar con el administrador de la plataforma."""
+        
+        return {
+            "response": welcome_message,
+            "type": "menu",
+            "suggestions": ["1", "2", "3", "4", "5", "6"]
+        }
+    
+    # Opción 1: Alarmas de plataformas
+    if message in ["1", "alarmas", "alarmas de plataformas"]:
+        set_user_state(user_id, "esperando_numero_alarma")
+        return {
+            "response": "Por favor, ingresa el número de alarma que deseas consultar:",
+            "type": "request_input",
+            "suggestions": ["12345", "67890", "11111"]
+        }
+    
+    # Opción 2: Documentación
+    elif message in ["2", "documentacion", "documentación"]:
+        return {
+            "response": """📄 <b>Documentación técnica disponible:</b>
 
-    elif estado == "espera_alarma":
-        usuarios[user_id]["numero_alarma"] = msg
-        usuarios[user_id]["estado"] = "espera_elemento"
-        return respuesta_enriquecida(
-            "Por favor ingresa el nombre del elemento que reporta la alarma",
-            ["Motor principal", "Válvula de seguridad", "Sensor de temperatura"]
-        )
+• Manual de procedimientos
+• Guías de configuración
+• Documentación de API
+• Manuales de usuario
 
-    elif estado == "espera_elemento":
-        numero = usuarios[user_id]["numero_alarma"]
-        elemento = msg.strip().lower()
-        usuarios[user_id]["estado"] = "inicio"
+¿Qué tipo de documentación necesitas?""",
+            "type": "info",
+            "suggestions": ["Manual de procedimientos", "Guías de configuración", "Volver al menú"]
+        }
+    
+    # Opción 3: Incidentes activos
+    elif message in ["3", "incidentes", "incidentes activos"]:
+        return {
+            "response": """🚨 <b>Estado de incidentes:</b>
 
-        resultado = df[
-            df["numero alarma"].str.contains(numero) &
-            df["nombre del elemento"].str.contains(elemento)
-        ]
+✅ No hay incidentes críticos activos
+📊 Última actualización: """ + datetime.now().strftime("%H:%M") + """
+🔍 Monitoreo continuo activo
 
-        def color_severidad(sev):
-            sev = str(sev).strip().lower()
-            if sev == 'baja':
-                return 'sev sev-baja'
-            elif sev == 'media':
-                return 'sev sev-media'
-            elif sev == 'alta':
-                return 'sev sev-alta'
-            elif sev == 'major':
-                return 'sev sev-alta'
-            elif sev == 'critical':
-                return 'sev sev-alta'
-            return 'sev'
+¿Deseas reportar un incidente?""",
+            "type": "info",
+            "suggestions": ["Reportar incidente", "Ver historial", "Volver al menú"]
+        }
+    
+    # Opción 4: Estado operativo
+    elif message in ["4", "estado", "estado operativo"]:
+        return {
+            "response": """🟢 <b>Estado operativo de las plataformas:</b>
 
-        def alerta_critica(severidad):
-            sev = str(severidad).strip().lower()
-            if sev == 'critical':
-                return '<div class="alert alert-danger" style="margin-bottom:8px;"><b>⚠️ Alerta CRÍTICA:</b> Esta alarma requiere atención inmediata.</div>'
-            elif sev == 'major':
-                return '<div class="alert alert-warning" style="margin-bottom:8px;"><b>⚠️ Alerta MAYOR:</b> Revisa este evento lo antes posible.</div>'
-            return ''
+✅ Todas las plataformas operativas
+📈 Rendimiento: Normal
+🔧 Mantenimiento programado: Ninguno
 
-        if not resultado.empty:
-            filas = resultado.to_dict(orient="records")
-            if len(filas) == 1:
-                fila = filas[0]
-                alerta = alerta_critica(fila.get('severidad',''))
-                tabla = f'''
-                <div class="tabla-alarma-responsive">
-                  <table class="tabla-alarma">
-                    <tr>
-                      <th>Número alarma</th>
-                      <th>Nombre del elemento</th>
-                      <th>Descripción</th>
-                      <th>Severidad</th>
-                      <th>Significado</th>
-                      <th>Acciones</th>
-                    </tr>
-                    <tr class="destacada">
-                      <td data-tooltip="Identificador único de la alarma" data-copiar="{fila.get('numero alarma','')}"><b>{fila.get('numero alarma','')}</b> <span class='copiar-celda'>📋</span></td>
-                      <td data-tooltip="Elemento afectado por la alarma">{fila.get('nombre del elemento','')}</td>
-                      <td data-tooltip="Descripción técnica de la alarma">{fila.get('descripción alarma','')}</td>
-                      <td data-tooltip="Nivel de severidad: baja, media, alta, major o critical"><span class="sev {color_severidad(fila.get('severidad',''))}">{fila.get('severidad','')}</span></td>
-                      <td data-tooltip="Significado técnico de la alarma">{fila.get('significado','')}</td>
-                      <td data-tooltip="Acciones recomendadas para resolver la alarma">{fila.get('acciones','')}</td>
-                    </tr>
-                  </table>
-                </div>
-                '''
-                respuesta = f"<b>🔔 Alarma detectada:</b><br>{alerta}{tabla}"
-            else:
-                tabla = render_alarmas_table(filas)
-                respuesta = f"<b>🔔 Resultados encontrados ({len(filas)}):</b><br>{tabla}"
-            sugerencias = ["Consultar otra alarma", "Volver al menú principal"]
-        else:
-            respuesta = "❌ No se encontró una alarma con ese número y nombre de elemento."
-            sugerencias = ["Intentar de nuevo", "Volver al menú principal"]
+Sistema funcionando correctamente.""",
+            "type": "info",
+            "suggestions": ["Ver detalles", "Programar mantenimiento", "Volver al menú"]
+        }
+    
+    # Opción 5: Cambios activos
+    elif message in ["5", "cambios", "cambios activos"]:
+        return {
+            "response": """🔄 <b>Cambios en las plataformas:</b>
 
-        if "❌" in respuesta:
-            respuesta += "<br><br>" + menu_principal()
+📋 No hay cambios activos actualmente
+⏰ Última revisión: """ + datetime.now().strftime("%H:%M") + """
+📅 Próxima ventana de cambios: Por definir
 
-        return respuesta_enriquecida(respuesta, sugerencias)
+¿Necesitas programar un cambio?""",
+            "type": "info",
+            "suggestions": ["Programar cambio", "Ver historial", "Volver al menú"]
+        }
+    
+    # Opción 6: Contactar administrador
+    elif message in ["6", "administrador", "contactar", "hablar con administrador"]:
+        return {
+            "response": """👨‍💼 <b>Contacto con el administrador:</b>
 
-    return respuesta_enriquecida("❌ Algo salió mal. Intenta de nuevo.", ["Volver al menú principal"])
+📧 Email: 38514121@claro.com.co
+📞 Teléfono: +573213445747
+💬 Disponible: Lunes a Viernes 8:00 AM - 6:00 PM
 
-def severidad_class(severidad):
-    sev = str(severidad).strip().lower()
-    if sev == 'baja':
-        return 'sev sev-baja'
-    elif sev == 'media':
-        return 'sev sev-media'
-    elif sev == 'alta':
-        return 'sev sev-alta'
-    return 'sev'
+¿Cómo prefieres contactarlo?""",
+            "type": "contact",
+            "suggestions": ["Enviar email", "Llamar", "Volver al menú"]
+        }
+    
+    # Comando para volver al menú
+    elif message in ["menu", "menú", "volver", "volver al menú"]:
+        return handle_inicio("inicio", user_id)
+    
+    # Mensaje no reconocido
+    else:
+        return {
+            "response": """❓ No entendí tu solicitud. Por favor selecciona una opción:
 
-def render_alarmas_table(rows):
-    """
-    Renderiza una tabla HTML profesional y responsiva para mostrar alarmas,
-    con tooltips, copiar, colores y formato experto.
-    """
-    table = '''
-    <div class="tabla-alarma-responsive">
-      <table class="tabla-alarma">
-        <thead>
-          <tr>
-            <th>Acciones</th>
-            <th>Significado</th>
-            <th>Severidad</th>
-            <th>Descripción alarma</th>
-            <th>Número alarma</th>
-            <th>Nombre del elemento</th>
-          </tr>
-        </thead>
-        <tbody>
-    '''
-    for row in rows:
-        acciones = row.get('Acciones', '')
-        significado = row.get('Significado', '')
-        severidad = row.get('Severidad', '')
-        descripcion = row.get('Descripción alarma', '')
-        numero = row.get('Número alarma', '')
-        elemento = row.get('Nombre del elemento', '')
+1. Alarmas de plataformas
+2. Documentación de las plataformas
+3. Incidentes activos de las plataformas
+4. Estado operativo de las plataformas
+5. Cambios activos en las plataformas
+6. Hablar con el administrador de la plataforma
 
-        table += f'''
-          <tr>
-            <td data-tooltip="Acción recomendada" data-copiar="{acciones}">{acciones} <span class='copiar-celda'>📋</span></td>
-            <td data-tooltip="Significado de la alarma" data-copiar="{significado}">{significado} <span class='copiar-celda'>📋</span></td>
-            <td><span class="{color_severidad(severidad)}">{severidad}</span></td>
-            <td data-tooltip="Descripción detallada" data-copiar="{descripcion}">{descripcion} <span class='copiar-celda'>📋</span></td>
-            <td data-tooltip="Identificador único de la alarma" data-copiar="{numero}"><b>{numero}</b> <span class='copiar-celda'>📋</span></td>
-            <td data-tooltip="Elemento afectado" data-copiar="{elemento}">{elemento} <span class='copiar-celda'>📋</span></td>
-          </tr>
-        '''
-    table += '''
-        </tbody>
-      </table>
-    </div>
-    '''
-    return table
+O escribe "menú" para ver las opciones.""",
+            "type": "error",
+            "suggestions": ["1", "2", "3", "4", "5", "6", "menú"]
+        }
 
-# Ejemplo de uso avanzado en tu endpoint:
-# if not resultado.empty:
-#     filas = resultado.to_dict(orient="records")
-#     tabla_html = render_alarmas_table(filas)
-#     respuesta = f"<b>🔔 Resultados encontrados:</b><br>{tabla_html}"
-#     return respuesta_enriquecida(respuesta, ["Consultar otra alarma", "Volver al menú principal"])
-# else:
-#     return respuesta_enriquecida("❌ No se encontraron alarmas para tu búsqueda.<br><br>" + menu_principal(), ["Intentar de nuevo", "Volver al menú principal"])
+def handle_numero_alarma(message, user_id):
+    """Maneja la entrada del número de alarma"""
+    numero_alarma = message.strip()
+    
+    if not numero_alarma:
+        return {
+            "response": "Por favor ingresa un número de alarma válido:",
+            "type": "error",
+            "suggestions": ["12345", "67890", "Volver al menú"]
+        }
+    
+    # Guardar número de alarma y solicitar elemento
+    set_user_state(user_id, "esperando_elemento", numero_alarma=numero_alarma)
+    
+    return {
+        "response": f"Número de alarma: {numero_alarma}\n\nAhora, por favor ingresa el nombre del elemento que reporta la alarma:",
+        "type": "request_input",
+        "suggestions": ["Motor principal", "Válvula de seguridad", "Sensor de temperatura", "Volver al menú"]
+    }
+
+def handle_elemento(message, user_id):
+    """Maneja la entrada del elemento y realiza la búsqueda"""
+    user_state = get_user_state(user_id)
+    numero_alarma = user_state.get("numero_alarma")
+    elemento = message.strip()
+    
+    if not elemento:
+        return {
+            "response": "Por favor ingresa el nombre del elemento:",
+            "type": "error",
+            "suggestions": ["Motor principal", "Válvula de seguridad", "Volver al menú"]
+        }
+    
+    # Buscar alarma
+    alarm_data, error = buscar_alarma(numero_alarma, elemento)
+    
+    # Resetear estado después de la búsqueda
+    set_user_state(user_id, "inicio")
+    
+    if alarm_data:
+        return {
+            "response": format_alarm_response(alarm_data),
+            "type": "alarm_found",
+            "suggestions": ["Consultar otra alarma", "Volver al menú"]
+        }
+    else:
+        return {
+            "response": f"❌ {error}\n\n¿Deseas intentar con otros criterios?",
+            "type": "alarm_not_found",
+            "suggestions": ["Intentar de nuevo", "Volver al menú"]
+        }
+
+# Ruta para obtener estadísticas (opcional)
+@app.route("/stats", methods=["GET"])
+def get_stats():
+    """Obtiene estadísticas de uso del chatbot"""
+    total_users = len(usuarios)
+    active_users = sum(1 for user in usuarios.values() 
+                      if (datetime.now() - user["timestamp"]).seconds < 3600)
+    
+    return jsonify({
+        "total_users": total_users,
+        "active_users": active_users,
+        "database_records": len(df) if not df.empty else 0,
+        "timestamp": datetime.now().isoformat()
+    })
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    debug_mode = os.environ.get("FLASK_DEBUG", "False").lower() == "true"
+    
+    print(f"🚀 Iniciando chatbot en puerto {port}")
+    print(f"📊 Base de datos: {len(df)} registros cargados" if not df.empty else "❌ Base de datos vacía")
+    
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
