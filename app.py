@@ -145,7 +145,7 @@ def servir_documento(nombre):
 
 @app.route('/')
 def index():
-    return render_template('Html Final Chatbot.html')  # asegúrate que esté en /templates
+    return render_template('index.html')
 
 @app.route('/detalle_alarma.html')
 def detalle_alarma():
