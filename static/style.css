@@ -26,9 +26,11 @@ body {
   background: transparent;
   margin: 0;
   padding: 0;
-  color: #444444;
+  color: #444;
   min-height: 100vh;
   overflow-x: hidden;
+  scroll-behavior: smooth;
+  transition: background 0.3s ease;
 }
 
 /* 💬 Chatbot */
@@ -50,14 +52,12 @@ body {
   opacity: 0;
   transition: all 0.3s ease;
 }
-
 .chat-container.mostrar {
   display: flex;
   transform: translateY(0);
   opacity: 1;
   animation: chatFadeIn 0.4s ease-out;
 }
-
 @keyframes chatFadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -71,7 +71,6 @@ body {
   justify-content: space-between;
   align-items: center;
 }
-
 .chat-header h3 {
   margin: 0;
   font-size: 1.1rem;
@@ -79,7 +78,6 @@ body {
   align-items: center;
   gap: 8px;
 }
-
 .badge-experto {
   background: white;
   color: #d41528;
@@ -89,7 +87,6 @@ body {
   padding: 2px 8px;
   margin-left: 8px;
 }
-
 .close-btn {
   background: none;
   border: none;
@@ -98,7 +95,6 @@ body {
   cursor: pointer;
   transition: all 0.2s;
 }
-
 .close-btn:hover {
   transform: rotate(90deg);
 }
@@ -112,7 +108,6 @@ body {
   flex-direction: column;
   gap: 12px;
 }
-
 .user-msg, .bot-msg {
   padding: 10px 15px;
   border-radius: 15px;
@@ -120,14 +115,12 @@ body {
   animation: fadeIn 0.3s ease;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
-
 .bot-msg {
   background: white;
   align-self: flex-start;
   border: 1px solid #e0e0e0;
   color: #333;
 }
-
 .user-msg {
   background: #d41528;
   color: white;
@@ -144,12 +137,10 @@ body {
   color: #666;
   font-size: 0.9rem;
 }
-
 .typing-dots {
   display: flex;
   gap: 4px;
 }
-
 .typing-dot {
   width: 6px;
   height: 6px;
@@ -157,15 +148,8 @@ body {
   border-radius: 50%;
   animation: typing 1.4s infinite;
 }
-
-.typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes typing {
   0%, 60%, 100% { transform: translateY(0); }
   30% { transform: translateY(-3px); }
@@ -177,7 +161,6 @@ body {
   background: white;
   border-top: 1px solid #e0e0e0;
 }
-
 .chat-input input {
   flex: 1;
   padding: 10px 15px;
@@ -186,12 +169,10 @@ body {
   outline: none;
   font-size: 0.9rem;
 }
-
 .chat-input input:focus {
   border-color: #d41528;
   box-shadow: 0 0 0 2px rgba(212, 21, 40, 0.2);
 }
-
 .send-btn {
   background: #d41528;
   color: white;
@@ -203,7 +184,6 @@ body {
   cursor: pointer;
   transition: all 0.2s;
 }
-
 .send-btn:hover {
   background: #b3121f;
   transform: scale(1.05);
@@ -215,7 +195,6 @@ body {
   gap: 8px;
   margin-top: 10px;
 }
-
 .suggestion-btn {
   background: #e3f2fd;
   color: #1976d2;
@@ -226,7 +205,6 @@ body {
   cursor: pointer;
   transition: all 0.2s;
 }
-
 .suggestion-btn:hover {
   background: #1976d2;
   color: white;
@@ -251,20 +229,113 @@ body {
   transition: all 0.3s;
   border: 2px solid white;
 }
-
 .burbuja-chat:hover {
   transform: scale(1.1) rotate(10deg);
   box-shadow: 0 8px 25px rgba(212, 21, 40, 0.4);
 }
-
 .burbuja-chat.nuevo-mensaje {
   animation: pulse 1.5s infinite;
 }
-
 @keyframes pulse {
   0% { box-shadow: 0 0 0 0 rgba(212, 21, 40, 0.7); }
   70% { box-shadow: 0 0 0 15px rgba(212, 21, 40, 0); }
   100% { box-shadow: 0 0 0 0 rgba(212, 21, 40, 0); }
 }
 
-/* [Resto de tus estilos existentes...] */
+/* 👁️ Hero y features */
+.hero {
+  text-align: center;
+  padding: 60px 20px;
+  animation: fadeUp 0.6s ease-out;
+}
+.hero h1 {
+  color: #d41528;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+.hero p {
+  font-size: 1.1rem;
+  color: #555;
+}
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 40px 20px;
+}
+.feature-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem;
+  max-width: 300px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+.feature-icon {
+  font-size: 2.2rem;
+  color: #d41528;
+  margin-bottom: 1rem;
+}
+
+/* 🌙 Dark mode automático */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #121212;
+    color: #e0e0e0;
+  }
+  .chat-box,
+  .chat-container {
+    background: #1e1e1e !important;
+  }
+  .user-msg {
+    background: #d41528;
+    color: white;
+  }
+  .bot-msg {
+    background: #2a2a2a;
+    color: #f1f1f1;
+    border-color: #333;
+  }
+  .suggestion-btn {
+    background: #333;
+    color: #ccc;
+  }
+  .suggestion-btn:hover {
+    background: #d41528;
+    color: #fff;
+  }
+  .chat-input input {
+    background: #2a2a2a;
+    color: #fff;
+    border: 1px solid #555;
+  }
+  .chat-input input:focus {
+    border-color: #d41528;
+    box-shadow: 0 0 0 2px rgba(212, 21, 40, 0.3);
+  }
+}
+
+/* 🎨 Scroll personalizado */
+body::-webkit-scrollbar {
+  width: 10px;
+}
+body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+body::-webkit-scrollbar-thumb {
+  background: #d41528;
+  border-radius: 6px;
+}
+
+/* ✨ FadeUp animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
