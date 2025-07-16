@@ -44,6 +44,8 @@ def cargar_alarmas(force=False):
 def obtener_documentos():
     documentos = []
     try:
+        if not os.path.exists(app.config['CARPETA_DOCS']):
+            os.makedirs(app.config['CARPETA_DOCS'])
         for archivo in os.listdir(app.config['CARPETA_DOCS']):
             if archivo.lower().endswith(('.pdf', '.docx', '.xlsx')):
                 documentos.append({
@@ -174,6 +176,7 @@ if __name__ == '__main__':
         with open(app.config['EXCEL_ALARMAS'], 'w') as f:
             f.write('ID,Elemento,Severidad,Descripción,Fecha\n')
     app.run(host='0.0.0.0', port=5000)
+
 # Ejecutar el servidor
 # Puedes iniciar el servidor con: python app.py
-# Asegúrate de tener Flask y pandas instalados en tu entorno                            
+# Asegúrate de tener Flask y pandas instalados en tu entorno
