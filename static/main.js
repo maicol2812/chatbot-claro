@@ -71,6 +71,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+
+
+    
     function buscarAlarma(id, elemento) {
         fetch(`/api/alarmas?filtro=${id}`)
             .then(res => res.json())
