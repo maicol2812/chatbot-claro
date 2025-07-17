@@ -32,7 +32,7 @@
       <div class="logo">
         <img src="https://upload.wikimedia.org/wikipedia/commons/5/59/Claro_logo_2022.svg" alt="Claro">
         <span class="logo-text">Plataformas Core</span>
-      </div>
+      </divpa
       <div class="header-actions">
         <div class="status-indicator">
           <div class="status-dot"></div>
@@ -674,6 +674,57 @@
       });
     });
   </script>
+  <script>
+  // Reemplazar simulación por datos reales desde localStorage
+  document.addEventListener('DOMContentLoaded', function() {
+    const data = JSON.parse(localStorage.getItem('alarmaDetalle'));
+
+    if (!data) {
+      window.location.href = '/';
+      return;
+    }
+
+    document.getElementById('alarm-severity').textContent = data.Severidad || '--';
+    document.getElementById('alarm-platform').textContent = data.Elemento || '--';
+    document.getElementById('alarm-datetime').textContent = data.Fecha || '--';
+    document.getElementById('alarm-location').textContent = 'N/A';
+
+    document.getElementById('alarm-message').textContent = data.Descripción || '--';
+    document.getElementById('alarm-description').textContent = data.Significado || '--';
+    document.getElementById('last-update-time').textContent = new Date().toLocaleString();
+
+    const actionsList = document.getElementById('actions-list');
+    const acciones = (data.Acciones || '').split(/[.;•●–-]/).map(a => a.trim()).filter(a => a.length > 0);
+    for (const accion of acciones) {
+      const actionItem = document.createElement('div');
+      actionItem.className = 'action-item';
+      actionItem.innerHTML = `<i class="fas fa-arrow-right"></i> ${accion}`;
+      actionsList.appendChild(actionItem);
+    }
+
+    // Historial falso por ahora
+    const historyTimeline = document.getElementById('history-timeline');
+    const eventos = [
+      { time: data.Fecha, status: 'Alarma detectada', icon: 'exclamation-triangle' },
+      { time: new Date().toLocaleTimeString(), status: 'Analizando impacto', icon: 'search' }
+    ];
+    for (const item of eventos) {
+      const timelineItem = document.createElement('div');
+      timelineItem.className = 'timeline-item';
+      timelineItem.innerHTML = `
+        <div class="timeline-icon">
+          <i class="fas fa-${item.icon}"></i>
+        </div>
+        <div class="timeline-content">
+          <h4>${item.status}</h4>
+          <p>${item.time}</p>
+        </div>
+      `;
+      historyTimeline.appendChild(timelineItem);
+    }
+  });
+</script>
+
   <script src="{{ url_for('static', filename='main.js') }}" defer></script>
 </body>
 </html>

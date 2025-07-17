@@ -77,13 +77,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 const encontrada = data.find(a => a.Elemento.toLowerCase() === elemento.toLowerCase());
                 if (encontrada) {
-                    const params = new URLSearchParams({
-                        descripcion: encontrada.Descripción,
-                        severidad: encontrada.Severidad,
-                        significado: 'Significado técnico de la alarma...',
-                        acciones: 'Verificar logs, reiniciar módulo si aplica'
-                    });
-                    window.location.href = `/detalle_alarma.html?${params.toString()}`;
+                    localStorage.setItem('alarmaDetalle', JSON.stringify(encontrada));
+                    window.location.href = `/detalle_alarma.html`;
                 } else {
                     addMessage('No se encontró ninguna alarma con esos datos. Intenta nuevamente.', 'bot');
                 }
