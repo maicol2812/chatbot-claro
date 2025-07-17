@@ -1,4 +1,4 @@
-// ✅ main.js completo con lógica original + flujo experto + mantener chatbot abierto si viene de detalle_alarma.html
+// ✅ main.js completo con lógica original + flujo experto + mantener chatbot abierto si viene de detalle_alarma.html + mejoras sugeridas
 
 document.addEventListener('DOMContentLoaded', function () {
     const chatContainer = document.getElementById('chat-container');
@@ -32,11 +32,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 flujo.paso = 1;
             }, 3000);
         } else if (flujo.paso === 1) {
-            if (message === '1') {
-                addMessage('Por favor ingresa el número de alarma que deseas consultar:', 'bot');
-                flujo.paso = 2;
-            } else {
-                addMessage('Por favor selecciona una opción válida del 1 al 6.', 'bot');
+            switch (message) {
+                case '1':
+                    addMessage('Por favor ingresa el número de alarma que deseas consultar:', 'bot');
+                    flujo.paso = 2;
+                    break;
+                case '2':
+                    showDocumentation();
+                    flujo.paso = 0;
+                    break;
+                case '3':
+                    addMessage('Mostrando incidentes activos en las plataformas...', 'bot');
+                    flujo.paso = 0;
+                    break;
+                case '4':
+                    addMessage('Estado actual de las plataformas:<br>- Plataforma X: Operativa<br>- Plataforma Y: Mantenimiento<br>- Plataforma Z: Inestable', 'bot');
+                    flujo.paso = 0;
+                    break;
+                case '5':
+                    addMessage('Cambios activos actualmente:<br>- Migración base de datos 22:00<br>- Actualización de firmware Nodo B', 'bot');
+                    flujo.paso = 0;
+                    break;
+                case '6':
+                    addMessage('Puedes contactar al administrador a través del canal Teams de operaciones o al interno 4410.', 'bot');
+                    flujo.paso = 0;
+                    break;
+                default:
+                    addMessage('Por favor selecciona una opción válida del 1 al 6.', 'bot');
             }
         } else if (flujo.paso === 2) {
             flujo.alarmaId = message;
@@ -93,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function processUserMessage(message) {
         const lowerMsg = message.toLowerCase();
 
-        if (lowerMsg.includes('alarma') || lowerMsg.includes('alarmas')) {
+        if (lowerMsg.includes('alarma')) {
             startAlarmFlow();
         } else if (lowerMsg.includes('documentación') || lowerMsg.includes('documento')) {
             showDocumentation();
@@ -146,11 +168,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     sendBtn.addEventListener('click', () => {
         const message = messageInput.value.trim();
-        if (message && !chatState.waitingForResponse) {
-            addMessage(message, 'user');
-            messageInput.value = '';
-            flujoExperto(message);
-        }
+        if (message.length === 0 || chatState.waitingForResponse) return;
+        addMessage(message, 'user');
+        messageInput.value = '';
+        flujoExperto(message);
     });
 
     messageInput.addEventListener('keypress', (e) => {
@@ -182,11 +203,10 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => flujoExperto(''), 500);
     }
 
+    // 🟡 Notificación visual si no abren el chat en 10s
     setTimeout(() => {
         if (!chatContainer.classList.contains('mostrar')) {
             burbujaChat.classList.add('nuevo-mensaje');
         }
     }, 10000);
 });
-// ✅ main.js completo con lógica original + flujo experto + mantener chatbot abierto si viene de detalle_alarma.html
-// Asegúrate de que este script se cargue después de que el DOM esté listo  

@@ -12,10 +12,13 @@
 </head>
 <body>
   <!-- Pantalla de bienvenida -->
-  <div id="welcome-screen" style="position: fixed; inset: 0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000;">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/5/59/Claro_logo_2022.svg" width="120" alt="Logo Claro">
-    <h2 style="margin-top: 1rem; color: #d41528;">Bienvenido al Centro de Operaciones Core</h2>
-    <p>Preparando plataforma experta...</p>
+  <div id="welcome-screen" style="position: fixed; inset: 0; background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; transition: all 1s ease;">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/59/Claro_logo_2022.svg" width="140" alt="Logo Claro" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+    <h2 style="margin-top: 2rem; color: #d41528; font-weight: 700; font-size: 1.8rem;">Centro de Operaciones Core</h2>
+    <p style="color: #666; margin-top: 1rem; font-size: 1.1rem;">Inicializando sistema experto...</p>
+    <div style="margin-top: 2rem; width: 200px; height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden;">
+      <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #d41528, #f8d7da); animation: loading 2s ease-in-out;"></div>
+    </div>
   </div>
 
   <video id="bg-video" autoplay muted loop>
@@ -23,11 +26,18 @@
   </video>
   <div class="bg-overlay"></div>
 
+  <!-- Header profesional -->
   <header class="header">
     <div class="header-content">
       <div class="logo">
         <img src="https://upload.wikimedia.org/wikipedia/commons/5/59/Claro_logo_2022.svg" alt="Claro">
         <span class="logo-text">Plataformas Core</span>
+      </div>
+      <div class="header-actions">
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          Sistema Operativo
+        </div>
       </div>
     </div>
   </header>
@@ -36,29 +46,31 @@
     <section class="hero">
       <h1>Centro de Operaciones Core</h1>
       <p>Sistema integral de monitoreo y gestión de alarmas para infraestructura crítica</p>
+      <p class="hero-subtitle">Plataforma experta de nivel empresarial</p>
     </section>
 
     <section class="features">
       <div class="feature-card">
         <div class="feature-icon"><i class="fas fa-bell"></i></div>
         <h3>Gestión de Alarmas</h3>
-        <p>Consulta y gestiona alarmas en tiempo real con información detallada sobre severidad y acciones recomendadas.</p>
+        <p>Consulta y gestiona alarmas en tiempo real con información detallada sobre severidad, impacto y acciones recomendadas para resolución inmediata.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
-        <h3>Documentación</h3>
-        <p>Accede a manuales técnicos, guías de procedimientos y documentación actualizada de todas las plataformas.</p>
+        <h3>Documentación Técnica</h3>
+        <p>Accede a manuales técnicos especializados, guías de procedimientos y documentación actualizada de todas las plataformas core del sistema.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon"><i class="fas fa-exclamation-triangle"></i></div>
-        <h3>Incidentes Activos</h3>
-        <p>Monitorea incidentes en tiempo real y recibe notificaciones sobre el estado operativo de los sistemas.</p>
+        <h3>Incidentes Críticos</h3>
+        <p>Monitorea incidentes en tiempo real, recibe notificaciones automáticas y accede a dashboards de estado operativo de todos los sistemas.</p>
       </div>
     </section>
   </main>
 
+  <!-- Chatbot -->
   <div class="burbuja-chat" id="burbuja-chat">
     <i class="fas fa-robot"></i>
   </div>
@@ -72,13 +84,13 @@
     </div>
     <div class="chat-box" id="chat-box">
       <div class="bot-msg">
-        <strong>Centro de Operaciones Core</strong>
+        <strong>🚀 Centro de Operaciones Core</strong>
         <p>Sistema integral de monitoreo y gestión de alarmas para infraestructura crítica</p>
-        <p>¿En qué puedo ayudarte hoy?</p>
+        <p>¿En qué puedo asistirte hoy?</p>
         <div class="suggestions-container">
-          <button class="suggestion-btn">Consultar alarmas</button>
-          <button class="suggestion-btn">Ver documentación</button>
-          <button class="suggestion-btn">Incidentes activos</button>
+          <button class="suggestion-btn">🔔 Consultar alarmas</button>
+          <button class="suggestion-btn">📋 Ver documentación</button>
+          <button class="suggestion-btn">⚠️ Incidentes activos</button>
         </div>
       </div>
     </div>
@@ -91,7 +103,7 @@
       </div>
     </div>
     <div class="chat-input">
-      <input type="text" id="message-input" placeholder="Escribe tu mensaje..." autocomplete="off">
+      <input type="text" id="message-input" placeholder="Escribe tu consulta aquí..." autocomplete="off">
       <button class="send-btn" id="send-btn">
         <i class="fas fa-paper-plane"></i>
       </button>
@@ -99,17 +111,27 @@
   </div>
 
   <footer>
-    <p>Sistema de Gestión de Alarmas Core &copy; 2025 - Claro Colombia</p>
+    <p>Sistema de Gestión de Alarmas Core &copy; 2025 - Claro Colombia | Plataforma Experta</p>
   </footer>
 
+  <style>
+    @keyframes loading {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+
   <script>
-    // Bienvenida experta
+    // Bienvenida experta con animación
     window.addEventListener('load', () => {
       setTimeout(() => {
-        document.getElementById('welcome-screen').style.opacity = '0';
-        document.getElementById('welcome-screen').style.pointerEvents = 'none';
-        setTimeout(() => document.getElementById('welcome-screen').remove(), 1000);
-      }, 1800);
+        const welcomeScreen = document.getElementById('welcome-screen');
+        welcomeScreen.style.opacity = '0';
+        welcomeScreen.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+          welcomeScreen.remove();
+        }, 1000);
+      }, 2200);
     });
   </script>
   <script src="{{ url_for('static', filename='main.js') }}" defer></script>
