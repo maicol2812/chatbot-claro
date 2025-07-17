@@ -1,4 +1,4 @@
-# ✅ app.py completo con lógica original + integración frontend experto (sin borrar nada)
+# ✅ app.py completo con lógica original + integración frontend experto (corregido sin borrar nada)
 
 from flask import Flask, render_template, jsonify, request, send_from_directory
 import pandas as pd
@@ -20,10 +20,11 @@ alarmas_cache = None
 ultima_actualizacion = None
 
 # Función para cargar alarmas desde Excel
-
 def cargar_alarmas(force=False):
     global alarmas_cache, ultima_actualizacion
     try:
+        if not os.path.exists(app.config['EXCEL_ALARMAS']):
+            return []
         mod_time = os.path.getmtime(app.config['EXCEL_ALARMAS'])
         if not force and alarmas_cache and mod_time <= ultima_actualizacion:
             return alarmas_cache.copy()
@@ -40,7 +41,6 @@ def cargar_alarmas(force=False):
         return []
 
 # Función para obtener documentos técnicos
-
 def obtener_documentos():
     documentos = []
     try:
@@ -52,24 +52,23 @@ def obtener_documentos():
                     'nombre': os.path.splitext(archivo)[0],
                     'extension': os.path.splitext(archivo)[1][1:],
                     'ruta': f"/docs/{archivo}",
-                    'tamaño': os.path.getsize(f"{app.config['CARPETA_DOCS']}/{archivo}"),
+                    'tamaño': os.path.getsize(os.path.join(app.config['CARPETA_DOCS'], archivo)),
                     'fecha': datetime.fromtimestamp(
-                        os.path.getmtime(f"{app.config['CARPETA_DOCS']}/{archivo}")
+                        os.path.getmtime(os.path.join(app.config['CARPETA_DOCS'], archivo))
                     ).strftime('%d/%m/%Y %H:%M')
                 })
     except Exception as e:
         app.logger.error(f"Error leyendo documentos: {str(e)}")
     return sorted(documentos, key=lambda x: x['nombre'])
 
-# Motor de respuesta
-
+# Motor de respuesta inteligente
 def generar_respuesta(mensaje):
     mensaje = mensaje.lower().strip()
     respuesta = {'tipo': 'texto', 'contenido': '', 'opciones': [], 'datos': None}
     try:
         if any(k in mensaje for k in ['alarma', 'alarmas', 'incidente']):
             alarmas = cargar_alarmas()
-            if 'últimas' in mensaje:
+            if 'ultima' in mensaje or 'ultimas' in mensaje:
                 respuesta.update({
                     'tipo': 'alarmas',
                     'contenido': 'Últimas alarmas registradas:',
@@ -176,7 +175,3 @@ if __name__ == '__main__':
         with open(app.config['EXCEL_ALARMAS'], 'w') as f:
             f.write('ID,Elemento,Severidad,Descripción,Fecha\n')
     app.run(host='0.0.0.0', port=5000)
-
-# Ejecutar el servidor
-# Puedes iniciar el servidor con: python app.py
-# Asegúrate de tener Flask y pandas instalados en tu entorno
