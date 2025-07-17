@@ -1,38 +1,11 @@
-
-<!-- ✅ estado_alarmas.html con integración visual profesional y estructura para Render -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📈 Alarmas Activas - Claro</title>
+  <title>📈 Estado de Alarmas | Claro</title>
+  <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/5/59/Claro_logo_2022.svg">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-  <div class="container mt-5">
-    <h2 class="text-danger">📈 Alarmas Activas</h2>
-    <p>Actualizado: <strong>{{ fecha }}</strong></p>
-    <ul class="list-group mt-3">
-      {% for alarma in alarmas %}
-        <li class="list-group-item">
-          <strong>Alarma {{ alarma.codigo }}:</strong> {{ alarma.descripcion }}
-        </li>
-      {% endfor %}
-    </ul>
-    <a href="/" class="btn btn-danger mt-4">🔙 Volver al chat</a>
-  </div>
-</body>
-</html>
-
-<!-- ✅ detalle_alarma.html refinado visualmente y funcional con parámetros dinámicos -->
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Detalles de la Alarma</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/5/59/Claro_logo_2022.svg" type="image/png">
   <style>
     body {
       background-color: #f8f9fa;
@@ -45,6 +18,7 @@
       display: flex;
       align-items: center;
       gap: 1rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .logo {
       height: 40px;
@@ -52,57 +26,60 @@
     .contenido {
       padding: 2rem;
     }
+    .card {
+      border: none;
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
     .card-title {
-      color: #dc3545;
+      color: #d41528;
+    }
+    .btn-danger {
+      background-color: #d41528;
+      border-color: #d41528;
+    }
+    .btn-danger:hover {
+      background-color: #a30f1e;
+      border-color: #a30f1e;
     }
   </style>
 </head>
 <body>
   <div class="header">
     <img src="https://upload.wikimedia.org/wikipedia/commons/5/59/Claro_logo_2022.svg" class="logo" alt="Logo Claro">
-    <h2 class="m-0">Detalles de la Alarma</h2>
+    <h2 class="m-0">Centro de Monitoreo - Alarmas Activas</h2>
   </div>
 
   <div class="container contenido">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">Descripción</h5>
-        <p id="descripcion"></p>
-
-        <h5 class="card-title">Severidad</h5>
-        <p id="severidad"></p>
-
-        <h5 class="card-title">Significado</h5>
-        <p id="significado"></p>
-
-        <h5 class="card-title">Acciones recomendadas</h5>
-        <p id="acciones"></p>
-        
-
-
-        <a href="/" class="btn btn-danger mt-3">Volver al chat</a>
-      </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="text-danger">📈 Alarmas Activas</h4>
+      <span class="text-muted">Última actualización: <strong>{{ fecha }}</strong></span>
     </div>
+
+    {% if alarmas %}
+      {% for alarma in alarmas %}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">🔔 {{ alarma['Descripción alarma'] }}</h5>
+            <p class="card-text">
+              <strong>Número:</strong> {{ alarma['Numero alarma'] }}<br>
+              <strong>Elemento:</strong> {{ alarma['Nombre del elemento'] }}<br>
+              <strong>Severidad:</strong> {{ alarma['Severidad'] }}<br>
+              <strong>Significado:</strong> {{ alarma['Significado'] }}
+            </p>
+            <a href="/detalle_alarma.html?descripcion={{ alarma['Descripción alarma'] | urlencode }}&severidad={{ alarma['Severidad'] | urlencode }}&significado={{ alarma['Significado'] | urlencode }}&acciones={{ alarma['Acciones'] | urlencode }}" class="btn btn-outline-danger btn-sm">
+              Ver detalles
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="alert alert-secondary">No hay alarmas activas en este momento.</div>
+    {% endif %}
+
+    <a href="/" class="btn btn-danger mt-4">⬅ Volver al chat</a>
   </div>
-
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const descripcion = params.get("descripcion") || "";
-    const severidad = params.get("severidad") || "";
-    const significado = params.get("significado") || "";
-    const acciones = params.get("acciones") || "";
-
-    if ((descripcion + severidad + significado + acciones).trim().length < 10) {
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 4000);
-    } else {
-      document.getElementById("descripcion").innerText = descripcion;
-      document.getElementById("severidad").innerText = severidad;
-      document.getElementById("significado").innerText = significado;
-      document.getElementById("acciones").innerText = acciones;
-    }
-  </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

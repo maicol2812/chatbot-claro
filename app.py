@@ -1,4 +1,4 @@
-# ✅ app.py completo con lógica original + integración frontend experto (corregido sin borrar nada)
+# ✅ app.py completo con lógica original + integración frontend experto (con estado_alarmas agregado)
 
 from flask import Flask, render_template, jsonify, request, send_from_directory
 import pandas as pd
@@ -42,11 +42,9 @@ def cargar_alarmas(force=False):
             'Acciones': 'Acciones'
         }, inplace=True)
 
-        # Si falta la columna Fecha, crearla artificialmente con la hora actual
         if 'Fecha' not in df.columns:
             df['Fecha'] = datetime.now().strftime('%Y-%m-%d %H:%M')
 
-        # Verificación de columnas mínimas requeridas
         columnas_necesarias = ['ID', 'Elemento', 'Severidad', 'Descripción', 'Fecha']
         for col in columnas_necesarias:
             if col not in df.columns:
@@ -81,7 +79,8 @@ def obtener_documentos():
         app.logger.error(f"Error leyendo documentos: {str(e)}")
     return sorted(documentos, key=lambda x: x['nombre'])
 
-# Motor de respuesta inteligente
+# Motor de respuesta
+
 def generar_respuesta(mensaje):
     mensaje = mensaje.lower().strip()
     respuesta = {'tipo': 'texto', 'contenido': '', 'opciones': [], 'datos': None}
@@ -171,6 +170,11 @@ def index():
 @app.route('/detalle_alarma.html')
 def detalle_alarma():
     return render_template('detalle_alarma.html')
+
+@app.route('/estado_alarmas.html')
+def estado_alarmas():
+    alarmas = cargar_alarmas()
+    return render_template('estado_alarmas.html', alarmas=alarmas, fecha=datetime.now().strftime('%d/%m/%Y %H:%M'))
 
 @app.route('/health')
 def health():
