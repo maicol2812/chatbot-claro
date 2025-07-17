@@ -25,17 +25,37 @@ def cargar_alarmas(force=False):
     try:
         if not os.path.exists(app.config['EXCEL_ALARMAS']):
             return []
+
         mod_time = os.path.getmtime(app.config['EXCEL_ALARMAS'])
         if not force and alarmas_cache and mod_time <= ultima_actualizacion:
             return alarmas_cache.copy()
+
         df = pd.read_excel(app.config['EXCEL_ALARMAS'])
+
+        # Renombrar columnas según estructura original del archivo
+        df.rename(columns={
+            'Numero alarma': 'ID',
+            'Nombre del elemento': 'Elemento',
+            'Descripción alarma': 'Descripción',
+            'Severidad': 'Severidad',
+            'Significado ': 'Significado',
+            'Acciones': 'Acciones'
+        }, inplace=True)
+
+        # Si falta la columna Fecha, crearla artificialmente con la hora actual
+        if 'Fecha' not in df.columns:
+            df['Fecha'] = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+        # Verificación de columnas mínimas requeridas
         columnas_necesarias = ['ID', 'Elemento', 'Severidad', 'Descripción', 'Fecha']
         for col in columnas_necesarias:
             if col not in df.columns:
                 raise ValueError(f"Columna requerida faltante: {col}")
+
         alarmas_cache = df.to_dict(orient='records')
         ultima_actualizacion = mod_time
         return alarmas_cache.copy()
+
     except Exception as e:
         app.logger.error(f"Error cargando alarmas: {str(e)}\n{traceback.format_exc()}")
         return []
