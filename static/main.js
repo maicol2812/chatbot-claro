@@ -197,6 +197,11 @@ document.addEventListener('DOMContentLoaded', function () {
         chatContainer.classList.add('mostrar');
         setTimeout(() => flujoExperto(''), 500);
     }
+    if (window.location.pathname === "/" || window.location.search.includes('volver=chat')) {
+    chatContainer.classList.add('mostrar');
+    setTimeout(() => flujoExperto(''), 500);
+}
+
 
     // 🟡 Notificación visual si no abren el chat en 10s
     setTimeout(() => {

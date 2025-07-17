@@ -1,5 +1,6 @@
 /* 🎥 Fondo de video profesional */
 #bg-video {
+  display: block;
   position: fixed;
   top: 0;
   left: 0;
@@ -7,17 +8,35 @@
   height: 100vh;
   object-fit: cover;
   z-index: -2;
-  opacity: 0.3;
-  filter: blur(1px) brightness(0.8) grayscale(20%);
-  transition: opacity 0.5s;
+  opacity: 0.2;
+  filter: brightness(0.75) grayscale(40%);
+  transition: opacity 0.3s;
+  pointer-events: none;
 }
+
+/* Capa semitransparente encima del video */
 .bg-overlay {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background: linear-gradient(120deg, rgba(255,255,255,0.9) 0%, rgba(248,215,218,0.8) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,215,218,0.7));
   z-index: -1;
   pointer-events: none;
+}
+/* 🌟 Estilo general */
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 /* 🌐 Estilo base */

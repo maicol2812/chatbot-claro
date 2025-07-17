@@ -133,6 +133,13 @@
         }, 1000);
       }, 2200);
     });
+      document.addEventListener('DOMContentLoaded', function () {
+    const isMobile = window.innerWidth <= 768;
+    const video = document.getElementById('bg-video');
+    if (isMobile && video) {
+      video.remove(); // Evita cargar en móviles
+    }
+  });
   </script>
   <script src="{{ url_for('static', filename='main.js') }}" defer></script>
 </body>
