@@ -21,7 +21,7 @@
     </div>
   </div>
 
-  <video id="bg-video" autoplay muted loop>
+  <video id="bg-video" autoplay muted loop playsinline preload="auto">
     <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
   </video>
   <div class="bg-overlay"></div>
@@ -45,7 +45,7 @@
   <main class="main-content">
     <section class="hero">
       <h1>Centro de Operaciones Core</h1>
-           <p class="hero-subtitle">Plataforma experta de nivel empresarial</p>
+      <p class="hero-subtitle">Plataforma experta de nivel empresarial</p>
     </section>
 
     <section class="features">
@@ -54,7 +54,7 @@
         <h3>Gestión de Alarmas</h3>
         <p>Consulta y gestiona alarmas en tiempo real con información detallada sobre severidad, impacto y acciones recomendadas para resolución inmediata.</p>
       </div>
-      <!-- Al cargar detalle_alarma.html -->
+
       <div id="transition-loader">
         <div class="spinner"></div>
       </div>
@@ -123,7 +123,6 @@
   </style>
 
   <script>
-    // Bienvenida experta con animación
     window.addEventListener('load', () => {
       setTimeout(() => {
         const welcomeScreen = document.getElementById('welcome-screen');
@@ -134,13 +133,18 @@
         }, 1000);
       }, 2200);
     });
-      document.addEventListener('DOMContentLoaded', function () {
-    const isMobile = window.innerWidth <= 768;
-    const video = document.getElementById('bg-video');
-    if (isMobile && video) {
-      video.remove(); // Evita cargar en móviles
-    }
-  });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const isMobile = window.innerWidth <= 768;
+      const video = document.getElementById('bg-video');
+      if (isMobile && video) {
+        video.remove();
+      } else if (video) {
+        video.addEventListener('loadeddata', () => {
+          document.getElementById('transition-loader').style.display = 'none';
+        });
+      }
+    });
   </script>
   <script src="{{ url_for('static', filename='main.js') }}" defer></script>
 </body>

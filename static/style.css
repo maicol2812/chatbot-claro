@@ -1,6 +1,6 @@
 /* 🎥 Fondo de video profesional */
+/* 🎥 Fondo de video profesional optimizado */
 #bg-video {
-  display: block;
   position: fixed;
   top: 0;
   left: 0;
@@ -8,21 +8,30 @@
   height: 100vh;
   object-fit: cover;
   z-index: -2;
-  opacity: 0.2;
-  filter: brightness(0.75) grayscale(40%);
-  transition: opacity 0.3s;
+  opacity: 0.1; /* 🔧 Reducida para menor carga */
+  filter: brightness(0.65) grayscale(60%) blur(1px); /* 🔧 Menos brillo y más blur */
+  transition: none; /* 🔧 Sin transición para performance */
   pointer-events: none;
 }
 
-/* Capa semitransparente encima del video */
+/* Capa semitransparente encima del video simplificada */
 .bg-overlay {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,215,218,0.7));
+  background: rgba(255,255,255,0.75); /* 🔧 Más simple */
   z-index: -1;
   pointer-events: none;
 }
+
+/* 📱 Rendimiento adicional para móviles */
+@media (max-width: 768px) {
+  .alarm-main-info, .alarm-description-section {
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+}
+
 /* 🌟 Estilo general */
 * {
   box-sizing: border-box;
