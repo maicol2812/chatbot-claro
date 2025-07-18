@@ -121,18 +121,40 @@
       100% { transform: translateX(0); }
     }
   </style>
-
-  <script>
-    window.addEventListener('load', () => {
+<script>
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const welcomeScreen = document.getElementById('welcome-screen');
+      welcomeScreen.style.opacity = '0';
+      welcomeScreen.style.transform = 'scale(0.9)';
       setTimeout(() => {
-        const welcomeScreen = document.getElementById('welcome-screen');
-        welcomeScreen.style.opacity = '0';
-        welcomeScreen.style.transform = 'scale(0.9)';
-        setTimeout(() => {
-          welcomeScreen.remove();
-        }, 1000);
-      }, 2200);
-    });
+        welcomeScreen.remove();
+      }, 1000);
+    }, 2200);
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const isMobile = window.innerWidth <= 768;
+    const video = document.getElementById('bg-video');
+    const loader = document.getElementById('transition-loader');
+
+    if (isMobile && video) {
+      video.remove(); // No mostrar video en móviles
+      if (loader) loader.style.display = 'none';
+    } else if (video) {
+      // Si falla el video, eliminarlo y continuar
+      video.onerror = () => {
+        video.remove();
+        if (loader) loader.style.display = 'none';
+      };
+      // Si carga bien, ocultar loader
+      video.addEventListener('loadeddata', () => {
+        if (loader) loader.style.display = 'none';
+      });
+    } else {
+      if (loader) loader.style.display = 'none';
+    }
+  });
 
     document.addEventListener('DOMContentLoaded', function () {
       const isMobile = window.innerWidth <= 768;
