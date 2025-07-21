@@ -8,11 +8,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const typingIndicator = document.getElementById('typing-indicator');
     const suggestionsContainer = document.querySelector('.suggestions-container');
 
-    let chatState = {
-        waitingForResponse: false,
-        currentFlow: null,
-        alarmData: null
-    };
+   let chatState = {
+    waitingForResponse: false,
+    currentFlow: null,
+    alarmData: null
+};
 
     let flujo = { paso: 0, alarmaId: '', elemento: '' };
 
@@ -81,6 +81,34 @@ document.addEventListener('DOMContentLoaded', function () {
             ]);
         };
 
+        // Simular datos de alarma para pruebas
+        const datosSimulados = {
+            Severidad: "CRÍTICA",
+            Elemento: elemento,
+            Fecha: new Date().toLocaleString(),
+            Descripción: `Alarma #${id} - Falla crítica en ${elemento}`,
+            Significado: "Se ha detectado una interrupción en el servicio que requiere atención inmediata",
+            Acciones: "1. Verificar conectividad • 2. Reiniciar servicios • 3. Contactar soporte técnico • 4. Escalar si persiste"
+        };
+
+        setTimeout(() => {
+            hideTyping();
+            
+            // Guardar datos simulados para detalle_alarma.html
+            localStorage.setItem('alarmaDetalle', JSON.stringify(datosSimulados));
+            
+            addMessage(`✅ Alarma encontrada: ${datosSimulados.Severidad} en ${datosSimulados.Elemento}`, 'bot');
+            addMessage('Redirigiendo a detalle completo...', 'bot');
+            
+            // Redirigir manteniendo parámetro para volver al chat
+            setTimeout(() => {
+                window.location.href = `detalle_alarma.html?volver=chat`;
+            }, 1500);
+            
+        }, 2000);
+
+        // Código original comentado para futuro uso con API real
+        /*
         fetchTimeout(`/api/alarmas?filtro=${encodeURIComponent(id)}`, {})
             .then(res => {
                 if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
@@ -89,10 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 const encontrada = data.find(a => a.Elemento?.toLowerCase() === elemento.toLowerCase());
                 if (encontrada) {
-                    // Guardar datos para detalle_alarma.html
                     localStorage.setItem('alarmaDetalle', JSON.stringify(encontrada));
-                    
-                    // Redirigir manteniendo parámetro para volver al chat
                     window.location.href = `detalle_alarma.html?volver=chat`;
                 } else {
                     addMessage('⚠️ No se encontró la alarma. Verifica:', 'bot');
@@ -105,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 addMessage('🔴 Error al conectar con el servidor. Intenta nuevamente en unos minutos.', 'bot');
             })
             .finally(() => hideTyping());
+        */
     }
 
     function addMessage(text, sender) {
