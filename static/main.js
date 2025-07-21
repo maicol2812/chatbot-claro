@@ -1,5 +1,3 @@
-// ✅ main.js corregido para asegurar correcto flujo al redirigir a detalle_alarma.html y recuperación de datos
-
 document.addEventListener('DOMContentLoaded', function () {
     const chatContainer = document.getElementById('chat-container');
     const burbujaChat = document.getElementById('burbuja-chat');
@@ -171,13 +169,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 🔄 Mantener el chatbot abierto si se regresa desde detalle_alarma.html
     if (window.location.search.includes('volver=chat')) {
         chatContainer.classList.add('mostrar');
         setTimeout(() => flujoExperto(''), 500);
     }
 
-    // 🟡 Notificación visual si no abren el chat en 10s
     setTimeout(() => {
         if (!chatContainer.classList.contains('mostrar')) {
             burbujaChat.classList.add('nuevo-mensaje');
