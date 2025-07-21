@@ -676,25 +676,33 @@
   </script>
   <script>
   // Reemplazar simulación por datos reales desde localStorage
-  document.addEventListener('DOMContentLoaded', function() {
-    const data = JSON.parse(localStorage.getItem('alarmaDetalle'));
-
+    document.addEventListener('DOMContentLoaded', () => {
+    const data = localStorage.getItem('alarmaDetalle');
     if (!data) {
-      window.location.href = '/';
+      document.body.innerHTML = '<h2 style="color: red; text-align: center; margin-top: 5rem;">⚠️ No se encontró la información de la alarma.</h2>';
       return;
     }
+    const alarma = JSON.parse(data);
+    // Aquí deberías insertar los datos en el DOM
+    document.body.innerHTML = `
+      <h1 style="text-align:center;">Detalle de Alarma</h1>
+      <pre style="max-width: 800px; margin: 2rem auto; background: #f9f9f9; padding: 1rem; border-radius: 8px;">
+${JSON.stringify(alarma, null, 2)}
+      </pre>
+    `;
+  });
 
-    document.getElementById('alarm-severity').textContent = data.Severidad || '--';
-    document.getElementById('alarm-platform').textContent = data.Elemento || '--';
-    document.getElementById('alarm-datetime').textContent = data.Fecha || '--';
+    document.getElementById('alarm-severity').textContent = alarma.Severidad || '--';
+    document.getElementById('alarm-platform').textContent = alarma.Elemento || '--';
+    document.getElementById('alarm-datetime').textContent = alarma.Fecha || '--';
     document.getElementById('alarm-location').textContent = 'N/A';
 
-    document.getElementById('alarm-message').textContent = data.Descripción || '--';
-    document.getElementById('alarm-description').textContent = data.Significado || '--';
+    document.getElementById('alarm-message').textContent = alarma.Descripción || '--';
+    document.getElementById('alarm-description').textContent = alarma.Significado || '--';
     document.getElementById('last-update-time').textContent = new Date().toLocaleString();
 
     const actionsList = document.getElementById('actions-list');
-    const acciones = (data.Acciones || '').split(/[.;•●–-]/).map(a => a.trim()).filter(a => a.length > 0);
+    const acciones = (alarma.Acciones || '').split(/[.;•●–-]/).map(a => a.trim()).filter(a => a.length > 0);
     for (const accion of acciones) {
       const actionItem = document.createElement('div');
       actionItem.className = 'action-item';
@@ -722,7 +730,8 @@
       `;
       historyTimeline.appendChild(timelineItem);
     }
-  });
+    // Actualizar badge de estado
+    const badge = document.getElementById('alarm-status-badge');
 </script>
 
   <script src="{{ url_for('static', filename='main.js') }}" defer></script>
