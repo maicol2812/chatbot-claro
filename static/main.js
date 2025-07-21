@@ -1,5 +1,3 @@
-// ✅ main.js completo con lógica original + flujo experto + mantener chatbot abierto si viene de detalle_alarma.html + mejoras sugeridas
-
 document.addEventListener('DOMContentLoaded', function () {
     const chatContainer = document.getElementById('chat-container');
     const burbujaChat = document.getElementById('burbuja-chat');
@@ -30,36 +28,9 @@ document.addEventListener('DOMContentLoaded', function () {
                   5. Cambios activos en las plataformas.<br>
                   6. Hablar con el administrador de la plataforma.`, 'bot');
                 flujo.paso = 1;
-            }, 3000);
+            }, 1000);  // Reducido para mejor UX
         } else if (flujo.paso === 1) {
-            switch (message) {
-                case '1':
-                    addMessage('Por favor ingresa el número de alarma que deseas consultar:', 'bot');
-                    flujo.paso = 2;
-                    break;
-                case '2':
-                    showDocumentation();
-                    flujo.paso = 0;
-                    break;
-                case '3':
-                    addMessage('Mostrando incidentes activos en las plataformas...', 'bot');
-                    flujo.paso = 0;
-                    break;
-                case '4':
-                    addMessage('Estado actual de las plataformas:<br>- Plataforma X: Operativa<br>- Plataforma Y: Mantenimiento<br>- Plataforma Z: Inestable', 'bot');
-                    flujo.paso = 0;
-                    break;
-                case '5':
-                    addMessage('Cambios activos actualmente:<br>- Migración base de datos 22:00<br>- Actualización de firmware Nodo B', 'bot');
-                    flujo.paso = 0;
-                    break;
-                case '6':
-                    addMessage('Puedes contactar al administrador a través del canal Teams de operaciones o al interno 4410.', 'bot');
-                    flujo.paso = 0;
-                    break;
-                default:
-                    addMessage('Por favor selecciona una opción válida del 1 al 6.', 'bot');
-            }
+            handleMainOption(message);
         } else if (flujo.paso === 2) {
             flujo.alarmaId = message;
             addMessage('Por favor ingresa el nombre del elemento que reporta la alarma:', 'bot');
@@ -71,25 +42,69 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function handleMainOption(message) {
+        switch (message) {
+            case '1':
+                addMessage('Por favor ingresa el número de alarma que deseas consultar:', 'bot');
+                flujo.paso = 2;
+                break;
+            case '2':
+                showDocumentation();
+                break;
+            case '3':
+                showIncidentes();
+                break;
+            case '4':
+                showEstadoOperativo();
+                break;
+            case '5':
+                showCambiosActivos();
+                break;
+            case '6':
+                showContactoAdmin();
+                break;
+            default:
+                addMessage('Por favor selecciona una opción válida del 1 al 6.', 'bot');
+        }
+    }
 
-
-    
     function buscarAlarma(id, elemento) {
-        fetch(`/api/alarmas?filtro=${id}`)
-            .then(res => res.json())
+        showTyping();
+        
+        // Implementación con timeout para evitar bloqueos
+        const fetchTimeout = (url, options, timeout = 8000) => {
+            return Promise.race([
+                fetch(url, options),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Tiempo de espera agotado')), timeout)
+                )
+            ]);
+        };
+
+        fetchTimeout(`/api/alarmas?filtro=${encodeURIComponent(id)}`, {})
+            .then(res => {
+                if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+                return res.json();
+            })
             .then(data => {
-                const encontrada = data.find(a => a.Elemento.toLowerCase() === elemento.toLowerCase());
+                const encontrada = data.find(a => a.Elemento?.toLowerCase() === elemento.toLowerCase());
                 if (encontrada) {
+                    // Guardar datos para detalle_alarma.html
                     localStorage.setItem('alarmaDetalle', JSON.stringify(encontrada));
-                    window.location.href = `/detalle_alarma.html`;
+                    
+                    // Redirigir manteniendo parámetro para volver al chat
+                    window.location.href = `detalle_alarma.html?volver=chat`;
                 } else {
-                    addMessage('No se encontró ninguna alarma con esos datos. Intenta nuevamente.', 'bot');
+                    addMessage('⚠️ No se encontró la alarma. Verifica:', 'bot');
+                    addMessage(`- ID: ${id}<br>- Elemento: ${elemento}`, 'bot');
+                    addMessage('¿Deseas intentar con otro dato?', 'bot');
                 }
             })
             .catch(err => {
-                console.error(err);
-                addMessage('Error al consultar la alarma.', 'bot');
-            });
+                console.error('Error al buscar alarma:', err);
+                addMessage('🔴 Error al conectar con el servidor. Intenta nuevamente en unos minutos.', 'bot');
+            })
+            .finally(() => hideTyping());
     }
 
     function addMessage(text, sender) {
@@ -103,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function showTyping() {
         chatState.waitingForResponse = true;
         typingIndicator.style.display = 'flex';
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     function hideTyping() {
@@ -110,103 +126,109 @@ document.addEventListener('DOMContentLoaded', function () {
         typingIndicator.style.display = 'none';
     }
 
-    function processUserMessage(message) {
-        const lowerMsg = message.toLowerCase();
-
-        if (lowerMsg.includes('alarma')) {
-            startAlarmFlow();
-        } else if (lowerMsg.includes('documentación') || lowerMsg.includes('documento')) {
-            showDocumentation();
-        } else {
-            showDefaultResponse();
-        }
-    }
-
-    function startAlarmFlow() {
-        chatState.currentFlow = 'alarmas';
-        showTyping();
-        setTimeout(() => {
-            hideTyping();
-            addMessage('Por favor ingresa el número de alarma que deseas consultar:', 'bot');
-        }, 1000);
-    }
-
     function showDocumentation() {
         showTyping();
         setTimeout(() => {
             hideTyping();
-            const docMessage = document.createElement('div');
-            docMessage.innerHTML = `
-                <strong>Documentación disponible:</strong>
+            addMessage(`
+                <strong>📚 Documentación disponible:</strong>
                 <div class="suggestions-container">
-                    <a href="#" class="suggestion-btn">Manual técnico</a>
-                    <a href="#" class="suggestion-btn">Guías de configuración</a>
-                    <a href="#" class="suggestion-btn">Procedimientos</a>
+                    <button class="suggestion-btn">Manual técnico</button>
+                    <button class="suggestion-btn">Guías de configuración</button>
+                    <button class="suggestion-btn">Procedimientos</button>
                 </div>
-            `;
-            addMessage(docMessage, 'bot');
-        }, 1500);
-    }
-
-    function showDefaultResponse() {
-        showTyping();
-        setTimeout(() => {
-            hideTyping();
-            const response = `
-                No entendí tu solicitud. Puedes preguntar sobre:<br>
-                <div class="suggestions-container">
-                    <button class="suggestion-btn">Alarmas</button>
-                    <button class="suggestion-btn">Documentación</button>
-                    <button class="suggestion-btn">Incidentes</button>
-                </div>
-            `;
-            addMessage(response, 'bot');
+            `, 'bot');
+            flujo.paso = 0;
         }, 1000);
     }
 
-    sendBtn.addEventListener('click', () => {
-        const message = messageInput.value.trim();
-        if (message.length === 0 || chatState.waitingForResponse) return;
-        addMessage(message, 'user');
-        messageInput.value = '';
-        flujoExperto(message);
+    function showIncidentes() {
+        showTyping();
+        setTimeout(() => {
+            hideTyping();
+            addMessage('🚨 Incidentes activos:<br>- Caída parcial en Nodo Central<br>- Latencia elevada en enlace internacional', 'bot');
+            flujo.paso = 0;
+        }, 1000);
+    }
+
+    function showEstadoOperativo() {
+        showTyping();
+        setTimeout(() => {
+            hideTyping();
+            addMessage('✅ Estado operativo:<br>- Core Voz: Estable<br>- Core Datos: Mantenimiento<br>- Plataforma 5G: Degradado', 'bot');
+            flujo.paso = 0;
+        }, 1000);
+    }
+
+    function showCambiosActivos() {
+        showTyping();
+        setTimeout(() => {
+            hideTyping();
+            addMessage('🛠 Cambios programados:<br>- Actualización firmware (00:00-02:00)<br>- Migración base de datos (Sábado 22:00)', 'bot');
+            flujo.paso = 0;
+        }, 1000);
+    }
+
+    function showContactoAdmin() {
+        showTyping();
+        setTimeout(() => {
+            hideTyping();
+            addMessage('👨‍💻 Contacta al administrador:<br>- Teams: equipo_operaciones@empresa.com<br>- Teléfono: +34 912 345 678', 'bot');
+            flujo.paso = 0;
+        }, 1000);
+    }
+
+    // Event Listeners
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
     });
 
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendBtn.click();
-    });
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message.length === 0 || chatState.waitingForResponse) return;
+        
+        addMessage(message, 'user');
+        messageInput.value = '';
+        
+        // Manejar mensajes de usuario
+        if (chatState.currentFlow === 'alarmas') {
+            handleAlarmFlow(message);
+        } else {
+            flujoExperto(message);
+        }
+    }
 
     burbujaChat.addEventListener('click', () => {
         chatContainer.classList.add('mostrar');
         burbujaChat.classList.remove('nuevo-mensaje');
-        setTimeout(() => flujoExperto(''), 600);
+        if (flujo.paso === 0) {
+            setTimeout(() => flujoExperto(''), 500);
+        }
     });
 
     closeBtn.addEventListener('click', () => {
         chatContainer.classList.remove('mostrar');
     });
 
-    if (suggestionsContainer) {
-        suggestionsContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('suggestion-btn')) {
-                messageInput.value = e.target.textContent;
-                sendBtn.click();
-            }
-        });
-    }
+    // Manejar sugerencias
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('suggestion-btn')) {
+            messageInput.value = e.target.textContent;
+            sendMessage();
+        }
+    });
 
-    // 🔄 Mantener el chatbot abierto si se regresa desde detalle_alarma.html
-    if (window.location.search.includes('volver=chat')) {
+    // Mantener chat abierto al volver de detalle_alarma.html
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('volver') && urlParams.get('volver') === 'chat') {
         chatContainer.classList.add('mostrar');
-        setTimeout(() => flujoExperto(''), 500);
+        setTimeout(() => {
+            addMessage('👋 ¡Bienvenido de nuevo! ¿En qué más puedo ayudarte?', 'bot');
+        }, 300);
     }
-    if (window.location.pathname === "/" || window.location.search.includes('volver=chat')) {
-    chatContainer.classList.add('mostrar');
-    setTimeout(() => flujoExperto(''), 500);
-}
 
-
-    // 🟡 Notificación visual si no abren el chat en 10s
+    // Notificación después de 10 segundos
     setTimeout(() => {
         if (!chatContainer.classList.contains('mostrar')) {
             burbujaChat.classList.add('nuevo-mensaje');
