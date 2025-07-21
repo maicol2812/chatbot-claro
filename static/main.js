@@ -1,3 +1,5 @@
+// ✅ main.js completo con lógica original + flujo experto + mantener chatbot abierto si viene de detalle_alarma.html + mejoras sugeridas
+
 document.addEventListener('DOMContentLoaded', function () {
     const chatContainer = document.getElementById('chat-container');
     const burbujaChat = document.getElementById('burbuja-chat');
@@ -69,6 +71,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+
+
+    
     function buscarAlarma(id, elemento) {
         fetch(`/api/alarmas?filtro=${id}`)
             .then(res => res.json())
@@ -76,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const encontrada = data.find(a => a.Elemento.toLowerCase() === elemento.toLowerCase());
                 if (encontrada) {
                     localStorage.setItem('alarmaDetalle', JSON.stringify(encontrada));
-                    window.location.href = '/detalle_alarma.html?volver=chat';
+                    window.location.href = `/detalle_alarma.html`;
                 } else {
                     addMessage('No se encontró ninguna alarma con esos datos. Intenta nuevamente.', 'bot');
                 }
@@ -103,6 +108,27 @@ document.addEventListener('DOMContentLoaded', function () {
     function hideTyping() {
         chatState.waitingForResponse = false;
         typingIndicator.style.display = 'none';
+    }
+
+    function processUserMessage(message) {
+        const lowerMsg = message.toLowerCase();
+
+        if (lowerMsg.includes('alarma')) {
+            startAlarmFlow();
+        } else if (lowerMsg.includes('documentación') || lowerMsg.includes('documento')) {
+            showDocumentation();
+        } else {
+            showDefaultResponse();
+        }
+    }
+
+    function startAlarmFlow() {
+        chatState.currentFlow = 'alarmas';
+        showTyping();
+        setTimeout(() => {
+            hideTyping();
+            addMessage('Por favor ingresa el número de alarma que deseas consultar:', 'bot');
+        }, 1000);
     }
 
     function showDocumentation() {
@@ -169,11 +195,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // 🔄 Mantener el chatbot abierto si se regresa desde detalle_alarma.html
     if (window.location.search.includes('volver=chat')) {
         chatContainer.classList.add('mostrar');
         setTimeout(() => flujoExperto(''), 500);
     }
+    if (window.location.pathname === "/" || window.location.search.includes('volver=chat')) {
+    chatContainer.classList.add('mostrar');
+    setTimeout(() => flujoExperto(''), 500);
+}
 
+
+    // 🟡 Notificación visual si no abren el chat en 10s
     setTimeout(() => {
         if (!chatContainer.classList.contains('mostrar')) {
             burbujaChat.classList.add('nuevo-mensaje');
