@@ -2,256 +2,139 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plataformas Core - Claro</title>
+  <link rel="icon" href="/static/claro-logo.png">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --primary-color: #d41528;
-      --primary-dark: #b01222;
-      --accent-color: #00bcd4;
-      --success-color: #00e676;
-      --dark-color: #0a0a0f;
-      --dark-secondary: #1a1a2e;
-      --text-primary: #ffffff;
-      --text-secondary: #b0bec5;
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.1);
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, var(--dark-color), var(--dark-secondary));
-      color: var(--text-primary);
-      margin: 0;
-      padding: 0;
-    }
-
-    .navbar {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background: rgba(10, 10, 15, 0.9);
-      backdrop-filter: blur(20px);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .nav-logo-circle {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 800;
-    }
-
-    .health-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success-color);
-      animation: pulse 2s infinite;
-    }
-
-    /* Tarjetas de características */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-      padding: 2rem;
-      max-width: 1400px;
-      margin: 100px auto 0;
-    }
-
-    .feature-card {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 2rem;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
-    }
-
-    .feature-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-    }
-
-    .feature-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      margin-bottom: 1rem;
-    }
-
-    /* Chatbot */
-    .chat-bubble {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 1000;
-      box-shadow: 0 10px 30px rgba(212, 21, 40, 0.3);
-    }
-
-    .chat-container {
-      position: fixed;
-      bottom: 100px;
-      right: 30px;
-      width: 350px;
-      background: var(--dark-secondary);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-      transform: translateY(20px);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      z-index: 1000;
-    }
-
-    .chat-container.active {
-      transform: translateY(0);
-      opacity: 1;
-      visibility: visible;
-    }
-
-    /* Animaciones */
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-  </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-logo">
-      <div class="nav-logo-circle">C</div>
-      <span>CLARO Core</span>
-    </div>
-    <div class="health-indicator">
-      <div class="health-dot"></div>
-      <span>Operativo</span>
-    </div>
-  </nav>
-
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon">
-        <i class="fas fa-bell"></i>
-      </div>
-      <h3>Gestión de Alarmas</h3>
-      <p>Monitoriza y gestiona alarmas en tiempo real con inteligencia artificial integrada.</p>
-      <button onclick="navigateToAlarms()">Acceder</button>
-    </div>
-
-    <div class="feature-card">
-      <div class="feature-icon">
-        <i class="fas fa-file-alt"></i>
-      </div>
-      <h3>Documentación</h3>
-      <p>Accede a manuales técnicos y procedimientos operativos actualizados.</p>
-      <button>Explorar</button>
-    </div>
-
-    <div class="feature-card">
-      <div class="feature-icon">
-        <i class="fas fa-shield-alt"></i>
-      </div>
-      <h3>Seguridad</h3>
-      <p>Monitor de vulnerabilidades y amenazas en tiempo real.</p>
-      <button>Ver detalles</button>
+  <!-- Pantalla de bienvenida -->
+  <div id="welcome-screen" style="position: fixed; inset: 0; background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; transition: all 1s ease;">
+    <img src="/static/claro-logo.png" width="140" alt="Logo Claro" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+    <h2 style="margin-top: 2rem; color: #d41528; font-weight: 700; font-size: 1.8rem;">Centro de Operaciones Core</h2>
+    <p style="color: #666; margin-top: 1rem; font-size: 1.1rem;">Inicializando sistema experto...</p>
+    <div style="margin-top: 2rem; width: 200px; height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden;">
+      <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #d41528, #f8d7da); animation: loading 2s ease-in-out;"></div>
     </div>
   </div>
 
-  <div class="chat-bubble" id="chat-bubble">
+  <!-- Header profesional -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/59/Claro_logo_2022.svg" alt="Claro">
+        <span class="logo-text">Plataformas Core</span>
+      </div>
+      <div class="header-actions">
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          Sistema Operativo
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="hero">
+      <h1>Centro de Operaciones Core</h1>
+      <p class="hero-subtitle">Plataforma experta de nivel empresarial</p>
+    </section>
+
+    <section class="features">
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-bell"></i></div>
+        <h3>Gestión de Alarmas</h3>
+        <p>Consulta y gestiona alarmas en tiempo real con información detallada sobre severidad, impacto y acciones recomendadas para resolución inmediata.</p>
+      </div>
+
+      <div id="transition-loader">
+        <div class="spinner"></div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+        <h3>Documentación Técnica</h3>
+        <p>Accede a manuales técnicos especializados, guías de procedimientos y documentación actualizada de todas las plataformas core del sistema.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <h3>Incidentes Críticos</h3>
+        <p>Monitorea incidentes en tiempo real, recibe notificaciones automáticas y accede a dashboards de estado operativo de todos los sistemas.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Chatbot -->
+  <div class="burbuja-chat" id="burbuja-chat">
     <i class="fas fa-robot"></i>
   </div>
 
   <div class="chat-container" id="chat-container">
     <div class="chat-header">
-      <h3><i class="fas fa-robot"></i> Asistente Core</h3>
-      <button id="chat-close"><i class="fas fa-times"></i></button>
+      <h3><i class="fas fa-robot"></i> Asistente Core <span class="badge-experto">EXPERTO</span></h3>
+      <button class="close-btn" id="close-chat">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
-    <div class="chat-messages" id="chat-messages">
-      <div class="bot-message">
-        <p>¡Hola! ¿En qué puedo ayudarte hoy?</p>
-        <div class="quick-actions">
-          <button onclick="handleQuickAction('alarmas')">Consultar alarmas</button>
-          <button onclick="handleQuickAction('docs')">Documentación</button>
+    <div class="chat-box" id="chat-box">
+      <div class="bot-msg">
+        <strong>🚀 Centro de Operaciones Core</strong>
+        <div class="suggestions-container">
+          <button class="suggestion-btn">🔔 Consultar alarmas</button>
+          <button class="suggestion-btn">📋 Ver documentación</button>
+          <button class="suggestion-btn">⚠️ Incidentes activos</button>
         </div>
       </div>
     </div>
+    <div class="typing-indicator" id="typing-indicator">
+      <span>Asistente está escribiendo</span>
+      <div class="typing-dots">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>
     <div class="chat-input">
-      <input type="text" id="message-input" placeholder="Escribe tu consulta...">
-      <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+      <input type="text" id="message-input" placeholder="Escribe tu consulta aquí..." autocomplete="off">
+      <button class="send-btn" id="send-btn">
+        <i class="fas fa-paper-plane"></i>
+      </button>
     </div>
   </div>
 
+  <footer>
+    <p>Sistema de Gestión de Alarmas Core &copy; 2025 - Claro Colombia | Plataforma Experta</p>
+  </footer>
+
+  <style>
+    @keyframes loading {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+
   <script>
-    // Chatbot functionality
-    const chatBubble = document.getElementById('chat-bubble');
-    const chatContainer = document.getElementById('chat-container');
-    const chatClose = document.getElementById('chat-close');
-    
-    chatBubble.addEventListener('click', () => {
-      chatContainer.classList.toggle('active');
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const welcomeScreen = document.getElementById('welcome-screen');
+        welcomeScreen.style.opacity = '0';
+        welcomeScreen.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+          welcomeScreen.remove();
+        }, 1000);
+      }, 2200);
+
+      const loader = document.getElementById('transition-loader');
+      if (loader) loader.style.display = 'none';
     });
-    
-    chatClose.addEventListener('click', () => {
-      chatContainer.classList.remove('active');
-    });
-
-    function navigateToAlarms() {
-      alert('Redirigiendo al módulo de alarmas...');
-    }
-
-    function handleQuickAction(action) {
-      const responses = {
-        'alarmas': 'Hay 3 alarmas activas: 2 WARNING y 1 CRÍTICA.',
-        'docs': 'Puedo mostrarte documentación técnica sobre los sistemas core.'
-      };
-      addBotMessage(responses[action] || '¿En qué más puedo ayudarte?');
-    }
-
-    function addBotMessage(text) {
-      const messagesContainer = document.getElementById('chat-messages');
-      const messageDiv = document.createElement('div');
-      messageDiv.className = 'bot-message';
-      messageDiv.innerHTML = `<p>${text}</p>`;
-      messagesContainer.appendChild(messageDiv);
-    }
   </script>
+
+  <script src="{{ url_for('static', filename='main.js') }}" defer></script>
 </body>
 </html>
+
+
