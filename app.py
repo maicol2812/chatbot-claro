@@ -191,11 +191,13 @@ def error_404(e):
 @app.errorhandler(500)
 def error_500(e):
     return jsonify({'error': 'Error interno del servidor'}), 500
-
 if __name__ == '__main__':
     if not os.path.exists(app.config['CARPETA_DOCS']):
         os.makedirs(app.config['CARPETA_DOCS'])
     if not os.path.exists(app.config['EXCEL_ALARMAS']):
         with open(app.config['EXCEL_ALARMAS'], 'w') as f:
             f.write('ID,Elemento,Severidad,Descripción,Fecha\n')
-    app.run(host='0.0.0.0', port=5000)
+
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
+
