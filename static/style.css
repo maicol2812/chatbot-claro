@@ -49,7 +49,7 @@ button {
 
 /* 🌐 Estilo base */
 body {
-  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+  font-family: 'Inter', sans-serif;
   background: transparent;
   margin: 0;
   padding: 0;
@@ -1088,21 +1088,20 @@ body {
 
 /* Chat bubble premium */
 .chat-bubble-premium {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 70px;
-  height: 70px;
-  background: var(--gradient-primary);
+   position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1002;
+  background-color: #fff;
   border-radius: 50%;
+  box-shadow: var(--shadow-strong);
+  width: 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: var(--shadow-strong);
-  z-index: 1000;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+  transition: all 0.3s eas
 }
 
 .chat-bubble-premium:hover {
@@ -1194,8 +1193,8 @@ body {
 }
 
 .avatar-icon {
-  width: 48px;
-  height: 48px;
+  width: 30px;
+  height: 30px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   display: flex;

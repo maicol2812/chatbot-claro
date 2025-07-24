@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataformas Core - Claro</title>
+  <title>Centro de Operaciones Core - Claro</title>
 
   <!-- Ícono del sitio -->
   <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
@@ -15,13 +15,97 @@
 
   <!-- Estilos locales -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <style>
+    #burbuja-chat {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 70px;
+      height: 70px;
+      background: #d41528;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1002;
+      transition: transform 0.3s;
+    }
+
+    #burbuja-chat:hover {
+      transform: scale(1.1);
+    }
+
+    #burbuja-chat i {
+      font-size: 28px;
+      color: white;
+    }
+
+    .bubble-notification {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: white;
+      color: #d41528;
+      border-radius: 50%;
+      padding: 4px 7px;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      display: none;
+    }
+
+    .nuevo-mensaje .bubble-notification {
+      display: flex !important;
+    }
+
+    .bubble-pulse {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: rgba(212, 21, 40, 0.35);
+      animation: pulse 2s infinite;
+      z-index: -1;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    header.top-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1003;
+    }
+
+    header.top-banner img {
+      height: 40px;
+      object-fit: contain;
+    }
+  </style>
 </head>
-<body>
+<body style="padding-top: 70px">
+  <!-- Encabezado con logo Claro fijo -->
+  <header class="top-banner">
+    <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo Claro">
+  </header>
+
   <!-- Pantalla de bienvenida -->
   <div id="welcome-screen">
     <div class="welcome-content">
       <div class="logo-container">
-        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo Claro">
+        <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Logo Claro">
         <div class="logo-glow"></div>
       </div>
       <h2 class="welcome-title">Centro de Operaciones Core</h2>
@@ -82,10 +166,6 @@
             <span class="stat-number">24/7</span>
             <span class="stat-label">Monitoreo</span>
           </div>
-          <div class="stat-item">
-            <span class="stat-number">&lt; 100ms</span>
-            <span class="stat-label">Respuesta</span>
-          </div>
         </div>
       </div>
     </section>
@@ -129,16 +209,15 @@
     </section>
   </main>
 
-  <!-- Chatbot -->
-  <div class="chat-bubble" id="chat-bubble">
-    <div class="bubble-icon">
-      <i class="fas fa-robot"></i>
-    </div>
+  <!-- Burbuja flotante del chatbot -->
+  <div id="burbuja-chat">
+    <i class="fas fa-comments"></i>
     <div class="bubble-notification" id="bubble-notification">1</div>
     <div class="bubble-pulse"></div>
   </div>
 
-  <div class="chat-window" id="chat-window">
+  <!-- Ventana del Chatbot -->
+  <div class="chat-window-premium" id="chat-window" style="display:none">
     <div class="chat-header-premium">
       <div class="chat-avatar">
         <div class="avatar-icon">
@@ -164,7 +243,6 @@
     </div>
     
     <div class="chat-messages" id="chat-box">
->
       <div class="welcome-message">
         <div class="welcome-avatar">
           <i class="fas fa-robot"></i>
@@ -266,5 +344,28 @@
 
   <!-- Scripts -->
   <script src="{{ url_for('static', filename='main.js') }}"></script>
+  <script>
+    const burbuja = document.getElementById('burbuja-chat');
+    const chatWindow = document.getElementById('chat-window');
+
+    burbuja.addEventListener('click', () => {
+      chatWindow.style.display = 'flex';
+      burbuja.style.display = 'none';
+    });
+
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) {
+      const observer = new MutationObserver(() => {
+        const mensajes = chatBox.querySelectorAll('.message-bot');
+        mensajes.forEach(msg => {
+          if (msg.innerText.toLowerCase().includes('detalles de la alarma')) {
+            window.location.href = 'detalle_alarma.html?volver=chat';
+          }
+        });
+      });
+
+      observer.observe(chatBox, { childList: true, subtree: true });
+    }
+  </script>
 </body>
 </html>

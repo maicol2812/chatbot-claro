@@ -265,6 +265,11 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = `detalle_alarma.html?volver=chat`;
       }, 1500);
     }, 2000);
+
+    if (respuesta.includes("detalles de la alarma")) {
+  window.location.href = "detalle_alarma.html?volver=chat";
+}
+
   }
 
 
