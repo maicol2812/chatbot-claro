@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
+ 
+  const urlParams = new URLSearchParams(window.location.search); // ← 🔧 Esta línea es necesaria
+  
+
   // --------------------------
   // Configuración inicial
   // --------------------------
