@@ -74,10 +74,35 @@
       0% { transform: scale(1); opacity: 0.8; }
       100% { transform: scale(1.8); opacity: 0; }
     }
+
+    /* Añadido: Estilos para el header fijo */
+    header.top-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1003;
+    }
+
+    header.top-banner img {
+      height: 40px;
+      object-fit: contain;
+    }
   </style>
 </head>
-<body>
-   <div id="burbuja-chat">
+<body style="padding-top: 70px"> <!-- Añadido: padding para el header fijo -->
+  <!-- Añadido: Header fijo con logo Claro -->
+  <header class="top-banner">
+    <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo Claro">
+  </header>
+
+  <!-- Tu contenido original se mantiene intacto desde aquí -->
+  <div id="burbuja-chat">
     <i class="fas fa-comments"></i>
     <div class="bubble-notification" id="bubble-notification">1</div>
     <div class="bubble-pulse"></div>
@@ -147,7 +172,7 @@
           <div class="stat-item">
             <span class="stat-number">24/7</span>
             <span class="stat-label">Monitoreo</span>
-        
+          </div>
         </div>
       </div>
     </section>
@@ -226,7 +251,6 @@
     </div>
     
     <div class="chat-messages" id="chat-box">
->
       <div class="welcome-message">
         <div class="welcome-avatar">
           <i class="fas fa-robot"></i>
@@ -336,7 +360,20 @@
       chatWindow.style.display = 'flex';
       burbuja.style.display = 'none';
     });
+
+    // Añadido: Observer para redirección
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) {
+      const observer = new MutationObserver(() => {
+        const mensajes = chatBox.querySelectorAll('.message-bot');
+        mensajes.forEach(msg => {
+          if (msg.innerText.toLowerCase().includes('detalles de la alarma')) {
+            window.location.href = 'detalle_alarma.html?volver=chat';
+          }
+        });
+      });
+      observer.observe(chatBox, { childList: true, subtree: true });
+    }
   </script>
 </body>
 </html>
-
