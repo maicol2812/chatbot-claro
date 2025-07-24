@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     sendBtn: document.getElementById('send-btn'),
     typingIndicator: document.getElementById('typing-indicator'),
     suggestionsContainer: document.querySelector('.suggestions-container'),
-    
+
     // Elementos del nuevo chat premium
     welcomeScreen: document.getElementById('welcome-screen'),
     bubbleNotification: document.getElementById('bubble-notification'),
@@ -41,8 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function initialize() {
     setupEventListeners();
     handleWelcomeScreen();
-    
-    // Mantener chat abierto al volver de detalle_alarma.html
+
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('volver') && urlParams.get('volver') === 'chat') {
       openChat();
@@ -50,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
         addMessage('👋 ¡Bienvenido de nuevo! ¿En qué más puedo ayudarte?', 'bot');
       }, 300);
     } else {
-      // Notificación después de 10 segundos
       setTimeout(() => {
         if (!chatState.isOpen) {
           showNotification();
@@ -60,28 +58,41 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function setupEventListeners() {
-    // Eventos del chat original
-    elements.sendBtn.addEventListener('click', sendMessage);
-    elements.messageInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
-    });
+    if (elements.sendBtn) {
+      elements.sendBtn.addEventListener('click', sendMessage);
+    }
 
-    elements.burbujaChat.addEventListener('click', toggleChat);
-    elements.closeBtn.addEventListener('click', closeChat);
+    if (elements.messageInput) {
+      elements.messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+    }
 
-    // Eventos del chat premium
-    if (elements.minimizeBtn) elements.minimizeBtn.addEventListener('click', minimizeChat);
-    if (elements.maximizeBtn) elements.maximizeBtn.addEventListener('maximizeChat');
-    
-    // Manejar sugerencias
+    if (elements.burbujaChat) {
+      elements.burbujaChat.addEventListener('click', toggleChat);
+    }
+
+    if (elements.closeBtn) {
+      elements.closeBtn.addEventListener('click', closeChat);
+    }
+
+    if (elements.minimizeBtn) {
+      elements.minimizeBtn.addEventListener('click', minimizeChat);
+    }
+
+    if (elements.maximizeBtn) {
+      elements.maximizeBtn.addEventListener('click', maximizeChat); // ✅ corrección aquí
+    }
+
     document.addEventListener('click', (e) => {
       if (e.target.classList.contains('suggestion-btn')) {
-        elements.messageInput.value = e.target.textContent;
-        sendMessage();
+        if (elements.messageInput) {
+          elements.messageInput.value = e.target.textContent;
+          sendMessage();
+        }
       }
     });
 
-    // Escape key para cerrar
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && chatState.isOpen) {
         closeChat();
@@ -91,12 +102,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function handleWelcomeScreen() {
     if (!elements.welcomeScreen) return;
-    
-    // Simular carga
+
     setTimeout(() => {
       elements.welcomeScreen.style.opacity = '0';
       elements.welcomeScreen.style.transform = 'scale(0.95)';
-      
+
       setTimeout(() => {
         elements.welcomeScreen.remove();
         showNotification();
@@ -124,20 +134,18 @@ document.addEventListener('DOMContentLoaded', function() {
     chatState.isMinimized = false;
     chatState.unreadMessages = 0;
     updateNotification();
-    
+
     elements.chatContainer.classList.add('mostrar');
     elements.burbujaChat.classList.remove('nuevo-mensaje');
-    
-    // Focus en el input
+
     setTimeout(() => {
       elements.messageInput.focus();
     }, 300);
-    
-    // Iniciar conversación si es la primera vez
+
     if (flujo.paso === 0 && chatState.messageCount === 0) {
       setTimeout(() => flujoExperto(''), 500);
     }
-    
+
     scrollToBottom();
   }
 
@@ -148,17 +156,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function minimizeChat() {
     chatState.isMinimized = true;
-    // Implementar lógica de minimizado si es necesario
   }
 
   function restoreChat() {
     chatState.isMinimized = false;
-    // Implementar lógica de restauración si es necesario
   }
 
   function maximizeChat() {
     chatState.isMaximized = !chatState.isMaximized;
-    // Implementar lógica de maximizado si es necesario
   }
 
   function showNotification() {
@@ -172,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function updateNotification() {
     if (elements.bubbleNotification) {
       if (chatState.unreadMessages > 0) {
-        elements.bubbleNotification.textContent = 
+        elements.bubbleNotification.textContent =
           chatState.unreadMessages > 9 ? '9+' : chatState.unreadMessages;
         elements.bubbleNotification.style.display = 'flex';
       } else {
@@ -216,21 +221,11 @@ document.addEventListener('DOMContentLoaded', function() {
         addMessage('Por favor ingresa el número de alarma que deseas consultar:', 'bot');
         flujo.paso = 2;
         break;
-      case '2':
-        showDocumentation();
-        break;
-      case '3':
-        showIncidentes();
-        break;
-      case '4':
-        showEstadoOperativo();
-        break;
-      case '5':
-        showCambiosActivos();
-        break;
-      case '6':
-        showContactoAdmin();
-        break;
+      case '2': showDocumentation(); break;
+      case '3': showIncidentes(); break;
+      case '4': showEstadoOperativo(); break;
+      case '5': showCambiosActivos(); break;
+      case '6': showContactoAdmin(); break;
       default:
         addMessage('Por favor selecciona una opción válida del 1 al 6.', 'bot');
     }
@@ -241,8 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // --------------------------
   function buscarAlarma(id, elemento) {
     showTyping();
-    
-    // Simular datos de alarma para pruebas
+
     const datosSimulados = {
       Severidad: "CRÍTICA",
       Elemento: elemento,
@@ -254,14 +248,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     setTimeout(() => {
       hideTyping();
-      
-      // Guardar datos simulados para detalle_alarma.html
       localStorage.setItem('alarmaDetalle', JSON.stringify(datosSimulados));
-      
       addMessage(`✅ Alarma encontrada: ${datosSimulados.Severidad} en ${datosSimulados.Elemento}`, 'bot');
       addMessage('Redirigiendo a detalle completo...', 'bot');
-      
-      // Redirigir manteniendo parámetro para volver al chat
       setTimeout(() => {
         window.location.href = `detalle_alarma.html?volver=chat`;
       }, 1500);
@@ -269,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --------------------------
-  // Funciones de respuesta del bot
+  // Funciones del bot
   // --------------------------
   function showDocumentation() {
     showTyping();
@@ -324,15 +313,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --------------------------
-  // Funciones de utilidad
+  // Utilidades
   // --------------------------
   function addMessage(text, sender) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `${sender}-msg`;
     msgDiv.innerHTML = text;
     elements.chatBox.appendChild(msgDiv);
-    
-    // Animación de entrada
+
     msgDiv.style.opacity = '0';
     msgDiv.style.transform = 'translateY(10px)';
     setTimeout(() => {
@@ -340,10 +328,9 @@ document.addEventListener('DOMContentLoaded', function() {
       msgDiv.style.opacity = '1';
       msgDiv.style.transform = 'translateY(0)';
     }, 10);
-    
+
     scrollToBottom();
-    
-    // Actualizar contador de mensajes
+
     chatState.messageCount++;
     if (sender === 'bot' && !chatState.isOpen) {
       chatState.unreadMessages++;
@@ -371,11 +358,10 @@ document.addEventListener('DOMContentLoaded', function() {
   function sendMessage() {
     const message = elements.messageInput.value.trim();
     if (message.length === 0 || chatState.waitingForResponse) return;
-    
+
     addMessage(message, 'user');
     elements.messageInput.value = '';
-    
-    // Manejar mensajes de usuario
+
     if (chatState.currentFlow === 'alarmas') {
       handleAlarmFlow(message);
     } else {
@@ -383,6 +369,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Inicializar la aplicación
   initialize();
 });
