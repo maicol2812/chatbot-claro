@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centro de Operaciones Core - Claro</title>
+  <title>Plataformas Core - Claro</title>
 
   <!-- Ícono del sitio -->
   <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
@@ -15,7 +15,6 @@
 
   <!-- Estilos locales -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
   <style>
     #burbuja-chat {
       position: fixed;
@@ -75,31 +74,14 @@
       0% { transform: scale(1); opacity: 0.8; }
       100% { transform: scale(1.8); opacity: 0; }
     }
-
-    header.top-banner {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: white;
-      display: flex;
-      align-items: center;
-      padding: 10px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      z-index: 1003;
-    }
-
-    header.top-banner img {
-      height: 40px;
-      object-fit: contain;
-    }
   </style>
 </head>
-<body style="padding-top: 70px">
-  <!-- Encabezado con logo Claro fijo -->
-  <header class="top-banner">
-    <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo Claro">
-  </header>
+<body>
+   <div id="burbuja-chat">
+    <i class="fas fa-comments"></i>
+    <div class="bubble-notification" id="bubble-notification">1</div>
+    <div class="bubble-pulse"></div>
+  </div>
 
   <!-- Pantalla de bienvenida -->
   <div id="welcome-screen">
@@ -165,7 +147,7 @@
           <div class="stat-item">
             <span class="stat-number">24/7</span>
             <span class="stat-label">Monitoreo</span>
-          </div>
+        
         </div>
       </div>
     </section>
@@ -209,15 +191,16 @@
     </section>
   </main>
 
-  <!-- Burbuja flotante del chatbot -->
-  <div id="burbuja-chat">
-    <i class="fas fa-comments"></i>
+  <!-- Chatbot -->
+  <div class="chat-bubble" id="chat-bubble">
+    <div class="bubble-icon">
+      <i class="fas fa-robot"></i>
+    </div>
     <div class="bubble-notification" id="bubble-notification">1</div>
     <div class="bubble-pulse"></div>
   </div>
 
-  <!-- Ventana del Chatbot -->
-  <div class="chat-window-premium" id="chat-window" style="display:none">
+  <div class="chat-window" id="chat-window" style="display:none">
     <div class="chat-header-premium">
       <div class="chat-avatar">
         <div class="avatar-icon">
@@ -243,6 +226,7 @@
     </div>
     
     <div class="chat-messages" id="chat-box">
+>
       <div class="welcome-message">
         <div class="welcome-avatar">
           <i class="fas fa-robot"></i>
@@ -352,20 +336,7 @@
       chatWindow.style.display = 'flex';
       burbuja.style.display = 'none';
     });
-
-    const chatBox = document.getElementById('chat-box');
-    if (chatBox) {
-      const observer = new MutationObserver(() => {
-        const mensajes = chatBox.querySelectorAll('.message-bot');
-        mensajes.forEach(msg => {
-          if (msg.innerText.toLowerCase().includes('detalles de la alarma')) {
-            window.location.href = 'detalle_alarma.html?volver=chat';
-          }
-        });
-      });
-
-      observer.observe(chatBox, { childList: true, subtree: true });
-    }
   </script>
 </body>
 </html>
+
