@@ -263,6 +263,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 2000);
   }
 
+
+
+  if (urlParams.has('volver') && urlParams.get('volver') === 'chat') {
+  openChat();
+  setTimeout(() => {
+    addMessage('👋 ¡Bienvenido de nuevo! ¿En qué más puedo ayudarte?', 'bot');
+  }, 300);
+}
+
   // --------------------------
   // Funciones del bot
   // --------------------------
