@@ -80,7 +80,6 @@ def obtener_documentos():
     return sorted(documentos, key=lambda x: x['nombre'])
 
 # Motor de respuesta
-
 def generar_respuesta(mensaje):
     mensaje = mensaje.lower().strip()
     respuesta = {'tipo': 'texto', 'contenido': '', 'opciones': [], 'datos': None}
@@ -136,13 +135,16 @@ def generar_respuesta(mensaje):
     return respuesta
 
 # Endpoints API y frontend
-
 @app.route('/api/chat', methods=['POST'])
 def chat_api():
     try:
-        mensaje = request.json.get('mensaje', '')
+        data = request.get_json()
+        if not data:
+            return jsonify({'tipo': 'error', 'contenido': 'No se recibieron datos'}), 400
+        mensaje = data.get('mensaje', '')
         return jsonify(generar_respuesta(mensaje))
     except Exception as e:
+        app.logger.error(f"Error en chat_api: {str(e)}")
         return jsonify({'tipo': 'error', 'contenido': f'Error en el servidor: {str(e)}'}), 500
 
 @app.route('/api/alarmas')
@@ -157,47 +159,113 @@ def alarmas_api():
                 alarmas = [a for a in alarmas if filtro.lower() in str(a.get('Elemento', '')).lower()]
         return jsonify(alarmas[:app.config['MAX_ALARMAS']])
     except Exception as e:
+        app.logger.error(f"Error en alarmas_api: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/docs/<nombre>')
+@app.route('/docs/<path:nombre>')
 def servir_documento(nombre):
-    return send_from_directory(app.config['CARPETA_DOCS'], nombre)
+    try:
+        return send_from_directory(app.config['CARPETA_DOCS'], nombre)
+    except Exception as e:
+        app.logger.error(f"Error sirviendo documento {nombre}: {str(e)}")
+        return jsonify({'error': 'Archivo no encontrado'}), 404
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        app.logger.error(f"Error en index: {str(e)}")
+        return f"Error cargando página principal: {str(e)}", 500
 
 @app.route('/detalle_alarma.html')
 def detalle_alarma():
-    return render_template('detalle_alarma.html')
+    try:
+        return render_template('detalle_alarma.html')
+    except Exception as e:
+        app.logger.error(f"Error en detalle_alarma: {str(e)}")
+        return f"Error cargando detalle de alarma: {str(e)}", 500
 
 @app.route('/estado_alarmas.html')
 def estado_alarmas():
-    alarmas = cargar_alarmas()
-    return render_template('estado_alarmas.html', alarmas=alarmas, fecha=datetime.now().strftime('%d/%m/%Y %H:%M'))
+    try:
+        alarmas = cargar_alarmas()
+        return render_template('estado_alarmas.html', 
+                             alarmas=alarmas, 
+                             fecha=datetime.now().strftime('%d/%m/%Y %H:%M'))
+    except Exception as e:
+        app.logger.error(f"Error en estado_alarmas: {str(e)}")
+        return f"Error cargando estado de alarmas: {str(e)}", 500
 
 @app.route('/health')
 def health():
     try:
-        cargar_alarmas()
-        return jsonify({'status': 'healthy'})
+        # Test básico de funcionamiento
+        alarmas = cargar_alarmas()
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'alarmas_count': len(alarmas),
+            'excel_exists': os.path.exists(app.config['EXCEL_ALARMAS']),
+            'docs_folder_exists': os.path.exists(app.config['CARPETA_DOCS'])
+        })
     except Exception as e:
-        return jsonify({'status': 'unhealthy', 'error': str(e)})
+        app.logger.error(f"Error in health check: {str(e)}")
+        return jsonify({
+            'status': 'unhealthy', 
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 @app.errorhandler(404)
 def error_404(e):
-    return jsonify({'error': 'Endpoint no encontrado'}), 404
+    app.logger.warning(f"404 error: {request.url}")
+    return jsonify({'error': 'Endpoint no encontrado', 'url': request.url}), 404
 
 @app.errorhandler(500)
 def error_500(e):
+    app.logger.error(f"500 error: {str(e)}")
     return jsonify({'error': 'Error interno del servidor'}), 500
+
+# Inicialización y configuración para producción
+def crear_archivos_iniciales():
+    """Crear archivos y carpetas necesarios si no existen"""
+    try:
+        # Crear carpeta de documentos
+        if not os.path.exists(app.config['CARPETA_DOCS']):
+            os.makedirs(app.config['CARPETA_DOCS'])
+            app.logger.info(f"Carpeta {app.config['CARPETA_DOCS']} creada")
+
+        # Crear archivo Excel de ejemplo si no existe
+        if not os.path.exists(app.config['EXCEL_ALARMAS']):
+            # Crear un DataFrame de ejemplo
+            ejemplo_alarmas = pd.DataFrame({
+                'Numero alarma': [1001, 1002, 1003],
+                'Nombre del elemento': ['Router Principal', 'Switch Core', 'Servidor DB'],
+                'Descripción alarma': ['Pérdida de conectividad', 'Puerto desconectado', 'Base de datos lenta'],
+                'Severidad': ['Crítica', 'Alta', 'Media'],
+                'Significado ': ['Interrupción del servicio principal', 'Conexión de red interrumpida', 'Rendimiento degradado'],
+                'Acciones': ['Reiniciar router • Verificar cables', 'Revisar puerto • Reemplazar cable', 'Optimizar queries • Reiniciar servicio']
+            })
+            ejemplo_alarmas.to_excel(app.config['EXCEL_ALARMAS'], index=False)
+            app.logger.info(f"Archivo de ejemplo {app.config['EXCEL_ALARMAS']} creado")
+            
+    except Exception as e:
+        app.logger.error(f"Error creando archivos iniciales: {str(e)}")
+
 if __name__ == '__main__':
-    if not os.path.exists(app.config['CARPETA_DOCS']):
-        os.makedirs(app.config['CARPETA_DOCS'])
-    if not os.path.exists(app.config['EXCEL_ALARMAS']):
-        with open(app.config['EXCEL_ALARMAS'], 'w') as f:
-            f.write('ID,Elemento,Severidad,Descripción,Fecha\n')
-
+    # Configurar logging
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    
+    # Crear archivos necesarios
+    crear_archivos_iniciales()
+    
+    # Configuración para Render
     port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port)
-
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    
+    app.logger.info(f"Iniciando aplicación en puerto {port}")
+    app.logger.info(f"Modo debug: {debug_mode}")
+    
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
