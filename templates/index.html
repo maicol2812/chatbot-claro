@@ -5,17 +5,23 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plataformas Core - Claro</title>
-  <link rel="icon" href="{{ url_for('static', filename='images/claro_logo.svg') }}">
+
+  <!-- Ícono del sitio -->
+  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
+
+  <!-- Librerías externas -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <!-- Estilos locales -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <!-- Pantalla de bienvenida mejorada -->
+  <!-- Pantalla de bienvenida -->
   <div id="welcome-screen">
     <div class="welcome-content">
       <div class="logo-container">
-        <img src="{{ url_for('static', filename='images/claro_logo.svg') }}" alt="Logo Claro">
+        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo Claro">
         <div class="logo-glow"></div>
       </div>
       <h2 class="welcome-title">Centro de Operaciones Core</h2>
@@ -34,11 +40,11 @@
     </div>
   </div>
 
-  <!-- Header premium -->
+  <!-- Encabezado -->
   <header class="header">
     <div class="header-content">
       <div class="logo-section">
-        <img src="{{ url_for('static', filename='images/claro_logo.svg') }}" alt="Claro" class="header-logo">
+        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
         <div class="logo-text">
           <span class="brand-name">Plataformas Core</span>
           <span class="brand-subtitle">Enterprise AI System</span>
@@ -60,6 +66,7 @@
     </div>
   </header>
 
+  <!-- Contenido principal -->
   <main class="main-content">
     <section class="hero-section">
       <div class="hero-background"></div>
@@ -76,7 +83,7 @@
             <span class="stat-label">Monitoreo</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">< 100ms</span>
+            <span class="stat-number">&lt; 100ms</span>
             <span class="stat-label">Respuesta</span>
           </div>
         </div>
@@ -122,7 +129,7 @@
     </section>
   </main>
 
-  <!-- Chatbot flotante premium -->
+  <!-- Chatbot -->
   <div class="chat-bubble" id="chat-bubble">
     <div class="bubble-icon">
       <i class="fas fa-robot"></i>
@@ -131,7 +138,6 @@
     <div class="bubble-pulse"></div>
   </div>
 
-  <!-- Ventana de chat premium -->
   <div class="chat-window" id="chat-window">
     <div class="chat-header-premium">
       <div class="chat-avatar">
@@ -240,6 +246,7 @@
     </div>
   </div>
 
+  <!-- Pie de página -->
   <footer class="footer-premium">
     <div class="footer-content">
       <div class="footer-left">
@@ -255,6 +262,8 @@
       </div>
     </div>
   </footer>
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>
