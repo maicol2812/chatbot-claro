@@ -130,24 +130,30 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function openChat() {
-    chatState.isOpen = true;
-    chatState.isMinimized = false;
-    chatState.unreadMessages = 0;
-    updateNotification();
+  chatState.isOpen = true;
+  chatState.isMinimized = false;
+  chatState.unreadMessages = 0;
+  updateNotification();
 
-    elements.chatContainer.classList.add('mostrar');
-    elements.burbujaChat.classList.remove('nuevo-mensaje');
+  elements.chatContainer?.classList.add('mostrar'); // si usas chatContainer
+  document.getElementById('chat-window')?.classList.add('mostrar'); // asegúrate que esto se aplique
 
-    setTimeout(() => {
-      elements.messageInput.focus();
-    }, 300);
+  elements.burbujaChat.classList.remove('nuevo-mensaje');
 
+  setTimeout(() => {
+    elements.messageInput.focus();
+  }, 300);
     if (flujo.paso === 0 && chatState.messageCount === 0) {
-      setTimeout(() => flujoExperto(''), 500);
-    }
-
-    scrollToBottom();
+    setTimeout(() => flujoExperto(''), 500);
   }
+
+  scrollToBottom();
+}
+
+
+
+
+  // Funciones de cierre, minimización y maximización
 
   function closeChat() {
     chatState.isOpen = false;
