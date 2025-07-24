@@ -5,6 +5,8 @@ import pandas as pd
 import os
 from datetime import datetime
 import traceback
+from flask import send_file
+
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -226,7 +228,11 @@ def error_404(e):
 def error_500(e):
     app.logger.error(f"500 error: {str(e)}")
     return jsonify({'error': 'Error interno del servidor'}), 500
-
+     
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    """Endpoint explícito para servir archivos estáticos"""
+    return send_from_directory(app.static_folder, filename)
 # Inicialización y configuración para producción
 def crear_archivos_iniciales():
     """Crear archivos y carpetas necesarios si no existen"""
