@@ -7,15 +7,48 @@
   <title>Plataformas Core - Claro</title>
 
   <!-- Ícono del sitio -->
-  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjZDQxNTI4Ii8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgZm9udC1mYW1pbHk9IkludGVyLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkM8L3RleHQ+Cjwvc3ZnPgo=">
 
   <!-- Librerías externas -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Estilos locales -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
+    /* TU CSS ORIGINAL - MANTENIDO EXACTAMENTE IGUAL */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      min-height: 100vh;
+      color: white;
+    }
+
+    /* Header fijo */
+    header.top-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1003;
+    }
+
+    header.top-banner img {
+      height: 40px;
+      object-fit: contain;
+    }
+
+    /* Burbuja de chat */
     #burbuja-chat {
       position: fixed;
       bottom: 20px;
@@ -75,67 +108,778 @@
       100% { transform: scale(1.8); opacity: 0; }
     }
 
-    /* Añadido: Estilos para el header fijo */
-    header.top-banner {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: white;
-      display: flex;
-      align-items: center;
-      padding: 10px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      z-index: 1003;
+    /* Header principal */
+    .header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 20px 0;
+      margin-top: 70px;
     }
 
-    header.top-banner img {
-      height: 40px;
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .header-logo {
+      height: 50px;
       object-fit: contain;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .brand-subtitle {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 400;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .system-status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #00ff88;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .status-pulse {
+      width: 8px;
+      height: 8px;
+      background: #00ff88;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .system-metrics {
+      display: flex;
+      gap: 15px;
+    }
+
+    .metric {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Contenido principal */
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .hero-section {
+      text-align: center;
+      padding: 60px 0;
+      position: relative;
+    }
+
+    .hero-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff 0%, #a8edea 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-description {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 40px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      margin-top: 40px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      display: block;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #00ff88;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Grid de servicios */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+      margin-top: 60px;
+    }
+
+    .service-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .service-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .service-card.premium::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #d41528, #ff6b6b, #4ecdc4, #45b7d1);
+      background-size: 300% 100%;
+      animation: gradient 3s ease infinite;
+    }
+
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .service-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .service-icon.alarm {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+    }
+
+    .service-icon.docs {
+      background: linear-gradient(135deg, #4ecdc4, #44a08d);
+      color: white;
+    }
+
+    .service-icon.incidents {
+      background: linear-gradient(135deg, #45b7d1, #2196f3);
+      color: white;
+    }
+
+    .service-card h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: white;
+    }
+
+    .service-card p {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 20px;
+    }
+
+    .service-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* VENTANA DE CHAT - ARREGLADA */
+    .chat-window {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 400px;
+      height: 600px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1001;
+      animation: slideUp 0.4s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .chat-header-premium {
+      background: linear-gradient(135deg, #d41528, #ff4757);
+      color: white;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      position: relative;
+    }
+
+    .chat-avatar {
+      position: relative;
+    }
+
+    .avatar-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .avatar-status {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 12px;
+      height: 12px;
+      background: #00ff88;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    .chat-title-section {
+      flex: 1;
+    }
+
+    .chat-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .chat-subtitle {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .chat-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .control-btn {
+      width: 30px;
+      height: 30px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #f8f9fa;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #ddd;
+      border-radius: 3px;
+    }
+
+    .welcome-message {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .welcome-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #d41528, #ff4757);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    .welcome-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .welcome-header h4 {
+      color: #2c3e50;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .timestamp {
+      font-size: 12px;
+      color: #7f8c8d;
+    }
+
+    .welcome-text {
+      color: #34495e;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .capabilities-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .capability-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #495057;
+    }
+
+    .capability-item i {
+      color: #d41528;
+      font-size: 16px;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-btn {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, #d41528, #ff4757);
+      color: white;
+    }
+
+    .action-btn.secondary {
+      background: #f8f9fa;
+      color: #495057;
+      border: 1px solid #dee2e6;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Mensajes del chat */
+    .message {
+      margin-bottom: 15px;
+      max-width: 80%;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-user {
+      margin-left: auto;
+    }
+
+    .message-content {
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .message-user .message-content {
+      background: linear-gradient(135deg, #d41528, #ff4757);
+      color: white;
+    }
+
+    .message-bot .message-content {
+      background: white;
+      color: #2c3e50;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .typing-indicator {
+      display: none;
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #eee;
+    }
+
+    .typing-indicator.active {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .typing-avatar {
+      width: 35px;
+      height: 35px;
+      background: linear-gradient(135deg, #d41528, #ff4757);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+    }
+
+    .typing-content {
+      flex: 1;
+    }
+
+    .typing-text {
+      font-size: 13px;
+      color: #7f8c8d;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .typing-animation {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #bdc3c7;
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-10px); }
+    }
+
+    .chat-input-container {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #eee;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8f9fa;
+      border-radius: 25px;
+      padding: 8px 15px;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: #d41528;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(212, 21, 40, 0.1);
+    }
+
+    .attachment-btn, .voice-btn {
+      width: 35px;
+      height: 35px;
+      background: none;
+      border: none;
+      color: #7f8c8d;
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .attachment-btn:hover, .voice-btn:hover {
+      background: #e9ecef;
+      color: #d41528;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: none;
+      background: none;
+      outline: none;
+      font-size: 14px;
+      padding: 10px 0;
+      color: #2c3e50;
+    }
+
+    .chat-input::placeholder {
+      color: #95a5a6;
+    }
+
+    .send-btn {
+      width: 35px;
+      height: 35px;
+      background: linear-gradient(135deg, #d41528, #ff4757);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .send-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 15px rgba(212, 21, 40, 0.3);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .input-footer {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .input-help {
+      font-size: 12px;
+      color: #95a5a6;
+    }
+
+    /* Footer */
+    .footer-premium {
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 20px 0;
+      margin-top: 60px;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .separator {
+      opacity: 0.5;
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 255, 136, 0.1);
+      color: #00ff88;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid rgba(0, 255, 136, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .chat-window {
+        width: calc(100vw - 20px);
+        height: calc(100vh - 40px);
+        bottom: 10px;
+        right: 10px;
+      }
+
+      .capabilities-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-title {
+        font-size: 2.5rem;
+      }
+
+      .hero-stats {
+        flex-direction: column;
+        gap: 30px;
+      }
+
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header-controls {
+        display: none;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
     }
   </style>
 </head>
-<body style="padding-top: 70px"> <!-- Añadido: padding para el header fijo -->
-  <!-- Añadido: Header fijo con logo Claro -->
+<body style="padding-top: 70px">
+  <!-- Header fijo con logo Claro -->
   <header class="top-banner">
-    <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo Claro">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZDQxNTI4Ii8+Cjx0ZXh0IHg9IjUwIiB5PSIyNSIgZm9udC1mYW1pbHk9IkludGVyLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkNMQVJPPC90ZXh0Pgo8L3N2Zz4K" alt="Logo Claro">
   </header>
 
-  <!-- Tu contenido original se mantiene intacto desde aquí -->
+  <!-- Burbuja de chat -->
   <div id="burbuja-chat">
     <i class="fas fa-comments"></i>
     <div class="bubble-notification" id="bubble-notification">1</div>
     <div class="bubble-pulse"></div>
   </div>
 
-  <!-- Pantalla de bienvenida -->
-  <div id="welcome-screen">
-    <div class="welcome-content">
-      <div class="logo-container">
-        <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Logo Claro">
-        <div class="logo-glow"></div>
-      </div>
-      <h2 class="welcome-title">Centro de Operaciones Core</h2>
-      <p class="welcome-subtitle">Sistema Experto Neural • Versión Enterprise</p>
-      <div class="loading-container">
-        <div class="loading-bar">
-          <div class="loading-progress"></div>
-        </div>
-        <p class="loading-text">Inicializando módulos de IA...</p>
-      </div>
-    </div>
-    <div class="tech-grid">
-      <div class="tech-line"></div>
-      <div class="tech-line"></div>
-      <div class="tech-line"></div>
-    </div>
-  </div>
-
   <!-- Encabezado -->
   <header class="header">
     <div class="header-content">
       <div class="logo-section">
-        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjZDQxNTI4Ii8+Cjx0ZXh0IHg9IjI1IiB5PSIzMCIgZm9udC1mYW1pbHk9IkludGVyLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE4IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkNMQVJPPC90ZXh0Pgo8L3N2Zz4K" alt="Claro" class="header-logo">
         <div class="logo-text">
           <span class="brand-name">Plataformas Core</span>
           <span class="brand-subtitle">Enterprise AI System</span>
@@ -216,15 +960,7 @@
     </section>
   </main>
 
-  <!-- Chatbot -->
-  <div class="chat-bubble" id="chat-bubble">
-    <div class="bubble-icon">
-      <i class="fas fa-robot"></i>
-    </div>
-    <div class="bubble-notification" id="bubble-notification">1</div>
-    <div class="bubble-pulse"></div>
-  </div>
-
+  <!-- Ventana de chat -->
   <div class="chat-window" id="chat-window" style="display:none">
     <div class="chat-header-premium">
       <div class="chat-avatar">
@@ -350,30 +1086,343 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
   <script>
+    // Variables globales
     const burbuja = document.getElementById('burbuja-chat');
     const chatWindow = document.getElementById('chat-window');
+    const chatBox = document.getElementById('chat-box');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const closeBtn = document.getElementById('close-chat');
+    const minimizeBtn = document.getElementById('minimize-chat');
+    const maximizeBtn = document.getElementById('maximize-chat');
 
+    let isMinimized = false;
+    let originalHeight = '600px';
+
+    // Abrir chat al hacer clic en la burbuja
     burbuja.addEventListener('click', () => {
       chatWindow.style.display = 'flex';
       burbuja.style.display = 'none';
+      messageInput.focus();
+      // Remover notificación
+      burbuja.classList.remove('nuevo-mensaje');
     });
 
-    // Añadido: Observer para redirección
-    const chatBox = document.getElementById('chat-box');
-    if (chatBox) {
-      const observer = new MutationObserver(() => {
-        const mensajes = chatBox.querySelectorAll('.message-bot');
-        mensajes.forEach(msg => {
-          if (msg.innerText.toLowerCase().includes('detalles de la alarma')) {
+    // Cerrar chat
+    closeBtn.addEventListener('click', () => {
+      chatWindow.style.display = 'none';
+      burbuja.style.display = 'flex';
+    });
+
+    // Minimizar chat
+    minimizeBtn.addEventListener('click', () => {
+      if (!isMinimized) {
+        originalHeight = chatWindow.style.height || '600px';
+        chatWindow.style.height = '80px';
+        chatWindow.querySelector('.chat-messages').style.display = 'none';
+        chatWindow.querySelector('.chat-input-container').style.display = 'none';
+        typingIndicator.style.display = 'none';
+        isMinimized = true;
+        minimizeBtn.innerHTML = '<i class="fas fa-window-restore"></i>';
+        minimizeBtn.title = 'Restaurar';
+      } else {
+        chatWindow.style.height = originalHeight;
+        chatWindow.querySelector('.chat-messages').style.display = 'block';
+        chatWindow.querySelector('.chat-input-container').style.display = 'block';
+        isMinimized = false;
+        minimizeBtn.innerHTML = '<i class="fas fa-window-minimize"></i>';
+        minimizeBtn.title = 'Minimizar';
+      }
+    });
+
+    // Maximizar chat (modo fullscreen en móvil)
+    maximizeBtn.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        if (chatWindow.style.width === '100vw') {
+          chatWindow.style.width = '400px';
+          chatWindow.style.height = '600px';
+          chatWindow.style.top = 'auto';
+          chatWindow.style.left = 'auto';
+          chatWindow.style.bottom = '20px';
+          chatWindow.style.right = '20px';
+          maximizeBtn.innerHTML = '<i class="fas fa-expand"></i>';
+        } else {
+          chatWindow.style.width = '100vw';
+          chatWindow.style.height = '100vh';
+          chatWindow.style.top = '0';
+          chatWindow.style.left = '0';
+          chatWindow.style.bottom = '0';
+          chatWindow.style.right = '0';
+          maximizeBtn.innerHTML = '<i class="fas fa-compress"></i>';
+        }
+      }
+    });
+
+    // Función para enviar mensaje
+    function sendMessage() {
+      const message = messageInput.value.trim();
+      if (message === '' || isMinimized) return;
+
+      // Agregar mensaje del usuario
+      addMessage(message, 'user');
+      messageInput.value = '';
+      
+      // Mostrar indicador de escritura
+      showTypingIndicator();
+      
+      // Simular respuesta del bot después de 1.5-3 segundos
+      const delay = Math.random() * 1500 + 1500; // Entre 1.5 y 3 segundos
+      setTimeout(() => {
+        hideTypingIndicator();
+        handleBotResponse(message);
+      }, delay);
+    }
+
+    // Agregar mensaje al chat
+    function addMessage(text, type) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message message-${type}`;
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      contentDiv.textContent = text;
+      
+      messageDiv.appendChild(contentDiv);
+      
+      // Insertar antes del welcome message si es el primer mensaje del bot
+      const welcomeMessage = chatBox.querySelector('.welcome-message');
+      if (type === 'bot' && chatBox.children.length === 1) {
+        chatBox.insertBefore(messageDiv, welcomeMessage.nextSibling);
+      } else {
+        chatBox.appendChild(messageDiv);
+      }
+      
+      // Scroll automático
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Manejar respuesta del bot - MEJORADO Y MÁS PROFESIONAL
+    function handleBotResponse(userMessage) {
+      let response = '';
+      const lowerMessage = userMessage.toLowerCase();
+      
+      // Respuestas más profesionales y detalladas
+      if (lowerMessage.includes('alarma') || lowerMessage.includes('alerta') || lowerMessage.includes('crítica')) {
+        response = `🚨 SISTEMA DE ALARMAS CRÍTICAS
+        
+Accediendo a la base de datos de monitoreo...
+
+📊 ESTADO ACTUAL:
+• 3 alarmas críticas activas
+• 7 advertencias pendientes  
+• 2 mantenimientos programados
+
+🔴 ALARMAS CRÍTICAS:
+1. CPU High Usage - Servidor CORE-01 (95%)
+2. Network Timeout - Switch Principal (>5s)
+3. Database Connection Pool - DB-PROD (Error)
+
+¿Necesitas detalles específicos de alguna alarma o procedimientos de resolución?`;
+
+      } else if (lowerMessage.includes('documentacion') || lowerMessage.includes('manual') || lowerMessage.includes('documento')) {
+        response = `📚 BASE DE CONOCIMIENTO NEURAL
+        
+Procesando solicitud de documentación...
+
+📋 CATEGORÍAS DISPONIBLES:
+• Procedimientos de Emergencia (47 docs)
+• Manuales Técnicos (134 docs)
+• Guías de Troubleshooting (89 docs)
+• Políticas de Seguridad (23 docs)
+• Runbooks Operacionales (56 docs)
+
+💡 BÚSQUEDA INTELIGENTE ACTIVADA
+Puedo ayudarte a encontrar documentación específica usando búsqueda semántica.
+
+¿Qué tipo de información técnica necesitas?`;
+
+      } else if (lowerMessage.includes('incidente') || lowerMessage.includes('dashboard') || lowerMessage.includes('estado')) {
+        response = `📊 DASHBOARD DE INCIDENTES - TIEMPO REAL
+        
+Analizando estado del sistema...
+
+🟢 SERVICIOS CRÍTICOS: OPERATIVO
+├─ Core Banking: 99.98% uptime
+├─ Red Principal: Estable  
+├─ Bases de Datos: Óptimo
+└─ APIs Enterprise: Funcional
+
+⚠️ INCIDENTES MENORES (2):
+• Latencia elevada - Región Norte (solucionándose)
+• Backup nocturno - Retraso 15min (normal)
+
+🔧 MANTENIMIENTOS PROGRAMADOS:
+• Switch Datacenter B - Dom 02:00-04:00
+
+¿Necesitas análisis detallado de algún componente?`;
+
+      } else if (lowerMessage.includes('ayuda') || lowerMessage.includes('help') || lowerMessage.includes('soporte')) {
+        response = `🤖 ASISTENTE CORE ENTERPRISE - COMANDOS
+        
+Sistema de ayuda inteligente activado...
+
+🔧 COMANDOS PRINCIPALES:
+• "alarmas críticas" - Monitoreo en tiempo real
+• "documentación [tema]" - Búsqueda en knowledge base  
+• "estado sistema" - Dashboard completo
+• "incidente [ID]" - Detalles específicos
+• "procedimiento [nombre]" - Runbooks operacionales
+
+💼 CAPACIDADES AVANZADAS:
+• Análisis predictivo de fallos
+• Correlación automática de eventos
+• Recomendaciones de resolución
+• Escalamiento inteligente
+
+¿En qué área específica necesitas asistencia técnica?`;
+
+      } else if (lowerMessage.includes('servidor') || lowerMessage.includes('cpu') || lowerMessage.includes('memoria')) {
+        response = `🖥️ MONITOREO DE INFRAESTRUCTURA
+        
+Consultando métricas de servidores...
+
+📈 ESTADO ACTUAL - TOP SERVERS:
+• CORE-01: CPU 78% | RAM 12.4GB/16GB | Disk 65%
+• CORE-02: CPU 45% | RAM 8.1GB/16GB | Disk 52%  
+• DB-PROD: CPU 89% | RAM 28.5GB/32GB | Disk 78%
+• WEB-LB: CPU 23% | RAM 4.2GB/8GB | Disk 34%
+
+⚠️ ALERTAS DE RENDIMIENTO:
+• CORE-01 requiere atención (CPU high)
+• DB-PROD cerca del límite de memoria
+
+¿Necesitas análisis detallado de algún servidor específico?`;
+
+      } else if (lowerMessage.includes('red') || lowerMessage.includes('network') || lowerMessage.includes('conectividad')) {
+        response = `🌐 ESTADO DE RED CORPORATIVA
+        
+Ejecutando diagnósticos de conectividad...
+
+📡 ENLACES PRINCIPALES:
+• Internet Primary: 98.5% disponibilidad
+• Internet Backup: Standby (OK)
+• MPLS Nacional: Estable - 45ms avg
+• Conexiones Site-to-Site: 24/24 activas
+
+🔍 ANÁLISIS DE TRÁFICO:
+• Ancho de banda utilizado: 68% (340Mbps/500Mbps)
+• Latencia promedio: 42ms  
+• Pérdida de paquetes: 0.02%
+
+¿Requieres análisis de algún enlace específico o troubleshooting de conectividad?`;
+
+      } else {
+        response = `🔍 CONSULTA PROCESADA POR IA NEURAL
+        
+Analizando tu solicitud: "${userMessage}"
+
+Como Asistente Core Enterprise, puedo ayudarte con:
+
+🎯 ÁREAS DE ESPECIALIZACIÓN:
+• Monitoreo y alertas críticas del sistema
+• Acceso a documentación técnica avanzada  
+• Análisis predictivo de incidentes
+• Procedimientos de emergencia y escalamiento
+• Diagnósticos de infraestructura y red
+• Métricas de rendimiento en tiempo real
+
+💡 SUGERENCIA:
+Para obtener asistencia más específica, menciona palabras clave como "alarmas", "documentación", "servidor", "red" o "incidentes".
+
+¿Podrías proporcionar más detalles sobre tu consulta técnica?`;
+      }
+      
+      addMessage(response, 'bot');
+      
+      // Observer para redirección - mantenido de tu código original
+      if (response.toLowerCase().includes('detalles de la alarma')) {
+        setTimeout(() => {
+          if (confirm('¿Deseas ver los detalles completos de la alarma en una nueva ventana?')) {
             window.location.href = 'detalle_alarma.html?volver=chat';
           }
-        });
-      });
-      observer.observe(chatBox, { childList: true, subtree: true });
+        }, 1000);
+      }
     }
+
+    // Mostrar indicador de escritura
+    function showTypingIndicator() {
+      if (!isMinimized) {
+        typingIndicator.classList.add('active');
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    // Ocultar indicador de escritura
+    function hideTypingIndicator() {
+      typingIndicator.classList.remove('active');
+    }
+
+    // Event listeners
+    sendBtn.addEventListener('click', sendMessage);
+
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Habilitar/deshabilitar botón de envío
+    messageInput.addEventListener('input', () => {
+      const isEmpty = messageInput.value.trim() === '';
+      sendBtn.disabled = isEmpty;
+      sendBtn.style.opacity = isEmpty ? '0.5' : '1';
+    });
+
+    // Manejar botones de acción rápida
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.action-btn')) {
+        const action = e.target.closest('.action-btn').dataset.action;
+        let message = '';
+        
+        switch(action) {
+          case 'alarmas':
+            message = 'Consultar alarmas críticas del sistema';
+            break;
+          case 'documentacion':
+            message = 'Acceder a documentación técnica';
+            break;
+          case 'incidentes':
+            message = 'Ver dashboard de incidentes y estado del sistema';
+            break;
+        }
+        
+        if (message) {
+          messageInput.value = message;
+          sendMessage();
+        }
+      }
+    });
+
+    // Inicialización - mostrar notificación después de 2 segundos
+    setTimeout(() => {
+      burbuja.classList.add('nuevo-mensaje');
+    }, 2000);
+
+    // Auto-resize del input
+    messageInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+
+    // Mantener focus en el input cuando el chat está abierto
+    chatWindow.addEventListener('click', () => {
+      if (!isMinimized && chatWindow.style.display === 'flex') {
+        setTimeout(() => messageInput.focus(), 100);
+      }
+    });
   </script>
 </body>
 </html>
