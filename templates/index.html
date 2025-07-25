@@ -1,1995 +1,379 @@
-// Advanced features
-        const featuresBtn = document.getElementById('features-btn');
-        const featuresPanel = document.getElementById('features-panel');
-        const featuresClose = document.getElementById('features-close');
-        const notificationsBtn = document.getElementById('notifications-btn');
-        const notificationCenter = document.getElementById('notification-center');
-        const notificationsClose = document.getElementById('notifications-close');
-
-        // Features panel toggle
-        featuresBtn.addEventListener('click', () => {
-            featuresPanel.style.display = featuresPanel.style.display === 'block' ? 'none' : 'block';
-            notificationCenter.style.display = 'none';
-        });
-
-        featuresClose.addEventListener('click', () => {
-            featuresPanel.style.display = 'none';
-        });
-
-        // Notifications panel toggle
-        notificationsBtn.addEventListener('click', () => {
-            notificationCenter.style.display = notificationCenter.style.display === 'block' ? 'none' : 'block';
-            featuresPanel.style.display = 'none';
-        });
-
-        notificationsClose.addEventListener('click', () => {
-            notificationCenter.style.display = 'none';
-        });
-
-        // Feature handlers
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.feature-item')) {
-                const feature = e.target.closest('.feature-item').dataset.feature;
-                handleAdvancedFeature(feature);
-                featuresPanel.style.display = 'none';
-            }
-        });
-
-        // Advanced feature implementations
-        function handleAdvancedFeature(feature) {
-            const featureContent = {
-                'topology': {
-                    title: '🌐 **Topología de Red en Tiempo Real**',
-                    content: createNetworkTopology()
-                },
-                'analytics': {
-                    title: '📊 **Analytics Avanzado del Sistema**',
-                    content: createPerformanceCharts()
-                },
-                'terminal': {
-                    title: '💻 **Terminal SSH Enterprise**',
-                    content: createSSHTerminal()
-                },
-                'security': {
-                    title: '🛡️ **Security Operations Center**',
-                    content: createSecurityDashboard()
-                },
-                'ai-analysis': {
-                    title: '🧠 **Análisis Predictivo con IA**',
-                    content: createAIAnalysis()
-                },
-                'automation': {
-                    title: '⚙️ **Centro de Automatización**',
-                    content: createAutomationCenter()
-                }
-            };
-
-            if (featureContent[feature]) {
-                showTyping();
-                setTimeout(() => {
-                    hideTyping();
-                    addAdvancedMessage(featureContent[feature].title, featureContent[feature].content);
-                }, 1500);
-            }
-        }
-
-        // Create network topology visualization
-        function createNetworkTopology() {
-            return `
-                <div class="network-topology">
-                    <div class="topology-node critical" style="top: 50px; left: 50px;" data-node="R1">R1</div>
-                    <div class="topology-node normal" style="top: 50px; left: 150px;" data-node="R2">R2</div>
-                    <div class="topology-node warning" style="top: 50px; left: 250px;" data-node="R3">R3</div>
-                    <div class="topology-node normal" style="top: 150px; left: 100px;" data-node="SW1">SW1</div>
-                    <div class="topology-node normal" style="top: 150px; left: 200px;" data-node="SW2">SW2</div>
-                    <div class="topology-connection active" style="top: 70px; left: 90px; width: 60px;"></div>
-                    <div class="topology-connection failed" style="top: 70px; left: 190px; width: 60px;"></div>
-                    <div class="topology-connection active" style="top: 90px; left: 70px; width: 80px; transform: rotate(45deg);"></div>
-                </div>
-                <div style="margin-top: 16px;">
-                    <strong>Estado de Nodos:</strong><br>
-                    🔴 R1: Crítico - Alta latencia<br>
-                    🟢 R2: Normal - Operativo<br>
-                    🟡 R3: Advertencia - Carga elevada<br>
-                    🟢 SW1-SW2: Normales<br><br>
-                    <strong>Conectividad:</strong><br>
-                    • R1-R2: Activo (1.2 Gbps)<br>
-                    • R2-R3: Fallo - Enlace caído<br>
-                    • R1-SW1: Activo (850 Mbps)
-                </div>
-            `;
-        }
-
-        // Create performance charts
-        function createPerformanceCharts() {
-            return `
-                <div class="chart-container">
-                    <div class="chart-line" style="background: linear-gradient(45deg, rgba(34,197,94,0.3) 0%, rgba(212,21,40,0.3) 100%);"></div>
-                    <div style="position: absolute; top: 10px; left: 10px; font-size: 12px; color: white;">
-                        <strong>CPU Usage - Últimas 24h</strong>
-                    </div>
-                    <div style="position: absolute; bottom: 10px; right: 10px; font-size: 10px; color: #64748b;">
-                        Peak: 89% | Avg: 34% | Current: 42%
-                    </div>
-                </div>
-                
-                <div class="advanced-controls">
-                    <div class="control-button" data-chart="network">
-                        <div class="control-icon"><i class="fas fa-network-wired"></i></div>
-                        <div class="control-label">Tráfico Red</div>
-                    </div>
-                    <div class="control-button" data-chart="memory">
-                        <div class="control-icon"><i class="fas fa-memory"></i></div>
-                        <div class="control-label">Uso Memoria</div>
-                    </div>
-                    <div class="control-button" data-chart="disk">
-                        <div class="control-icon"><i class="fas fa-hdd"></i></div>
-                        <div class="control-label">I/O Disco</div>
-                    </div>
-                    <div class="control-button" data-chart="alerts">
-                        <div class="control-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div class="control-label">Alertas/Hora</div>
-                    </div>
-                </div>
-                
-                **Métricas Avanzadas:**
-                • Throughput promedio: 847 Mbps
-                • Jitter de red: 2.3ms (Excelente)
-                • Packet loss: 0.001% (Óptimo)
-                • Response time: 15ms (Muy bueno)
-            `;
-        }
-
-        // Create SSH terminal
-        function createSSHTerminal() {
-            return `
-                <div class="terminal-container">
-                    <div class="terminal-header">
-                        <div class="terminal-dot red"></div>
-                        <div class="terminal-dot yellow"></div>
-                        <div class="terminal-dot green"></div>
-                        <span style="color: white; font-size: 12px; margin-left: 8px;">core-enterprise-terminal</span>
-                    </div>
-                    <div class="terminal-content" id="terminal-content">
-                        <div><span class="terminal-prompt">admin@core-system:~$</span> <span class="terminal-command">show system status</span></div>
-                        <div class="terminal-output">System Status: OPERATIONAL</div>
-                        <div class="terminal-output">Uptime: 47 days, 12:34:15</div>
-                        <div class="terminal-output">Load Average: 0.42, 0.38, 0.41</div>
-                        <div class="terminal-output">Memory: 67% used (12.8GB/19.2GB)</div>
-                        <div class="terminal-output">Disk: 34% used (2.1TB/6.0TB)</div>
-                        <div><span class="terminal-prompt">admin@core-system:~$</span> <span class="terminal-command">ping -c 3 gateway.core.local</span></div>
-                        <div class="terminal-output">PING gateway.core.local (192.168.1.1): 56 bytes</div>
-                        <div class="terminal-output">64 bytes from 192.168.1.1: icmp_seq=1 time=1.2ms</div>
-                        <div class="terminal-output">64 bytes from 192.168.1.1: icmp_seq=2 time=1.1ms</div>
-                        <div class="terminal-output">64 bytes from 192.168.1.1: icmp_seq=3 time=1.3ms</div>
-                        <div><span class="terminal-prompt">admin@core-system:~$</span> <span style="animation: blink 1s infinite;">█</span></div>
-                    </div>
-                </div>
-                
-                <div class="advanced-controls">
-                    <div class="control-button" data-cmd="logs">
-                        <div class="control-icon"><i class="fas fa-file-alt"></i></div>
-                        <div class="control-label">Ver Logs</div>
-                    </div>
-                    <div class="control-button" data-cmd="processes">
-                        <div class="control-icon"><i class="fas fa-tasks"></i></div>
-                        <div class="control-label">Procesos</div>
-                    </div>
-                    <div class="control-button" data-cmd="network">
-                        <div class="control-icon"><i class="fas fa-ethernet"></i></div>
-                        <div class="control-label">Red Config</div>
-                    </div>
-                    <div class="control-button" data-cmd="restart">
-                        <div class="control-icon"><i class="fas fa-redo"></i></div>
-                        <div class="control-label">Restart Svc</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Create security dashboard
-        function createSecurityDashboard() {
-            return `
-                <div class="security-widget">
-                    <div class="security-header">
-                        <i class="fas fa-shield-alt" style="color: #22c55e;"></i>
-                        <strong>Security Operations Center</strong>
-                    </div>
-                    
-                    <div class="security-status">
-                        <div class="security-level">
-                            <div class="security-indicator high"></div>
-                            <span>Firewall Status</span>
-                        </div>
-                        <span style="color: #22c55e;">PROTEGIDO</span>
-                    </div>
-                    
-                    <div class="security-status">
-                        <div class="security-level">
-                            <div class="security-indicator high"></div>
-                            <span>Antivirus Engine</span>
-                        </div>
-                        <span style="color: #22c55e;">ACTUALIZADO</span>
-                    </div>
-                    
-                    <div class="security-status">
-                        <div class="security-level">
-                            <div class="security-indicator medium"></div>
-                            <span>Intrusion Detection</span>
-                        </div>
-                        <span style="color: #f59e0b;">MONITOREANDO</span>
-                    </div>
-                    
-                    <div class="security-status">
-                        <div class="security-level">
-                            <div class="security-indicator low"></div>
-                            <span>VPN Connections</span>
-                        </div>
-                        <span style="color: #ef4444;">3 FALLIDAS</span>
-                    </div>
-                </div>
-                
-                **🚨 Eventos de Seguridad (Últimas 24h):**
-                • Intentos de acceso bloqueados: 847
-                • Malware detectado y neutralizado: 12
-                • Actualizaciones de seguridad: 3
-                • Conexiones VPN exitosas: 2,341
-                
-                **🔍 Análisis de Amenazas:**
-                • IPs bloqueadas: 156 (geografía: 67% Asia, 23% Europa)
-                • Patrones de ataque: Fuerza bruta SSH (45%), Web scraping (31%)
-                • Nivel de riesgo actual: MEDIO-BAJO
-            `;
-        }
-
-        // Create AI analysis
-        function createAIAnalysis() {
-            return `
-                <div class="ai-analysis">
-                    <div class="ai-header">
-                        <i class="fas fa-brain ai-brain"></i>
-                        <strong>Motor de Inteligencia Artificial</strong>
-                    </div>
-                    
-                    <div class="ai-insights">
-                        <div class="ai-insight">
-                            <i class="fas fa-chart-line insight-icon"></i>
-                            <span class="insight-text">Predicción: Pico de tráfico en 2.3 horas (94% confianza)</span>
-                        </div>
-                        <div class="ai-insight">
-                            <i class="fas fa-exclamation-triangle insight-icon"></i>
-                            <span class="insight-text">Anomalía detectada: Router-03 patrón inusual (+15% CPU)</span>
-                        </div>
-                        <div class="ai-insight">
-                            <i class="fas fa-lightbulb insight-icon"></i>
-                            <span class="insight-text">Recomendación: Optimizar cache DNS (mejora estimada: +8%)</span>
-                        </div>
-                        <div class="ai-insight">
-                            <i class="fas fa-shield-alt insight-icon"></i>
-                            <span class="insight-text">Seguridad: 3 IPs sospechosas agregadas a blacklist</span>
-                        </div>
-                    </div>
-                </div>
-                
-                **🤖 Análisis Predictivo Avanzado:**
-                
-                **Modelo de Machine Learning:**
-                • Algoritmo: Deep Neural Network + LSTM
-                • Dataset: 2.3M eventos históricos
-                • Precisión actual: 94.7%
-                • Última actualización: Hace 15 minutos
-                
-                **Predicciones para las próximas 6 horas:**
-                • 🔴 15:30 - Probable congestión en enlace troncal (89% probabilidad)
-                • 🟡 17:45 - Incremento de tráfico web (+35% estimado)
-                • 🟢 19:20 - Ventana óptima para mantenimiento
-                • 🔴 21:00 - Riesgo de fallo en DB-Secondary (67% probabilidad)
-                
-                **Acciones Recomendadas por IA:**
-                1. Activar balanceador de carga preventivo
-                2. Incrementar cache de CDN en 25%
-                3. Programar backup adicional de DB-Secondary
-                4. Notificar al equipo NOC sobre ventana de mantenimiento
-            `;
-        }
-
-        // Create automation center
-        function createAutomationCenter() {
-            return `
-                <div class="advanced-controls">
-                    <div class="control-button" data-automation="backup">
-                        <div class="control-icon"><i class="fas fa-save"></i></div>
-                        <div class="control-label">Backup Auto</div>
-                    </div>
-                    <div class="control-button" data-automation="scaling">
-                        <div class="control-icon"><i class="fas fa-expand-arrows-alt"></i></div>
-                        <div class="control-label">Auto Scaling</div>
-                    </div>
-                    <div class="control-button" data-automation="healing">
-                        <div class="control-icon"><i class="fas fa-magic"></i></div>
-                        <div class="control-label">Self Healing</div>
-                    </div>
-                    <div class="control-button" data-automation="optimization">
-                        <div class="control-icon"><i class="fas fa-tachometer-alt"></i></div>
-                        <div class="control-label">Optimizar</div>
-                    </div>
-                </div>
-                
-                **🤖 Scripts de Automatización Activos:**
-                
-                **📋 Workflows en Ejecución:**
-                • **AUTO-BACKUP-001**: Backup incremental cada 4 horas ✅
-                • **SCALE-MONITOR-002**: Monitoreo de carga y escalamiento ✅  
-                • **SEC-PATROL-003**: Patrullaje de seguridad automático ✅
-                • **HEAL-NETWORK-004**: Auto-recuperación de enlaces 🔄
-                
-                **⚡ Triggers Configurados:**
-                • CPU > 85% → Escalamiento automático de recursos
-                • Latencia > 100ms → Optimización de rutas
-                • Disco > 90% → Limpieza automática de logs
-                • Memoria > 95% → Reinicio inteligente de servicios
-                
-                **📊 Estadísticas de Automatización:**
-                • Incidentes auto-resueltos hoy: 23
-                • Tiempo promedio de recuperación: 43 segundos
-                • Eficiencia de automatización: 97.3%
-                • Intervenciones manuales evitadas: 156
-                
-                **🔮 Próximas Automatizaciones:**
-                • 16:00 - Optimización de base de datos
-                • 18:30 - Rotación automática de logs
-                • 02:00 - Mantenimiento preventivo programado
-                • 03:15 - Actualización de certificados SSL
-            `;
-        }
-
-        // Add advanced message with interactive content
-        function addAdvancedMessage(title, content) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot';
-            
-            const avatar = document.createElement('div');
-            avatar.className = 'message-avatar';
-            avatar.innerHTML = '<i class="fas fa-robot"></i>';
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.innerHTML = `
-                ${title.replace(/\n/g, '<br>')}
-                <br><br>
-                ${content.replace(/\n/g, '<br>')}
-            `;
-            
-            const timeDiv = document.createElement('div');
-            timeDiv.className = 'message-time';
-            timeDiv.textContent = new Date().toLocaleTimeString();
-            
-            contentDiv.appendChild(timeDiv);
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(contentDiv);
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            // Add event listeners for interactive elements
-            addInteractiveListeners(messageDiv);
-        }
-
-        // Add interactive listeners to advanced content
-        function addInteractiveListeners(messageElement) {
-            // Topology node clicks
-            const topologyNodes = messageElement.querySelectorAll('.topology-node');
-            topologyNodes.forEach(node => {
-                node.addEventListener('click', () => {
-                    const nodeId = node.dataset.node;
-                    showNodeDetails(nodeId);
-                });
-            });
-            
-            // Control button clicks
-            const controlButtons = messageElement.querySelectorAll('.control-button');
-            controlButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const action = button.dataset.chart || button.dataset.cmd || button.dataset.automation;
-                    if (action) {
-                        handleControlAction(action);
-                    }
-                });
-            });
-        }
-
-        // Handle node details
-        function showNodeDetails(nodeId) {
-            const nodeDetails = {
-                'R1': '🔴 **Router R1 - Estado Crítico**\n\n• IP: 192.168.1.1\n• Modelo: Cisco ASR 9000\n• CPU: 89% (Crítico)\n• Memoria: 67%\n• Interfaces: 24/24 activas\n• Latencia promedio: 187ms\n• Packet loss: 2.1%\n\n**Problema:** Congestión en enlace principal\n**Acción requerida:** Escalamiento inmediato',
-                'R2': '🟢 **Router R2 - Estado Normal**\n\n• IP: 192.168.1.2\n• Modelo: Cisco ASR 9000\n• CPU: 34%\n• Memoria: 45%\n• Interfaces: 24/24 activas\n• Latencia promedio: 12ms\n• Packet loss: 0.01%\n\n**Estado:** Todos los parámetros normales',
-                'R3': '🟡 **Router R3 - Advertencia**\n\n• IP: 192.168.1.3\n• Modelo: Cisco ASR 9000\n• CPU: 78% (Alto)\n• Memoria: 82%\n• Interfaces: 23/24 activas\n• Latencia promedio: 45ms\n• Packet loss: 0.8%\n\n**Advertencia:** Carga elevada, monitoreo activo'
-            };
-            
-            if (nodeDetails[nodeId]) {
-                addMessage(nodeDetails[nodeId], 'bot');
-            }
-        }
-
-        // Handle control actions
-        function handleControlAction(action) {
-            const controlResponses = {
-                'network': '📊 **Gráfico de Tráfico de Red**\n\nThroughput actual: 1.2 Gbps\nPico máximo hoy: 1.8 Gbps (14:32)\nTráfico entrante: 687 Mbps\nTráfico saliente: 534 Mbps\n\nTendencia: Incremento sostenido del 12% en las últimas 2 horas',
-                'memory': '💾 **Análisis de Uso de Memoria**\n\nMemoria total: 32 GB\nEn uso: 21.6 GB (67.5%)\nCache: 8.2 GB\nBuffer: 2.1 GB\nLibre: 10.4 GB\n\nProcesos top:\n• MySQL: 4.2 GB\n• Apache: 3.1 GB\n• Core App: 2.8 GB',
-                'disk': '💿 **Análisis de I/O de Disco**\n\nLecturas/seg: 2,341\nEscrituras/seg: 1,876\nLatencia promedio: 3.2ms\nThroughput: 187 MB/s\n\nDiscos más activos:\n• /dev/sda1: 67% I/O\n• /dev/sdb1: 23% I/O',
-                'alerts': '🚨 **Análisis de Alertas por Hora**\n\nÚltima hora: 23 alertas\nPromedio 24h: 18 alertas/hora\nPico máximo: 47 alertas (13:00-14:00)\n\nTipos más frecuentes:\n• CPU alto: 34%\n• Latencia red: 28%\n• Memoria: 21%\n• Disco: 17%',
-                'logs': '📄 **Logs del Sistema (Últimas 10 líneas)**\n\n```\n2025-01-25 15:42:13 [INFO] Service restart completed\n2025-01-25 15:42:10 [WARN] High CPU usage detected\n2025-01-25 15:41:55 [INFO] Backup process started\n2025-01-25 15:41:32 [ERROR] Connection timeout to DB\n2025-01-25 15:41:15 [INFO] User admin logged in\n```',
-                'processes': '⚙️ **Procesos del Sistema**\n\n```\nPID    CPU%   MEM%   COMMAND\n1234   15.2   8.1    mysql\n5678   12.4   6.3    apache2\n9012   8.7    4.2    core-app\n3456   5.1    2.8    nginx\n7890   3.2    1.9    ssh\n```',
-                'backup': '💾 **Backup Automático Iniciado**\n\n🔄 Procesando...\n• Base de datos: Respaldando (23%)\n• Archivos de configuración: ✅ Completado\n• Logs del sistema: ✅ Completado\n• Certificados: ✅ Completado\n\nTiempo estimado: 8 minutos\nTamaño estimado: 2.3 GB',
-                'scaling': '📈 **Auto Scaling Activado**\n\n🚀 Escalamiento en progreso...\n• CPU threshold: 85% alcanzado\n• Instancias adicionales: +2 servidores\n• Load balancer: Configurado\n• Health checks: Activados\n\nETA para completar: 3 minutos\nCapacidad adicional: +40%',
-                'healing': '🔧 **Self-Healing Ejecutándose**\n\n🛠️ Reparaciones automáticas:\n• Reinicio de servicio Apache: ✅ Completado\n• Limpieza de memoria cache: ✅ Completado\n• Reconexión a DB: 🔄 En progreso\n• Optimización de consultas: ⏳ Pendiente\n\nServicios restaurados: 3/4',
-                'optimization': '⚡ **Optimización del Sistema**\n\n🎯 Mejoras aplicadas:\n• Cache DNS optimizado: +12% rendimiento\n• Consultas DB indexadas: +18% velocidad\n• Compresión activada: -23% ancho banda\n• Ruteo optimizado: -15ms latencia\n\n✅ Optimización completada\nMejora general: +15% rendimiento'
-            };
-            
-            if (controlResponses[action]) {
-                showTyping();
-                setTimeout(() => {
-                    hideTyping();
-                    addMessage(controlResponses[action], 'bot');
-                }, 1200);
-            }
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Core Enterprise - Claro Colombia</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
-            color: #ffffff;
-            overflow-x: hidden;
-        }
-
-        /* Fixed Header */
-        .header-fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(15, 20, 25, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(212, 21, 40, 0.3);
-            z-index: 1000;
-            padding: 12px 24px;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-img {
-            width: 40px;
-            height: 40px;
-            background: #d41528;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-        }
-
-        .brand-info h1 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
-        .brand-info p {
-            font-size: 12px;
-            color: #64748b;
-        }
-
-        .system-status {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            border-radius: 20px;
-            font-size: 12px;
-            color: #22c55e;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #22c55e;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Main Content */
-        .main-container {
-            margin-top: 80px;
-            padding: 40px 24px;
-            max-width: 1400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .hero-section {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .hero-title {
-            font-size: 48px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #ffffff 0%, #d41528 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 16px;
-        }
-
-        .hero-subtitle {
-            font-size: 20px;
-            color: #64748b;
-            margin-bottom: 32px;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 24px;
-            margin-bottom: 60px;
-        }
-
-        .metric-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .metric-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #d41528;
-            margin-bottom: 8px;
-        }
-
-        .metric-label {
-            font-size: 14px;
-            color: #64748b;
-        }
-
-        /* Chatbot Bubble */
-        .chat-bubble {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #d41528 0%, #b91c3c 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 8px 32px rgba(212, 21, 40, 0.4);
-            z-index: 1001;
-            transition: all 0.3s ease;
-        }
-
-        .chat-bubble:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 40px rgba(212, 21, 40, 0.6);
-        }
-
-        .chat-bubble i {
-            font-size: 24px;
-            color: white;
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            background: #22c55e;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        /* Chat Window */
-        .chat-window {
-            position: fixed;
-            bottom: 100px;
-            right: 24px;
-            width: 420px;
-            height: 600px;
-            background: rgba(15, 20, 25, 0.98);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(20px);
-            z-index: 1002;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .chat-header {
-            padding: 20px;
-            background: linear-gradient(135deg, #d41528 0%, #b91c3c 100%);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .chat-avatar {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .chat-avatar i {
-            font-size: 18px;
-            color: white;
-        }
-
-        .chat-title-section h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: white;
-            margin-bottom: 2px;
-        }
-
-        .chat-title-section p {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .chat-controls {
-            margin-left: auto;
-            display: flex;
-            gap: 8px;
-        }
-
-        .control-btn {
-            width: 32px;
-            height: 32px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .message {
-            display: flex;
-            gap: 12px;
-            max-width: 85%;
-        }
-
-        .message.user {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-        }
-
-        .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .message.bot .message-avatar {
-            background: linear-gradient(135deg, #d41528 0%, #b91c3c 100%);
-            color: white;
-        }
-
-        .message.user .message-avatar {
-            background: rgba(255, 255, 255, 0.1);
-            color: #64748b;
-        }
-
-        .message-content {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .message.user .message-content {
-            background: linear-gradient(135deg, #d41528 0%, #b91c3c 100%);
-            border-color: #d41528;
-            color: white;
-        }
-
-        .message-time {
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 4px;
-        }
-
-        .expert-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .action-chip {
-            background: rgba(212, 21, 40, 0.1);
-            border: 1px solid rgba(212, 21, 40, 0.3);
-            border-radius: 20px;
-            padding: 6px 12px;
-            font-size: 12px;
-            color: #d41528;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .action-chip:hover {
-            background: rgba(212, 21, 40, 0.2);
-        }
-
-        .typing-indicator {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 16px;
-            display: none;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 4px;
-        }
-
-        .typing-dot {
-            width: 6px;
-            height: 6px;
-            background: #d41528;
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
-        }
-
-        .chat-input-container {
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 12px;
-        }
-
-        .chat-input {
-            flex: 1;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .chat-input::placeholder {
-            color: #64748b;
-        }
-
-        .input-btn {
-            width: 32px;
-            height: 32px;
-            background: none;
-            border: none;
-            color: #64748b;
-            cursor: pointer;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .input-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .send-btn {
-            background: linear-gradient(135deg, #d41528 0%, #b91c3c 100%);
-            color: white;
-        }
-
-        .send-btn:hover {
-            background: linear-gradient(135deg, #b91c3c 0%, #991b1b 100%);
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .quick-action {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 12px;
-            color: #64748b;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .quick-action:hover {
-            background: rgba(212, 21, 40, 0.1);
-            border-color: rgba(212, 21, 40, 0.3);
-            color: #d41528;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .chat-window {
-                width: calc(100vw - 48px);
-                height: calc(100vh - 140px);
-                bottom: 100px;
-                right: 24px;
-                left: 24px;
-            }
-
-            .hero-title {
-                font-size: 32px;
-            }
-
-            .metrics-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* Alert System */
-        .alert-panel {
-            position: fixed;
-            top: 80px;
-            right: 24px;
-            width: 320px;
-            background: rgba(239, 68, 68, 0.95);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 12px;
-            padding: 16px;
-            backdrop-filter: blur(10px);
-            z-index: 999;
-            display: none;
-        }
-
-        .alert-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: white;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .alert-content {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.9);
-            line-height: 1.4;
-        }
-
-        /* Advanced Features Panel */
-        .features-panel {
-            position: fixed;
-            top: 80px;
-            left: 24px;
-            width: 300px;
-            background: rgba(15, 20, 25, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            z-index: 998;
-            display: none;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .features-header {
-            padding: 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .features-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: white;
-        }
-
-        .features-close {
-            background: none;
-            border: none;
-            color: #64748b;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        .feature-item {
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .feature-item:hover {
-            background: rgba(212, 21, 40, 0.1);
-        }
-
-        .feature-icon {
-            width: 32px;
-            height: 32px;
-            background: rgba(212, 21, 40, 0.2);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #d41528;
-        }
-
-        .feature-info h4 {
-            font-size: 14px;
-            font-weight: 500;
-            color: white;
-            margin-bottom: 2px;
-        }
-
-        .feature-info p {
-            font-size: 12px;
-            color: #64748b;
-        }
-
-        /* Network Topology Visualization */
-        .network-topology {
-            width: 100%;
-            height: 300px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            margin: 16px 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .topology-node {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background: #d41528;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .topology-node:hover {
-            transform: scale(1.2);
-            box-shadow: 0 0 20px rgba(212, 21, 40, 0.6);
-        }
-
-        .topology-node.critical {
-            background: #ef4444;
-            animation: pulse-red 2s infinite;
-        }
-
-        .topology-node.warning {
-            background: #f59e0b;
-        }
-
-        .topology-node.normal {
-            background: #22c55e;
-        }
-
-        @keyframes pulse-red {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-        }
-
-        .topology-connection {
-            position: absolute;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.3);
-            transform-origin: left center;
-        }
-
-        .topology-connection.active {
-            background: #22c55e;
-            animation: data-flow 2s infinite;
-        }
-
-        .topology-connection.congested {
-            background: #f59e0b;
-        }
-
-        .topology-connection.failed {
-            background: #ef4444;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes data-flow {
-            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            50% { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
-
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
-        }
-
-        /* Performance Charts */
-        .chart-container {
-            width: 100%;
-            height: 200px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            margin: 16px 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .chart-line {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to top, rgba(212, 21, 40, 0.3) 0%, rgba(212, 21, 40, 0) 100%);
-        }
-
-        /* Command Terminal */
-        .terminal-container {
-            background: #000000;
-            border-radius: 8px;
-            margin: 16px 0;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        }
-
-        .terminal-header {
-            background: #333333;
-            padding: 8px 16px;
-            border-radius: 8px 8px 0 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .terminal-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .terminal-dot.red { background: #ff5f56; }
-        .terminal-dot.yellow { background: #ffbd2e; }
-        .terminal-dot.green { background: #27ca3f; }
-
-        .terminal-content {
-            padding: 16px;
-            color: #00ff00;
-            font-size: 12px;
-            line-height: 1.4;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .terminal-prompt {
-            color: #00ff00;
-        }
-
-        .terminal-command {
-            color: #ffffff;
-        }
-
-        .terminal-output {
-            color: #cccccc;
-            margin-left: 20px;
-        }
-
-        /* Security Dashboard */
-        .security-widget {
-            background: rgba(15, 20, 25, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px 0;
-        }
-
-        .security-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .security-status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .security-level {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .security-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .security-indicator.high { background: #22c55e; }
-        .security-indicator.medium { background: #f59e0b; }
-        .security-indicator.low { background: #ef4444; }
-
-        /* AI Analysis Panel */
-        .ai-analysis {
-            background: linear-gradient(135deg, rgba(212, 21, 40, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
-            border: 1px solid rgba(212, 21, 40, 0.3);
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px 0;
-        }
-
-        .ai-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .ai-brain {
-            animation: ai-pulse 3s infinite;
-        }
-
-        @keyframes ai-pulse {
-            0%, 100% { color: #d41528; }
-            50% { color: #ff6b7a; }
-        }
-
-        .ai-insights {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .ai-insight {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 6px;
-        }
-
-        .insight-icon {
-            color: #d41528;
-        }
-
-        .insight-text {
-            font-size: 12px;
-            color: #cccccc;
-        }
-
-        /* Advanced Controls */
-        .advanced-controls {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 16px 0;
-        }
-
-        .control-button {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 12px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .control-button:hover {
-            background: rgba(212, 21, 40, 0.1);
-            border-color: rgba(212, 21, 40, 0.3);
-        }
-
-        .control-icon {
-            font-size: 24px;
-            color: #d41528;
-        }
-
-        .control-label {
-            font-size: 12px;
-            text-align: center;
-        }
-
-        /* Notification System */
-        .notification-center {
-            position: fixed;
-            top: 80px;
-            right: 360px;
-            width: 300px;
-            max-height: 400px;
-            background: rgba(15, 20, 25, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            z-index: 997;
-            display: none;
-            overflow-y: auto;
-        }
-
-        .notification-item {
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .notification-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .notification-icon.critical {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-        }
-
-        .notification-icon.warning {
-            background: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
-        }
-
-        .notification-icon.info {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-        }
-
-        .notification-content h5 {
-            font-size: 13px;
-            font-weight: 500;
-            color: white;
-            margin-bottom: 4px;
-        }
-
-        .notification-content p {
-            font-size: 11px;
-            color: #64748b;
-            line-height: 1.3;
-        }
-
-        .notification-time {
-            font-size: 10px;
-            color: #64748b;
-            margin-top: 4px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plataformas Core - Claro</title>
+
+  <!-- Ícono del sitio -->
+  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
+
+  <!-- Librerías externas -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos locales -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    #burbuja-chat {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 70px;
+      height: 70px;
+      background: #d41528;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1002;
+      transition: transform 0.3s;
+    }
+
+    #burbuja-chat:hover {
+      transform: scale(1.1);
+    }
+
+    #burbuja-chat i {
+      font-size: 28px;
+      color: white;
+    }
+
+    .bubble-notification {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: white;
+      color: #d41528;
+      border-radius: 50%;
+      padding: 4px 7px;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      display: none;
+    }
+
+    .nuevo-mensaje .bubble-notification {
+      display: flex !important;
+    }
+
+    .bubble-pulse {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: rgba(212, 21, 40, 0.35);
+      animation: pulse 2s infinite;
+      z-index: -1;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    /* Añadido: Estilos para el header fijo */
+    header.top-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1003;
+    }
+
+    header.top-banner img {
+      height: 40px;
+      object-fit: contain;
+    }
+  </style>
 </head>
-<body>
-    <!-- Fixed Header -->
-    <div class="header-fixed">
-        <div class="header-content">
-            <div class="logo-section">
-                <div class="logo-img">C</div>
-                <div class="brand-info">
-                    <h1>Sistema Core Enterprise</h1>
-                    <p>Plataforma de IA Especializada</p>
-                </div>
-            </div>
-            <div class="system-status">
-                <div class="status-indicator">
-                    <div class="status-dot"></div>
-                    <span>Sistema Operativo</span>
-                </div>
-                <button class="control-btn" id="features-btn" title="Funciones Avanzadas">
-                    <i class="fas fa-th-large"></i>
-                </button>
-                <button class="control-btn" id="notifications-btn" title="Notificaciones">
-                    <i class="fas fa-bell"></i>
-                    <div class="notification-badge">3</div>
-                </button>
-            </div>
+<body style="padding-top: 70px"> <!-- Añadido: padding para el header fijo -->
+  <!-- Añadido: Header fijo con logo Claro -->
+  <header class="top-banner">
+    <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo Claro">
+  </header>
+
+  <!-- Tu contenido original se mantiene intacto desde aquí -->
+  <div id="burbuja-chat">
+    <i class="fas fa-comments"></i>
+    <div class="bubble-notification" id="bubble-notification">1</div>
+    <div class="bubble-pulse"></div>
+  </div>
+
+  <!-- Pantalla de bienvenida -->
+  <div id="welcome-screen">
+    <div class="welcome-content">
+      <div class="logo-container">
+        <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Logo Claro">
+        <div class="logo-glow"></div>
+      </div>
+      <h2 class="welcome-title">Centro de Operaciones Core</h2>
+      <p class="welcome-subtitle">Sistema Experto Neural • Versión Enterprise</p>
+      <div class="loading-container">
+        <div class="loading-bar">
+          <div class="loading-progress"></div>
         </div>
+        <p class="loading-text">Inicializando módulos de IA...</p>
+      </div>
     </div>
-
-    <!-- Alert Panel -->
-    <div class="alert-panel" id="alert-panel">
-        <div class="alert-title">
-            <i class="fas fa-exclamation-triangle"></i>
-            Alerta Crítica del Sistema
-        </div>
-        <div class="alert-content">
-            Se han detectado 3 alarmas críticas en los últimos 5 minutos. Consulte el dashboard para más detalles.
-        </div>
+    <div class="tech-grid">
+      <div class="tech-line"></div>
+      <div class="tech-line"></div>
+      <div class="tech-line"></div>
     </div>
+  </div>
 
-    <!-- Advanced Features Panel -->
-    <div class="features-panel" id="features-panel">
-        <div class="features-header">
-            <span class="features-title">🚀 Funciones Avanzadas</span>
-            <button class="features-close" id="features-close">&times;</button>
+  <!-- Encabezado -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
+        <div class="logo-text">
+          <span class="brand-name">Plataformas Core</span>
+          <span class="brand-subtitle">Enterprise AI System</span>
         </div>
-        <div class="feature-item" data-feature="topology">
-            <div class="feature-icon">
-                <i class="fas fa-project-diagram"></i>
-            </div>
-            <div class="feature-info">
-                <h4>Topología de Red</h4>
-                <p>Visualización en tiempo real</p>
-            </div>
+      </div>
+      <div class="header-controls">
+        <div class="system-status">
+          <div class="status-indicator active">
+            <div class="status-pulse"></div>
+            <span>Sistema Operativo</span>
+          </div>
+          <div class="system-metrics">
+            <span class="metric">CPU: 12%</span>
+            <span class="metric">RAM: 8.2GB</span>
+            <span class="metric">Latencia: 45ms</span>
+          </div>
         </div>
-        <div class="feature-item" data-feature="analytics">
-            <div class="feature-icon">
-                <i class="fas fa-chart-area"></i>
-            </div>
-            <div class="feature-info">
-                <h4>Analytics Avanzado</h4>
-                <p>Gráficos de rendimiento</p>
-            </div>
-        </div>
-        <div class="feature-item" data-feature="terminal">
-            <div class="feature-icon">
-                <i class="fas fa-terminal"></i>
-            </div>
-            <div class="feature-info">
-                <h4>Terminal SSH</h4>
-                <p>Acceso directo a servidores</p>
-            </div>
-        </div>
-        <div class="feature-item" data-feature="security">
-            <div class="feature-icon">
-                <i class="fas fa-shield-alt"></i>
-            </div>
-            <div class="feature-info">
-                <h4>Security Center</h4>
-                <p>Monitoreo de seguridad 24/7</p>
-            </div>
-        </div>
-        <div class="feature-item" data-feature="ai-analysis">
-            <div class="feature-icon">
-                <i class="fas fa-brain"></i>
-            </div>
-            <div class="feature-info">
-                <h4>Análisis con IA</h4>
-                <p>Insights predictivos</p>
-            </div>
-        </div>
-        <div class="feature-item" data-feature="automation">
-            <div class="feature-icon">
-                <i class="fas fa-cogs"></i>
-            </div>
-            <div class="feature-info">
-                <h4>Automatización</h4>
-                <p>Scripts y workflows</p>
-            </div>
-        </div>
+      </div>
     </div>
+  </header>
 
-    <!-- Notification Center -->
-    <div class="notification-center" id="notification-center">
-        <div class="features-header">
-            <span class="features-title">🔔 Notificaciones</span>
-            <button class="features-close" id="notifications-close">&times;</button>
+  <!-- Contenido principal -->
+  <main class="main-content">
+    <section class="hero-section">
+      <div class="hero-background"></div>
+      <div class="hero-content">
+        <h1 class="hero-title">Centro de Operaciones Core</h1>
+        <p class="hero-description">Plataforma de Inteligencia Artificial especializada en gestión empresarial</p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">99.9%</span>
+            <span class="stat-label">Disponibilidad</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">24/7</span>
+            <span class="stat-label">Monitoreo</span>
+          </div>
         </div>
-        <div class="notification-item">
-            <div class="notification-icon critical">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="notification-content">
-                <h5>Alarma Crítica - Router Principal</h5>
-                <p>Latencia elevada detectada en el enlace troncal. Escalamiento automático iniciado.</p>
-                <div class="notification-time">Hace 2 minutos</div>
-            </div>
+      </div>
+    </section>
+
+    <section class="services-grid">
+      <div class="service-card premium">
+        <div class="service-icon alarm">
+          <i class="fas fa-shield-halved"></i>
         </div>
-        <div class="notification-item">
-            <div class="notification-icon warning">
-                <i class="fas fa-exclamation"></i>
-            </div>
-            <div class="notification-content">
-                <h5>Mantenimiento Programado</h5>
-                <p>Actualización de firmware en servidores secundarios programada para las 02:00 AM.</p>
-                <div class="notification-time">Hace 15 minutos</div>
-            </div>
+        <h3>Gestión Inteligente de Alarmas</h3>
+        <p>Sistema neural avanzado para análisis predictivo de alarmas críticas con correlación automática y recomendaciones de acción inmediata.</p>
+        <div class="service-badges">
+          <span class="badge">AI-Powered</span>
+          <span class="badge">Real-time</span>
         </div>
-        <div class="notification-item">
-            <div class="notification-icon info">
-                <i class="fas fa-info-circle"></i>
-            </div>
-            <div class="notification-content">
-                <h5>Backup Completado</h5>
-                <p>Respaldo automático de base de datos completado exitosamente. 2.3 GB procesados.</p>
-                <div class="notification-time">Hace 1 hora</div>
-            </div>
+      </div>
+
+      <div class="service-card premium">
+        <div class="service-icon docs">
+          <i class="fas fa-brain"></i>
         </div>
+        <h3>Base de Conocimiento Neural</h3>
+        <p>Documentación técnica inteligente con búsqueda semántica y asistencia contextual para resolución de problemas complejos.</p>
+        <div class="service-badges">
+          <span class="badge">ML-Enhanced</span>
+          <span class="badge">Expert</span>
+        </div>
+      </div>
+
+      <div class="service-card premium">
+        <div class="service-icon incidents">
+          <i class="fas fa-radar"></i>
+        </div>
+        <h3>Análisis Predictivo de Incidentes</h3>
+        <p>Monitoreo proactivo con algoritmos de machine learning para prevenir incidentes críticos antes de que impacten el servicio.</p>
+        <div class="service-badges">
+          <span class="badge">Predictive</span>
+          <span class="badge">Mission-Critical</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Chatbot -->
+  <div class="chat-bubble" id="chat-bubble">
+    <div class="bubble-icon">
+      <i class="fas fa-robot"></i>
     </div>
+    <div class="bubble-notification" id="bubble-notification">1</div>
+    <div class="bubble-pulse"></div>
+  </div>
 
-    <!-- Main Container -->
-    <div class="main-container">
-        <div class="hero-section">
-            <h1 class="hero-title">Centro de Operaciones Core</h1>
-            <p class="hero-subtitle">Sistema de Inteligencia Artificial para Gestión Empresarial Avanzada</p>
+  <div class="chat-window" id="chat-window" style="display:none">
+    <div class="chat-header-premium">
+      <div class="chat-avatar">
+        <div class="avatar-icon">
+          <i class="fas fa-robot"></i>
         </div>
-
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-value">99.9%</div>
-                <div class="metric-label">Disponibilidad del Sistema</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">24/7</div>
-                <div class="metric-label">Monitoreo Continuo</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">15ms</div>
-                <div class="metric-label">Latencia Promedio</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">847</div>
-                <div class="metric-label">Incidentes Resueltos</div>
-            </div>
-        </div>
+        <div class="avatar-status"></div>
+      </div>
+      <div class="chat-title-section">
+        <h3 class="chat-title">Asistente Core Enterprise</h3>
+        <span class="chat-subtitle">IA Especializada • Siempre Activo</span>
+      </div>
+      <div class="chat-controls">
+        <button class="control-btn minimize-btn" id="minimize-chat" title="Minimizar">
+          <i class="fas fa-window-minimize"></i>
+        </button>
+        <button class="control-btn maximize-btn" id="maximize-chat" title="Maximizar">
+          <i class="fas fa-expand"></i>
+        </button>
+        <button class="control-btn close-btn" id="close-chat" title="Cerrar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
     </div>
-
-    <!-- Chat Bubble -->
-    <div class="chat-bubble" id="chat-bubble">
+    
+    <div class="chat-messages" id="chat-box">
+      <div class="welcome-message">
+        <div class="welcome-avatar">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="welcome-content">
+          <div class="welcome-header">
+            <h4>🚀 Bienvenido al Centro de Operaciones Core</h4>
+            <span class="timestamp">Ahora</span>
+          </div>
+          <p class="welcome-text">
+            Soy tu asistente de IA especializado en plataformas empresariales de Claro. 
+            Tengo acceso a sistemas críticos y bases de conocimiento avanzadas.
+          </p>
+          <div class="capabilities-grid">
+            <div class="capability-item">
+              <i class="fas fa-shield-alt"></i>
+              <span>Monitoreo 24/7</span>
+            </div>
+            <div class="capability-item">
+              <i class="fas fa-lightning-bolt"></i>
+              <span>Respuesta Inmediata</span>
+            </div>
+            <div class="capability-item">
+              <i class="fas fa-brain"></i>
+              <span>Análisis Predictivo</span>
+            </div>
+            <div class="capability-item">
+              <i class="fas fa-lock"></i>
+              <span>Nivel Enterprise</span>
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn primary" data-action="alarmas">
+              <i class="fas fa-exclamation-triangle"></i>
+              Consultar Alarmas Críticas
+            </button>
+            <button class="action-btn secondary" data-action="documentacion">
+              <i class="fas fa-book-open"></i>
+              Acceder a Documentación
+            </button>
+            <button class="action-btn secondary" data-action="incidentes">
+              <i class="fas fa-chart-line"></i>
+              Dashboard de Incidentes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="typing-indicator" id="typing-indicator">
+      <div class="typing-avatar">
         <i class="fas fa-robot"></i>
-        <div class="notification-badge">1</div>
+      </div>
+      <div class="typing-content">
+        <span class="typing-text">El asistente está procesando...</span>
+        <div class="typing-animation">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
     </div>
-
-    <!-- Chat Window -->
-    <div class="chat-window" id="chat-window">
-        <div class="chat-header">
-            <div class="chat-avatar">
-                <i class="fas fa-robot"></i>
-            </div>
-            <div class="chat-title-section">
-                <h3>Asistente Core Enterprise</h3>
-                <p>IA Especializada • Nivel Expert</p>
-            </div>
-            <div class="chat-controls">
-                <button class="control-btn" id="minimize-btn">
-                    <i class="fas fa-window-minimize"></i>
-                </button>
-                <button class="control-btn" id="close-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="chat-messages" id="chat-messages">
-            <div class="message bot">
-                <div class="message-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="message-content">
-                    <strong>🚀 Bienvenido al Sistema Core Enterprise</strong><br><br>
-                    Soy tu asistente de IA especializado con acceso a sistemas críticos de Claro Colombia. Puedo ayudarte con:
-                    <div class="expert-actions">
-                        <div class="action-chip" data-action="alarmas">
-                            <i class="fas fa-exclamation-triangle"></i> Análisis de Alarmas
-                        </div>
-                        <div class="action-chip" data-action="incidentes">
-                            <i class="fas fa-chart-line"></i> Dashboard Incidentes
-                        </div>
-                        <div class="action-chip" data-action="documentacion">
-                            <i class="fas fa-book-open"></i> Base Conocimiento
-                        </div>
-                        <div class="action-chip" data-action="monitoreo">
-                            <i class="fas fa-radar"></i> Monitoreo Predictivo
-                        </div>
-                    </div>
-                    <div class="message-time">Ahora</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="typing-indicator" id="typing-indicator">
-            <div class="message-avatar">
-                <i class="fas fa-robot"></i>
-            </div>
-            <div class="typing-dots">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        </div>
-
-        <div class="chat-input-container">
-            <div class="input-wrapper">
-                <button class="input-btn">
-                    <i class="fas fa-paperclip"></i>
-                </button>
-                <input type="text" class="chat-input" id="chat-input" placeholder="Describe tu consulta técnica o emergencia...">
-                <button class="input-btn">
-                    <i class="fas fa-microphone"></i>
-                </button>
-                <button class="input-btn send-btn" id="send-btn">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-            <div class="quick-actions">
-                <div class="quick-action" data-quick="alarmas-criticas">
-                    <i class="fas fa-fire"></i> Alarmas Críticas
-                </div>
-                <div class="quick-action" data-quick="estado-red">
-                    <i class="fas fa-network-wired"></i> Estado Red
-                </div>
-                <div class="quick-action" data-quick="reportes">
-                    <i class="fas fa-chart-bar"></i> Generar Reporte
-                </div>
-            </div>
-        </div>
+    
+    <div class="chat-input-container">
+      <div class="input-wrapper">
+        <button class="attachment-btn" title="Adjuntar archivo">
+          <i class="fas fa-paperclip"></i>
+        </button>
+        <input type="text" class="chat-input" id="message-input" placeholder="Describe tu consulta técnica o emergencia..." autocomplete="off">
+        <button class="voice-btn" title="Mensaje de voz">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <button class="send-btn" id="send-btn" title="Enviar mensaje">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      <div class="input-footer">
+        <span class="input-help">Presiona Enter para enviar • Shift+Enter para nueva línea</span>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // Chat functionality
-        const chatBubble = document.getElementById('chat-bubble');
-        const chatWindow = document.getElementById('chat-window');
-        const chatMessages = document.getElementById('chat-messages');
-        const chatInput = document.getElementById('chat-input');
-        const sendBtn = document.getElementById('send-btn');
-        const typingIndicator = document.getElementById('typing-indicator');
-        const closeBtn = document.getElementById('close-btn');
-        const minimizeBtn = document.getElementById('minimize-btn');
-        const alertPanel = document.getElementById('alert-panel');
+  <!-- Pie de página -->
+  <footer class="footer-premium">
+    <div class="footer-content">
+      <div class="footer-left">
+        <span>Sistema Core Enterprise &copy; 2025 Claro Colombia</span>
+        <span class="separator">•</span>
+        <span>Plataforma de IA Especializada</span>
+      </div>
+      <div class="footer-right">
+        <span class="security-badge">
+          <i class="fas fa-shield-check"></i>
+          Nivel de Seguridad: Enterprise
+        </span>
+      </div>
+    </div>
+  </footer>
 
-        // Expert responses database
-        const expertResponses = {
-            'alarmas': {
-                response: '🔴 **Análisis de Alarmas Críticas**\n\nHe detectado las siguientes alarmas activas:\n\n• **ALM-001**: Latencia elevada en Core Network (>150ms)\n• **ALM-002**: Uso de CPU crítico en servidor principal (>85%)\n• **ALM-003**: Pérdida de paquetes en enlace troncal (>2%)\n\n¿Deseas que inicie el protocolo de escalamiento automático?',
-                actions: ['Ver Detalles', 'Escalar Incidente', 'Generar Reporte']
-            },
-            'incidentes': {
-                response: '📊 **Dashboard de Incidentes - Tiempo Real**\n\n**Últimas 24 horas:**\n• Incidentes críticos: 3\n• Incidentes resueltos: 15\n• MTTR promedio: 12 min\n• Disponibilidad: 99.94%\n\n**Top incidentes por frecuencia:**\n1. Congestión de red (35%)\n2. Fallos de hardware (28%)\n3. Problemas de conectividad (22%)',
-                actions: ['Ver Dashboard', 'Análisis Predictivo', 'Exportar Datos']
-            },
-            'documentacion': {
-                response: '📚 **Base de Conocimiento Neural**\n\nAcceso a documentación técnica especializada:\n\n• **Protocolos de Red**: 847 documentos\n• **Procedures SOP**: 156 procedimientos\n• **Troubleshooting**: 423 guías\n• **APIs y Integraciones**: 89 referencias\n\n¿Qué tipo de documentación necesitas consultar?',
-                actions: ['Buscar Protocolo', 'SOP Críticos', 'Guías Técnicas']
-            },
-            'monitoreo': {
-                response: '🎯 **Sistema de Monitoreo Predictivo**\n\n**Análisis ML en tiempo real:**\n• Predicción de fallos: 94.2% precisión\n• Alertas preventivas: 23 activas\n• Capacidad de red: 67% utilizada\n• Tendencia de carga: Estable (+2.1%)\n\n**Recomendaciones IA:**\n• Optimizar rutas de tráfico\n• Escalar recursos en 2h\n• Verificar enlaces redundantes',
-                actions: ['Ver Predicciones', 'Configurar Alertas', 'Optimizar Sistema']
-            }
-        };
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+  <script>
+    const burbuja = document.getElementById('burbuja-chat');
+    const chatWindow = document.getElementById('chat-window');
 
-        // Quick responses for common queries
-        const quickResponses = {
-            'alarmas-criticas': 'Consultando alarmas críticas del sistema...',
-            'estado-red': 'Verificando estado actual de la red...',
-            'reportes': 'Generando reporte ejecutivo...'
-        };
+    burbuja.addEventListener('click', () => {
+      chatWindow.style.display = 'flex';
+      burbuja.style.display = 'none';
+    });
 
-        // Chat bubble click
-        chatBubble.addEventListener('click', () => {
-            chatWindow.style.display = 'flex';
-            chatBubble.style.display = 'none';
-            chatInput.focus();
+    // Añadido: Observer para redirección
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) {
+      const observer = new MutationObserver(() => {
+        const mensajes = chatBox.querySelectorAll('.message-bot');
+        mensajes.forEach(msg => {
+          if (msg.innerText.toLowerCase().includes('detalles de la alarma')) {
+            window.location.href = 'detalle_alarma.html?volver=chat';
+          }
         });
-
-        // Close chat
-        closeBtn.addEventListener('click', () => {
-            chatWindow.style.display = 'none';
-            chatBubble.style.display = 'flex';
-        });
-
-        // Minimize chat
-        minimizeBtn.addEventListener('click', () => {
-            chatWindow.style.display = 'none';
-            chatBubble.style.display = 'flex';
-        });
-
-        // Send message
-        function sendMessage() {
-            const message = chatInput.value.trim();
-            if (!message) return;
-
-            addMessage(message, 'user');
-            chatInput.value = '';
-            
-            showTyping();
-            setTimeout(() => {
-                hideTyping();
-                processMessage(message);
-            }, 1500);
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        // Add message to chat
-        function addMessage(content, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-            
-            const avatar = document.createElement('div');
-            avatar.className = 'message-avatar';
-            avatar.innerHTML = sender === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.innerHTML = content.replace(/\n/g, '<br>');
-            
-            const timeDiv = document.createElement('div');
-            timeDiv.className = 'message-time';
-            timeDiv.textContent = new Date().toLocaleTimeString();
-            
-            contentDiv.appendChild(timeDiv);
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(contentDiv);
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Process user message
-        function processMessage(message) {
-            const lowerMessage = message.toLowerCase();
-            let response = '';
-            let actions = [];
-
-            // Expert system logic
-            if (lowerMessage.includes('alarma') || lowerMessage.includes('alert')) {
-                response = expertResponses.alarmas.response;
-                actions = expertResponses.alarmas.actions;
-            } else if (lowerMessage.includes('incidente') || lowerMessage.includes('dashboard')) {
-                response = expertResponses.incidentes.response;
-                actions = expertResponses.incidentes.actions;
-            } else if (lowerMessage.includes('documentacion') || lowerMessage.includes('documento') || lowerMessage.includes('manual')) {
-                response = expertResponses.documentacion.response;
-                actions = expertResponses.documentacion.actions;
-            } else if (lowerMessage.includes('monitoreo') || lowerMessage.includes('predictivo') || lowerMessage.includes('prediccion')) {
-                response = expertResponses.monitoreo.response;
-                actions = expertResponses.monitoreo.actions;
-            } else if (lowerMessage.includes('estado') || lowerMessage.includes('status')) {
-                response = '✅ **Estado del Sistema Core**\n\n• Servidores principales: Operativos\n• Base de datos: Sincronizada\n• Red troncal: Estable\n• APIs: Respondiendo (avg 45ms)\n• Último backup: Completado (02:15 AM)\n\nTodos los sistemas funcionando dentro de parámetros normales.';
-                actions = ['Ver Métricas', 'Historial Estado', 'Configurar Alertas'];
-            } else {
-                response = '🤖 **Asistente Core Enterprise**\n\nHe procesado tu consulta. Como sistema experto, puedo ayudarte con:\n\n• Análisis técnico de alarmas y eventos\n• Gestión de incidentes críticos\n• Consulta de documentación especializada\n• Monitoreo predictivo y optimización\n• Generación de reportes ejecutivos\n\n¿En qué área específica necesitas asistencia?';
-                actions = ['Consultar Alarmas', 'Ver Incidentes', 'Buscar Documentos'];
-            }
-
-            addBotMessageWithActions(response, actions);
-        }
-
-        // Add bot message with action buttons
-        function addBotMessageWithActions(content, actions) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot';
-            
-            const avatar = document.createElement('div');
-            avatar.className = 'message-avatar';
-            avatar.innerHTML = '<i class="fas fa-robot"></i>';
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.innerHTML = content.replace(/\n/g, '<br>');
-            
-            if (actions.length > 0) {
-                const actionsDiv = document.createElement('div');
-                actionsDiv.className = 'expert-actions';
-                
-                actions.forEach(action => {
-                    const actionBtn = document.createElement('div');
-                    actionBtn.className = 'action-chip';
-                    actionBtn.textContent = action;
-                    actionBtn.addEventListener('click', () => {
-                        handleActionClick(action);
-                    });
-                    actionsDiv.appendChild(actionBtn);
-                });
-                
-                contentDiv.appendChild(actionsDiv);
-            }
-            
-            const timeDiv = document.createElement('div');
-            timeDiv.className = 'message-time';
-            timeDiv.textContent = new Date().toLocaleTimeString();
-            
-            contentDiv.appendChild(timeDiv);
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(contentDiv);
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Handle action button clicks
-        function handleActionClick(action) {
-            const actionResponses = {
-                'Ver Detalles': '📋 **Detalles de Alarma ALM-001**\n\n**Timestamp:** 2025-01-25 14:32:15\n**Severity:** Critical\n**Affected Systems:** Core Network Router-03\n**Impact:** 15,000 usuarios afectados\n**Root Cause:** Congestión en enlace principal\n**Recommended Action:** Activar ruta de respaldo inmediatamente\n\n**Status:** Escalado a NOC Level 2',
-                'Escalar Incidente': '🚨 **Incidente Escalado**\n\nINC-2025-0125-001 creado automáticamente\n• Prioridad: P1 - Critical\n• Asignado a: NOC Senior Team\n• SLA: 15 minutos para resolución\n• Notificaciones enviadas a stakeholders\n\n**Next Steps:** Monitoreo cada 2 minutos hasta resolución',
-                'Generar Reporte': '📄 **Reporte Ejecutivo Generado**\n\nReporte_Core_Systems_20250125.pdf\n• Executive Summary\n• Impacto en SLA\n• Análisis de causa raíz\n• Plan de acción correctiva\n• Recomendaciones preventivas\n\n**Status:** Enviado a directores técnicos',
-                'Ver Dashboard': '📊 Redirigiendo al Dashboard de Incidentes en tiempo real...',
-                'Análisis Predictivo': '🔮 **Análisis Predictivo ML**\n\n**Predicciones próximas 4 horas:**\n• 78% probabilidad de congestión en Router-05\n• 23% riesgo de fallo en DB-Primary\n• 45% chance de escalamiento automático\n\n**Recomendación IA:** Implementar balanceeo preventivo',
-                'Exportar Datos': '💾 Preparando exportación de datos históricos...\nFormato: CSV, JSON, Excel\nPeriodo: Últimos 30 días\nTamaño estimado: 2.3 MB',
-                'Buscar Protocolo': '🔍 **Motor de Búsqueda Neural**\n\nIngrese términos de búsqueda:\n• Protocolo específico\n• Código de procedimiento\n• Palabra clave técnica\n\n**Búsquedas recientes:**\n- BGP routing protocols\n- Emergency escalation SOP\n- Network failover procedures',
-                'SOP Críticos': '⚡ **Procedimientos SOP Críticos**\n\n1. **SOP-001**: Emergency Network Isolation\n2. **SOP-015**: Critical System Recovery\n3. **SOP-023**: Data Center Evacuation\n4. **SOP-031**: Cyber Security Incident\n5. **SOP-044**: Service Degradation Response\n\nTodos disponibles 24/7 con acceso inmediato',
-                'Guías Técnicas': '🛠️ **Guías de Troubleshooting**\n\n**Categorías disponibles:**\n• Network Connectivity (89 guías)\n• Server Performance (67 guías)\n• Database Issues (45 guías)\n• Security Incidents (34 guías)\n• Hardware Failures (78 guías)\n\n¿Qué categoría necesitas consultar?',
-                'Ver Predicciones': '🎯 **Predicciones Avanzadas del Sistema**\n\n**Análisis Machine Learning:**\n• Modelo entrenado con 2.3M eventos\n• Precisión actual: 94.2%\n• Falsos positivos: <3%\n\n**Alertas Predictivas Activas:**\n- Router-07: Posible fallo en 3.2 horas\n- DB-Cluster: Degradación en 8.5 horas\n- Link-Trunk-02: Saturación en 45 min',
-                'Configurar Alertas': '⚙️ **Configuración de Alertas Inteligentes**\n\n**Niveles disponibles:**\n• Critical: < 5 min response\n• High: < 15 min response\n• Medium: < 1 hour response\n• Low: Next business day\n\n**Canales de notificación:**\n✅ Email • ✅ SMS • ✅ Teams • ✅ Slack',
-                'Optimizar Sistema': '🚀 **Optimización Automática del Sistema**\n\n**Analizando patrones de tráfico...**\n• Reasignando recursos dinámicamente\n• Optimizando rutas de red\n• Balanceando carga de servidores\n• Ajustando parámetros de QoS\n\n**Resultado:** +12% mejora en rendimiento\n**ETA:** Optimización completa en 8 minutos',
-                'Ver Métricas': '📈 **Métricas del Sistema en Tiempo Real**\n\n**Performance KPIs:**\n• Throughput: 847 Mbps (Normal)\n• Response Time: 42ms (Optimal)\n• Error Rate: 0.003% (Excellent)\n• Availability: 99.97% (Target: 99.9%)\n\n**Trending:** Todos los indicadores dentro de rangos óptimos',
-                'Historial Estado': '📚 **Historial de Estado del Sistema**\n\n**Últimos 7 días:**\n• Uptime total: 99.94%\n• Incidents: 2 (ambos resueltos)\n• Mantenimientos: 1 programado\n• Peak traffic: 1.2 Gbps\n\n**Comparativa mensual:** +0.12% mejora vs mes anterior',
-                'Consultar Alarmas': 'Iniciando consulta avanzada de alarmas críticas...',
-                'Ver Incidentes': 'Accediendo al sistema de gestión de incidentes...',
-                'Buscar Documentos': 'Activando motor de búsqueda de documentación técnica...'
-            };
-
-            if (actionResponses[action]) {
-                showTyping();
-                setTimeout(() => {
-                    hideTyping();
-                    addMessage(actionResponses[action], 'bot');
-                }, 1000);
-            }
-        }
-
-        // Action chip clicks from welcome message
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('action-chip')) {
-                const action = e.target.dataset.action;
-                if (action && expertResponses[action]) {
-                    showTyping();
-                    setTimeout(() => {
-                        hideTyping();
-                        addBotMessageWithActions(expertResponses[action].response, expertResponses[action].actions);
-                    }, 1200);
-                }
-            }
-            
-            if (e.target.classList.contains('quick-action')) {
-                const quickAction = e.target.dataset.quick;
-                if (quickAction && quickResponses[quickAction]) {
-                    addMessage(quickResponses[quickAction], 'user');
-                    showTyping();
-                    setTimeout(() => {
-                        hideTyping();
-                        processMessage(quickAction.replace('-', ' '));
-                    }, 1000);
-                }
-            }
-        });
-
-        // Typing indicator
-        function showTyping() {
-            typingIndicator.style.display = 'flex';
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function hideTyping() {
-            typingIndicator.style.display = 'none';
-        }
-
-        // Simulate system alerts
-        function showAlert() {
-            alertPanel.style.display = 'block';
-            setTimeout(() => {
-                alertPanel.style.display = 'none';
-            }, 8000);
-        }
-
-        // Auto-show alert after 10 seconds
-        setTimeout(showAlert, 10000);
-
-        // Advanced chat features
-        function initializeExpertFeatures() {
-            // Auto-complete suggestions
-            const suggestions = [
-                'Consultar alarmas críticas del sistema',
-                'Generar reporte de incidentes',
-                'Estado actual de la red troncal',
-                'Análisis predictivo de fallos',
-                'Documentación de protocolos BGP',
-                'Escalamiento automático de recursos',
-                'Optimización de rendimiento',
-                'Configurar alertas preventivas'
-            ];
-
-            // Simulate intelligent suggestions
-            chatInput.addEventListener('input', (e) => {
-                const value = e.target.value.toLowerCase();
-                if (value.length > 3) {
-                    // Here you would show intelligent suggestions
-                    // Implementation depends on your UI framework
-                }
-            });
-
-            // Advanced keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && e.key === 'k') {
-                    e.preventDefault();
-                    chatInput.focus();
-                }
-                if (e.key === 'Escape') {
-                    if (chatWindow.style.display === 'flex') {
-                        chatWindow.style.display = 'none';
-                        chatBubble.style.display = 'flex';
-                    }
-                }
-            });
-        }
-
-        // Initialize expert system
-        initializeExpertFeatures();
-
-        // Simulate real-time updates
-        function simulateRealTimeUpdates() {
-            const metrics = document.querySelectorAll('.metric-value');
-            setInterval(() => {
-                metrics.forEach(metric => {
-                    if (metric.textContent.includes('%')) {
-                        const currentValue = parseFloat(metric.textContent);
-                        const variation = (Math.random() - 0.5) * 0.2;
-                        const newValue = Math.max(99.0, Math.min(100.0, currentValue + variation));
-                        metric.textContent = newValue.toFixed(1) + '%';
-                    } else if (metric.textContent.includes('ms')) {
-                        const currentValue = parseInt(metric.textContent);
-                        const variation = Math.floor((Math.random() - 0.5) * 10);
-                        const newValue = Math.max(10, Math.min(50, currentValue + variation));
-                        metric.textContent = newValue + 'ms';
-                    }
-                });
-            }, 5000);
-        }
-
-        // Start real-time simulation
-        simulateRealTimeUpdates();
-
-        // Voice recognition simulation
-        document.querySelector('.input-btn .fa-microphone').parentElement.addEventListener('click', () => {
-            const voiceBtn = document.querySelector('.input-btn .fa-microphone');
-            voiceBtn.classList.add('fa-stop');
-            voiceBtn.classList.remove('fa-microphone');
-            
-            setTimeout(() => {
-                voiceBtn.classList.remove('fa-stop');
-                voiceBtn.classList.add('fa-microphone');
-                chatInput.value = 'Consultar estado de alarmas críticas del sistema';
-                chatInput.focus();
-            }, 3000);
-        });
-
-        // File attachment simulation
-        document.querySelector('.input-btn .fa-paperclip').parentElement.addEventListener('click', () => {
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = '.pdf,.doc,.docx,.txt,.log';
-            fileInput.click();
-            
-            fileInput.onchange = () => {
-                if (fileInput.files.length > 0) {
-                    const fileName = fileInput.files[0].name;
-                    addMessage(`📎 Archivo adjunto: ${fileName}`, 'user');
-                    showTyping();
-                    setTimeout(() => {
-                        hideTyping();
-                        addMessage(`✅ **Archivo Procesado**\n\nHe analizado el archivo "${fileName}" con IA avanzada:\n\n• Tipo: Log de sistema\n• Tamaño: ${(fileInput.files[0].size / 1024).toFixed(1)} KB\n• Eventos detectados: 47\n• Anomalías encontradas: 3\n\n¿Deseas que genere un análisis detallado?`, 'bot');
-                    }, 2000);
-                }
-            };
-        });
-
-        console.log('🚀 Sistema Core Enterprise inicializado correctamente');
-        console.log('💡 Presiona Ctrl+K para enfocar el chat');
-        console.log('💡 Presiona Escape para cerrar el chat');
-    </script>
+      });
+      observer.observe(chatBox, { childList: true, subtree: true });
+    }
+  </script>
 </body>
 </html>
