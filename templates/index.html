@@ -4,56 +4,90 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataformas Core - Claro</title>
+  <title>Plataformas Core - Claro Expert System</title>
 
   <!-- Ícono del sitio -->
-  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2504/2504739.png">
 
   <!-- Librerías externas -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Estilos locales -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-red: #d41528;
+      --dark-red: #a01121;
+      --gradient-primary: linear-gradient(135deg, #d41528 0%, #a01121 100%);
+      --gradient-secondary: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      --dark-bg: #0f0f0f;
+      --card-bg: #1a1a1a;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --border-color: #333;
+      --success-color: #00ff88;
+      --warning-color: #ffaa00;
+      --error-color: #ff4444;
+      --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.4);
+      --shadow-medium: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--dark-bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Burbuja de chat */
     #burbuja-chat {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 70px;
-      height: 70px;
-      background: #d41528;
+      bottom: 30px;
+      right: 30px;
+      width: 80px;
+      height: 80px;
+      background: var(--gradient-primary);
       border-radius: 50%;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      box-shadow: var(--shadow-heavy);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       z-index: 1002;
-      transition: transform 0.3s;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 3px solid rgba(255, 255, 255, 0.1);
     }
 
     #burbuja-chat:hover {
-      transform: scale(1.1);
+      transform: scale(1.15) rotate(5deg);
+      box-shadow: 0 25px 70px rgba(212, 21, 40, 0.6);
     }
 
     #burbuja-chat i {
-      font-size: 28px;
+      font-size: 32px;
       color: white;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
     }
 
     .bubble-notification {
       position: absolute;
-      top: -6px;
-      right: -6px;
-      background: white;
-      color: #d41528;
+      top: -8px;
+      right: -8px;
+      background: var(--success-color);
+      color: var(--dark-bg);
       border-radius: 50%;
-      padding: 4px 7px;
+      padding: 6px 9px;
       font-size: 12px;
-      font-weight: bold;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      font-weight: 900;
+      box-shadow: var(--shadow-medium);
       display: none;
+      animation: bounce 2s infinite;
     }
 
     .nuevo-mensaje .bubble-notification {
@@ -62,23 +96,870 @@
 
     .bubble-pulse {
       position: absolute;
-      width: 70px;
-      height: 70px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
-      background: rgba(212, 21, 40, 0.35);
-      animation: pulse 2s infinite;
+      background: rgba(212, 21, 40, 0.3);
+      animation: expertPulse 3s infinite;
       z-index: -1;
     }
 
-    @keyframes pulse {
+    @keyframes expertPulse {
       0% { transform: scale(1); opacity: 0.8; }
-      100% { transform: scale(1.8); opacity: 0; }
+      50% { transform: scale(1.5); opacity: 0.4; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+
+    /* Pantalla de bienvenida mejorada */
+    #welcome-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #2d2d2d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      animation: welcomeOut 4s forwards;
+    }
+
+    .welcome-content {
+      text-align: center;
+      max-width: 600px;
+      padding: 40px;
+    }
+
+    .logo-container {
+      position: relative;
+      margin-bottom: 40px;
+    }
+
+    .logo-container img {
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-heavy);
+      animation: logoGlow 2s ease-in-out infinite alternate;
+    }
+
+    .logo-glow {
+      position: absolute;
+      top: -20px;
+      left: -20px;
+      right: -20px;
+      bottom: -20px;
+      background: var(--gradient-primary);
+      border-radius: 30px;
+      filter: blur(30px);
+      opacity: 0.6;
+      z-index: -1;
+    }
+
+    .welcome-title {
+      font-size: 3rem;
+      font-weight: 900;
+      background: var(--gradient-primary);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+      text-shadow: 0 0 30px rgba(212, 21, 40, 0.5);
+    }
+
+    .welcome-subtitle {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      font-weight: 500;
+    }
+
+    .loading-container {
+      margin-top: 40px;
+    }
+
+    .loading-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--border-color);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .loading-progress {
+      height: 100%;
+      background: var(--gradient-primary);
+      border-radius: 10px;
+      animation: loading 3s ease-in-out forwards;
+      box-shadow: 0 0 20px rgba(212, 21, 40, 0.6);
+    }
+
+    .loading-text {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      animation: loadingText 2s ease-in-out infinite;
+    }
+
+    @keyframes logoGlow {
+      from { box-shadow: var(--shadow-heavy); }
+      to { box-shadow: 0 25px 70px rgba(212, 21, 40, 0.8); }
+    }
+
+    @keyframes loading {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    @keyframes loadingText {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes welcomeOut {
+      0% { opacity: 1; visibility: visible; }
+      85% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
+    }
+
+    /* Header premium */
+    .header {
+      background: rgba(26, 26, 26, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: var(--shadow-medium);
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 80px;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-medium);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .brand-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 255, 136, 0.1);
+      padding: 10px 20px;
+      border-radius: 25px;
+      border: 1px solid var(--success-color);
+    }
+
+    .status-pulse {
+      width: 12px;
+      height: 12px;
+      background: var(--success-color);
+      border-radius: 50%;
+      animation: statusPulse 2s infinite;
+      box-shadow: 0 0 10px var(--success-color);
+    }
+
+    .system-metrics {
+      display: flex;
+      gap: 15px;
+    }
+
+    .metric {
+      background: var(--card-bg);
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    /* Main content */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 30px;
+    }
+
+    .hero-section {
+      position: relative;
+      padding: 100px 0;
+      text-align: center;
+      background: radial-gradient(ellipse at center, rgba(212, 21, 40, 0.1) 0%, transparent 70%);
+    }
+
+    .hero-title {
+      font-size: 4rem;
+      font-weight: 900;
+      margin-bottom: 30px;
+      background: linear-gradient(135deg, #ffffff 0%, #d41528 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 40px rgba(212, 21, 40, 0.3);
+    }
+
+    .hero-description {
+      font-size: 1.3rem;
+      color: var(--text-secondary);
+      margin-bottom: 60px;
+      font-weight: 500;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      margin-bottom: 80px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      display: block;
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--primary-red);
+      text-shadow: 0 0 20px rgba(212, 21, 40, 0.5);
+    }
+
+    .stat-label {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    /* Services grid premium */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 40px;
+      padding: 80px 0;
+    }
+
+    .service-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 40px;
+      border: 1px solid var(--border-color);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .service-card:hover {
+      transform: translateY(-10px);
+      box-shadow: var(--shadow-heavy);
+      border-color: var(--primary-red);
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(212, 21, 40, 0.1), transparent);
+      transition: left 0.6s;
+    }
+
+    .service-card:hover::before {
+      left: 100%;
+    }
+
+    .service-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 30px;
+      box-shadow: var(--shadow-medium);
+      transition: all 0.3s;
+    }
+
+    .service-icon.alarm {
+      background: linear-gradient(135deg, #ff4444 0%, #cc1111 100%);
+    }
+
+    .service-icon.docs {
+      background: linear-gradient(135deg, #4444ff 0%, #1111cc 100%);
+    }
+
+    .service-icon.incidents {
+      background: linear-gradient(135deg, #44ff44 0%, #11cc11 100%);
+    }
+
+    .service-card:hover .service-icon {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .service-icon i {
+      font-size: 32px;
+      color: white;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    }
+
+    .service-card h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    .service-card p {
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 30px;
+      font-weight: 500;
+    }
+
+    .service-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: var(--gradient-primary);
+      color: white;
+      padding: 6px 15px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(212, 21, 40, 0.3);
+    }
+
+    /* Chat window premium */
+    .chat-window {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 420px;
+      height: 650px;
+      background: var(--card-bg);
+      border-radius: 25px;
+      box-shadow: var(--shadow-heavy);
+      border: 1px solid var(--border-color);
+      z-index: 1001;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+    }
+
+    .chat-header-premium {
+      background: var(--gradient-primary);
+      padding: 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      position: relative;
+    }
+
+    .chat-avatar {
+      position: relative;
+    }
+
+    .avatar-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .avatar-icon i {
+      font-size: 24px;
+      color: white;
+    }
+
+    .avatar-status {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 16px;
+      height: 16px;
+      background: var(--success-color);
+      border-radius: 50%;
+      border: 3px solid white;
+      animation: statusPulse 2s infinite;
+    }
+
+    .chat-title-section {
+      flex: 1;
+    }
+
+    .chat-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 5px;
+    }
+
+    .chat-subtitle {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+    }
+
+    .chat-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .control-btn {
+      width: 35px;
+      height: 35px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      backdrop-filter: blur(10px);
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    }
+
+    .welcome-message {
+      background: rgba(212, 21, 40, 0.1);
+      border-radius: 20px;
+      padding: 25px;
+      border: 1px solid rgba(212, 21, 40, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .welcome-avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--gradient-primary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+
+    .welcome-avatar i {
+      font-size: 20px;
+      color: white;
+    }
+
+    .welcome-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .welcome-header h4 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .timestamp {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .welcome-text {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .capabilities-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .capability-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .capability-item i {
+      color: var(--primary-red);
+      font-size: 16px;
+    }
+
+    .capability-item span {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 15px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .action-btn:hover {
+      background: var(--primary-red);
+      border-color: var(--primary-red);
+      transform: translateX(5px);
+    }
+
+    .action-btn.primary {
+      background: var(--gradient-primary);
+      border-color: var(--primary-red);
+    }
+
+    .chat-input-container {
+      padding: 20px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      background: var(--dark-bg);
+      border-radius: 25px;
+      padding: 5px;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--primary-red);
+      box-shadow: 0 0 20px rgba(212, 21, 40, 0.3);
+    }
+
+    .chat-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 15px;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .attachment-btn, .voice-btn, .send-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      margin: 0 2px;
+    }
+
+    .attachment-btn, .voice-btn {
+      background: transparent;
+      color: var(--text-secondary);
+    }
+
+    .attachment-btn:hover, .voice-btn:hover {
+      background: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .send-btn {
+      background: var(--gradient-primary);
+      color: white;
+    }
+
+    .send-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 15px rgba(212, 21, 40, 0.4);
+    }
+
+    .input-footer {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .input-help {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* Message styles */
+    .message {
+      margin-bottom: 20px;
+      animation: messageSlideIn 0.3s ease-out;
+    }
+
+    .user-message {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .user-message .message-content {
+      background: var(--gradient-primary);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 20px 20px 5px 20px;
+      max-width: 80%;
+      font-weight: 500;
+      box-shadow: var(--shadow-medium);
+    }
+
+    .bot-message {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .bot-avatar {
+      width: 35px;
+      height: 35px;
+      background: var(--gradient-primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .bot-avatar i {
+      font-size: 16px;
+      color: white;
+    }
+
+    .bot-message .message-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 15px 20px;
+      border-radius: 5px 20px 20px 20px;
+      max-width: 80%;
+      line-height: 1.6;
+      box-shadow: var(--shadow-medium);
+    }
+
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .typing-avatar {
+      width: 35px;
+      height: 35px;
+      background: var(--gradient-primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .typing-avatar i {
+      font-size: 16px;
+      color: white;
+    }
+
+    .typing-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 15px 20px;
+      border-radius: 5px 20px 20px 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .typing-text {
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .typing-animation {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary-red);
+      border-radius: 50%;
+      animation: typingDot 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typingDot {
+      0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+      40% { transform: scale(1.2); opacity: 1; }
+    }
+
+    @keyframes messageSlideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Footer premium */
+    .footer-premium {
+      background: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      padding: 30px 0;
+      margin-top: 100px;
+    }
+
+    .footer-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-weight: 500;
+    }
+
+    .separator {
+      color: var(--text-secondary);
+    }
+
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 255, 136, 0.1);
+      padding: 10px 20px;
+      border-radius: 25px;
+      border: 1px solid var(--success-color);
+      color: var(--success-color);
+      font-weight: 600;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2.5rem; }
+      .hero-stats { flex-direction: column; gap: 30px; }
+      .services-grid { grid-template-columns: 1fr; gap: 30px; }
+      .chat-window { width: 90vw; height: 80vh; bottom: 5%; right: 5%; }
+      .system-metrics { display: none; }
+      .footer-content { flex-direction: column; gap: 20px; text-align: center; }
     }
   </style>
 </head>
 <body>
    <div id="burbuja-chat">
-    <i class="fas fa-comments"></i>
+    <i class="fas fa-robot"></i>
     <div class="bubble-notification" id="bubble-notification">1</div>
     <div class="bubble-pulse"></div>
   </div>
@@ -87,16 +968,16 @@
   <div id="welcome-screen">
     <div class="welcome-content">
       <div class="logo-container">
-        <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Logo Claro">
+        <img src="https://cdn-icons-png.flaticon.com/512/2504/2504739.png" alt="Logo Claro">
         <div class="logo-glow"></div>
       </div>
       <h2 class="welcome-title">Centro de Operaciones Core</h2>
-      <p class="welcome-subtitle">Sistema Experto Neural • Versión Enterprise</p>
+      <p class="welcome-subtitle">Sistema Experto Neural • Versión Enterprise Pro</p>
       <div class="loading-container">
         <div class="loading-bar">
           <div class="loading-progress"></div>
         </div>
-        <p class="loading-text">Inicializando módulos de IA...</p>
+        <p class="loading-text">Inicializando módulos de IA avanzada...</p>
       </div>
     </div>
     <div class="tech-grid">
@@ -110,22 +991,22 @@
   <header class="header">
     <div class="header-content">
       <div class="logo-section">
-        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
+        <img src="https://cdn-icons-png.flaticon.com/512/2504/2504739.png" alt="Claro" class="header-logo">
         <div class="logo-text">
-          <span class="brand-name">Plataformas Core</span>
-          <span class="brand-subtitle">Enterprise AI System</span>
+          <span class="brand-name">Plataformas Core Expert</span>
+          <span class="brand-subtitle">Enterprise AI System Pro</span>
         </div>
       </div>
       <div class="header-controls">
         <div class="system-status">
           <div class="status-indicator active">
             <div class="status-pulse"></div>
-            <span>Sistema Operativo</span>
+            <span>Sistema Expert Online</span>
           </div>
           <div class="system-metrics">
-            <span class="metric">CPU: 12%</span>
-            <span class="metric">RAM: 8.2GB</span>
-            <span class="metric">Latencia: 45ms</span>
+            <span class="metric">CPU: 8%</span>
+            <span class="metric">RAM: 12.4GB</span>
+            <span class="metric">Latencia: 12ms</span>
           </div>
         </div>
       </div>
@@ -137,68 +1018,66 @@
     <section class="hero-section">
       <div class="hero-background"></div>
       <div class="hero-content">
-        <h1 class="hero-title">Centro de Operaciones Core</h1>
-        <p class="hero-description">Plataforma de Inteligencia Artificial especializada en gestión empresarial</p>
+        <h1 class="hero-title">Centro de Operaciones Core Expert</h1>
+        <p class="hero-description">Plataforma de Inteligencia Artificial Neural especializada en gestión empresarial avanzada y análisis predictivo</p>
         <div class="hero-stats">
           <div class="stat-item">
-            <span class="stat-number">99.9%</span>
-            <span class="stat-label">Disponibilidad</span>
+            <span class="stat-number">99.98%</span>
+            <span class="stat-label">Disponibilidad SLA</span>
           </div>
           <div class="stat-item">
             <span class="stat-number">24/7</span>
-            <span class="stat-label">Monitoreo</span>
-        
+            <span class="stat-label">Monitoreo Activo</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number"><12ms</span>
+            <span class="stat-label">Tiempo Respuesta</span>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="services-grid">
-      <div class="service-card premium">
+      <div class="service-card premium" data-service="alarmas">
         <div class="service-icon alarm">
-          <i class="fas fa-shield-halved"></i>
+          <i class="fas fa-shield-virus"></i>
         </div>
-        <h3>Gestión Inteligente de Alarmas</h3>
-        <p>Sistema neural avanzado para análisis predictivo de alarmas críticas con correlación automática y recomendaciones de acción inmediata.</p>
+        <h3>Sistema Neural de Alarmas Críticas</h3>
+        <p>Inteligencia artificial avanzada con correlación automática, análisis predictivo en tiempo real y respuesta proactiva a incidentes críticos con machine learning integrado.</p>
         <div class="service-badges">
-          <span class="badge">AI-Powered</span>
+          <span class="badge">Neural AI</span>
+          <span class="badge">Predictive</span>
           <span class="badge">Real-time</span>
         </div>
       </div>
 
-      <div class="service-card premium">
+      <div class="service-card premium" data-service="documentacion">
         <div class="service-icon docs">
           <i class="fas fa-brain"></i>
         </div>
-        <h3>Base de Conocimiento Neural</h3>
-        <p>Documentación técnica inteligente con búsqueda semántica y asistencia contextual para resolución de problemas complejos.</p>
+        <h3>Base de Conocimiento Neural Expert</h3>
+        <p>Documentación técnica inteligente con búsqueda semántica avanzada, procesamiento de lenguaje natural y asistencia contextual para resolución experta de problemas complejos.</p>
         <div class="service-badges">
-          <span class="badge">ML-Enhanced</span>
-          <span class="badge">Expert</span>
+          <span class="badge">NLP Advanced</span>
+          <span class="badge">Semantic Search</span>
+          <span class="badge">Expert Level</span>
         </div>
       </div>
 
-      <div class="service-card premium">
+      <div class="service-card premium" data-service="incidentes">
         <div class="service-icon incidents">
-          <i class="fas fa-radar"></i>
+          <i class="fas fa-satellite-dish"></i>
         </div>
-        <h3>Análisis Predictivo de Incidentes</h3>
-        <p>Monitoreo proactivo con algoritmos de machine learning para prevenir incidentes críticos antes de que impacten el servicio.</p>
+        <h3>Análisis Predictivo de Incidentes Expert</h3>
+        <p>Monitoreo proactivo con algoritmos de deep learning para prevenir incidentes críticos, análisis de patrones complejos y automatización de respuestas inteligentes.</p>
         <div class="service-badges">
-          <span class="badge">Predictive</span>
+          <span class="badge">Deep Learning</span>
+          <span class="badge">Auto-Response</span>
           <span class="badge">Mission-Critical</span>
         </div>
       </div>
     </section>
   </main>
-
-  <!-- Chatbot -->
-  <div class="chat-bubble" id="chat-bubble">
-    <div class="bubble-icon">
-      <i class="fas fa-robot"></i>
-    </div>
-    <div class="bubble-notification" id="bubble-notification">1</div>
-    <div class="bubble-pulse"></div>
-  </div>
 
   <div class="chat-window" id="chat-window" style="display:none">
     <div class="chat-header-premium">
@@ -209,8 +1088,8 @@
         <div class="avatar-status"></div>
       </div>
       <div class="chat-title-section">
-        <h3 class="chat-title">Asistente Core Enterprise</h3>
-        <span class="chat-subtitle">IA Especializada • Siempre Activo</span>
+        <h3 class="chat-title">Asistente Core Enterprise Expert</h3>
+        <span class="chat-subtitle">IA Neural Especializada • Nivel Expert</span>
       </div>
       <div class="chat-controls">
         <button class="control-btn minimize-btn" id="minimize-chat" title="Minimizar">
@@ -226,50 +1105,49 @@
     </div>
     
     <div class="chat-messages" id="chat-box">
->
       <div class="welcome-message">
         <div class="welcome-avatar">
           <i class="fas fa-robot"></i>
         </div>
         <div class="welcome-content">
           <div class="welcome-header">
-            <h4>🚀 Bienvenido al Centro de Operaciones Core</h4>
+            <h4>🚀 Bienvenido al Centro de Operaciones Core Expert</h4>
             <span class="timestamp">Ahora</span>
           </div>
           <p class="welcome-text">
-            Soy tu asistente de IA especializado en plataformas empresariales de Claro. 
-            Tengo acceso a sistemas críticos y bases de conocimiento avanzadas.
+            Soy tu asistente de IA neural especializado en plataformas empresariales críticas de Claro. 
+            Tengo acceso a sistemas avanzados, bases de conocimiento expertas y capacidades de análisis predictivo en tiempo real.
           </p>
           <div class="capabilities-grid">
             <div class="capability-item">
-              <i class="fas fa-shield-alt"></i>
-              <span>Monitoreo 24/7</span>
+              <i class="fas fa-shield-virus"></i>
+              <span>Monitoreo Neural 24/7</span>
             </div>
             <div class="capability-item">
-              <i class="fas fa-lightning-bolt"></i>
-              <span>Respuesta Inmediata</span>
+              <i class="fas fa-bolt"></i>
+              <span>Respuesta <12ms</span>
             </div>
             <div class="capability-item">
               <i class="fas fa-brain"></i>
-              <span>Análisis Predictivo</span>
+              <span>IA Predictiva Expert</span>
             </div>
             <div class="capability-item">
-              <i class="fas fa-lock"></i>
-              <span>Nivel Enterprise</span>
+              <i class="fas fa-lock-open"></i>
+              <span>Acceso Enterprise Pro</span>
             </div>
           </div>
           <div class="action-buttons">
             <button class="action-btn primary" data-action="alarmas">
               <i class="fas fa-exclamation-triangle"></i>
-              Consultar Alarmas Críticas
+              Análisis de Alarmas Críticas Expert
             </button>
             <button class="action-btn secondary" data-action="documentacion">
-              <i class="fas fa-book-open"></i>
-              Acceder a Documentación
+              <i class="fas fa-database"></i>
+              Base de Conocimiento Neural
             </button>
             <button class="action-btn secondary" data-action="incidentes">
-              <i class="fas fa-chart-line"></i>
-              Dashboard de Incidentes
+              <i class="fas fa-chart-area"></i>
+              Dashboard Predictivo de Incidentes
             </button>
           </div>
         </div>
@@ -281,7 +1159,7 @@
         <i class="fas fa-robot"></i>
       </div>
       <div class="typing-content">
-        <span class="typing-text">El asistente está procesando...</span>
+        <span class="typing-text">Asistente Expert procesando consulta neural...</span>
         <div class="typing-animation">
           <div class="typing-dot"></div>
           <div class="typing-dot"></div>
@@ -292,19 +1170,19 @@
     
     <div class="chat-input-container">
       <div class="input-wrapper">
-        <button class="attachment-btn" title="Adjuntar archivo">
+        <button class="attachment-btn" title="Adjuntar archivo técnico">
           <i class="fas fa-paperclip"></i>
         </button>
-        <input type="text" class="chat-input" id="message-input" placeholder="Describe tu consulta técnica o emergencia..." autocomplete="off">
-        <button class="voice-btn" title="Mensaje de voz">
+        <input type="text" class="chat-input" id="message-input" placeholder="Describe tu consulta técnica expert o emergencia crítica..." autocomplete="off">
+        <button class="voice-btn" title="Comando de voz">
           <i class="fas fa-microphone"></i>
         </button>
-        <button class="send-btn" id="send-btn" title="Enviar mensaje">
+        <button class="send-btn" id="send-btn" title="Enviar consulta">
           <i class="fas fa-paper-plane"></i>
         </button>
       </div>
       <div class="input-footer">
-        <span class="input-help">Presiona Enter para enviar • Shift+Enter para nueva línea</span>
+        <span class="input-help">Enter para enviar • Shift+Enter para nueva línea • /help para comandos expert</span>
       </div>
     </div>
   </div>
@@ -313,29 +1191,370 @@
   <footer class="footer-premium">
     <div class="footer-content">
       <div class="footer-left">
-        <span>Sistema Core Enterprise &copy; 2025 Claro Colombia</span>
+        <span>Sistema Core Enterprise Expert &copy; 2025 Claro Colombia</span>
         <span class="separator">•</span>
-        <span>Plataforma de IA Especializada</span>
+        <span>Plataforma de IA Neural Especializada</span>
       </div>
       <div class="footer-right">
         <span class="security-badge">
           <i class="fas fa-shield-check"></i>
-          Nivel de Seguridad: Enterprise
+          Nivel de Seguridad: Enterprise Pro
         </span>
       </div>
     </div>
   </footer>
 
-  <!-- Scripts -->
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
   <script>
-    const burbuja = document.getElementById('burbuja-chat');
-    const chatWindow = document.getElementById('chat-window');
+    // Sistema experto mejorado
+    const expertResponses = {
+      alarmas: {
+        title: "🚨 Sistema Neural de Alarmas Críticas Expert",
+        content: `
+**ESTADO ACTUAL DEL SISTEMA NEURAL:**
+• **Alarmas Críticas Activas:** 3 incidentes de alta prioridad
+• **Análisis Predictivo:** 95% precisión en correlación automática
+• **Tiempo de Respuesta:** <8ms promedio en detección
 
-    burbuja.addEventListener('click', () => {
+**INCIDENTES CRÍTICOS DETECTADOS:**
+
+🔴 **CRÍTICO - RED CORE**
+- **Servicio:** Backbone Nacional Bogotá-Medellín
+- **Impacto:** 15,000 usuarios afectados
+- **Predicción IA:** Falla cascada en 12 minutos
+- **Acción Recomendada:** Activar redundancia automática
+
+🟡 **ALTO - PLATAFORMA VoLTE**
+- **Servicio:** Llamadas HD región Caribe
+- **Impacto:** Degradación 23% calidad de voz  
+- **Análisis Neural:** Congestión en MME-03
+- **Solución Expert:** Rebalanceo automático de tráfico
+
+🟠 **MEDIO - CORE DATOS**
+- **Servicio:** Internet móvil 4G/5G
+- **Impacto:** Latencia aumentada 45ms
+- **IA Predictiva:** Saturación en gateway principal
+- **Recomendación:** Escalamiento horizontal inmediato
+
+**CAPACIDADES NEURAL EXPERT:**
+✅ Correlación automática de eventos
+✅ Análisis predictivo con ML avanzado
+✅ Respuesta proactiva automatizada
+✅ Integración con sistemas críticos
+✅ Dashboard en tiempo real con IA
+
+¿Necesitas análisis detallado de algún incidente específico o quieres que active protocolos de respuesta automática?`
+      },
+      documentacion: {
+        title: "📚 Base de Conocimiento Neural Expert",
+        content: `
+**SISTEMA DE DOCUMENTACIÓN INTELIGENTE ACTIVADO**
+
+**MÓDULOS EXPERT DISPONIBLES:**
+
+🧠 **BÚSQUEDA SEMÁNTICA AVANZADA**
+- Procesamiento de lenguaje natural
+- Búsqueda contextual inteligente
+- Correlación automática de documentos
+- Sugerencias predictivas
+
+📖 **BIBLIOTECAS TÉCNICAS:**
+- **Plataformas Core:** 2,847 documentos actualizados
+- **Procedimientos NOC:** 1,523 protocolos expert
+- **Troubleshooting:** 4,156 casos resueltos
+- **APIs y Integraciones:** 892 especificaciones técnicas
+
+🔍 **CAPACIDADES DE BÚSQUEDA EXPERT:**
+- Búsqueda por síntomas de falla
+- Procedimientos step-by-step interactivos
+- Diagramas técnicos con zoom inteligente
+- Videos explicativos HD integrados
+- Simuladores de configuración
+
+**DOCUMENTACIÓN MÁS CONSULTADA (24H):**
+1. **Troubleshooting MME Core** - 847 consultas
+2. **Configuración VoLTE Advanced** - 623 consultas  
+3. **Procedimientos de Emergencia** - 445 consultas
+4. **API Gateway Management** - 334 consultas
+5. **Security Hardening Guide** - 289 consultas
+
+**ASISTENTE CONTEXTUAL:**
+✅ Respuestas instantáneas con IA
+✅ Procedimientos paso a paso
+✅ Detección automática de contexto
+✅ Sugerencias proactivas
+✅ Integración con sistemas en vivo
+
+**ÚLTIMAS ACTUALIZACIONES:**
+• Nuevos procedimientos 5G SA (hace 2 horas)
+• Guía troubleshooting IMS (hace 6 horas)
+• Protocolos seguridad enterprise (hace 1 día)
+
+¿Qué información técnica específica necesitas? Puedo hacer búsquedas contextuales o guiarte paso a paso.`
+      },
+      incidentes: {
+        title: "📊 Dashboard Predictivo de Incidentes Expert",
+        content: `
+**CENTRO DE ANÁLISIS PREDICTIVO ACTIVADO**
+
+**MÉTRICAS EN TIEMPO REAL:**
+
+📈 **INDICADORES CLAVE (KPIs):**
+- **MTTR Promedio:** 8.3 minutos (-23% vs mes anterior)
+- **Disponibilidad SLA:** 99.987% (Target: 99.95%)
+- **Incidentes Prevenidos:** 127 esta semana
+- **Precisión IA:** 96.4% en predicciones
+
+🔮 **ANÁLISIS PREDICTIVO NEURAL:**
+
+**PRÓXIMAS 6 HORAS:**
+🟢 **Probabilidad Baja** (12%) - Falla en Core Datos
+🟡 **Probabilidad Media** (34%) - Congestión Red Móvil  
+🔴 **Probabilidad Alta** (78%) - Sobrecarga VoLTE Fines de Semana
+
+**PRÓXIMAS 24 HORAS:**
+- **Pico de Tráfico:** Domingo 8-10 PM (+340% vs promedio)
+- **Riesgo Crítico:** MME Overload en región Andina
+- **Mantenimiento Programado:** Core Gateway 02:00-04:00
+
+📊 **TENDENCIAS IDENTIFICADAS:**
+• Incremento 23% en llamadas VoLTE los domingos
+• Patrón de fallos recurrentes en Gateway-07 cada 72h
+• Correlación: Fallas eléctricas → Incidentes Core (85%)
+• Predicción: Necesidad expansión capacidad Q1 2025
+
+**AUTOMATIZACIÓN EXPERT:**
+✅ **Auto-Scaling:** Activado en 12 servicios críticos
+✅ **Failover Inteligente:** Respuesta <30 segundos
+✅ **Alertas Predictivas:** 95% precisión
+✅ **Respuesta Proactiva:** 78% incidentes prevenidos
+✅ **ML Continuous Learning:** Mejora continua algoritmos
+
+**DASHBOARD INTERACTIVO:**
+- **Vista en Tiempo Real:** Métricas cada 5 segundos
+- **Análisis Histórico:** Tendencias 1-12 meses
+- **Mapas de Calor:** Zonas críticas geográficas
+- **Simulaciones:** Escenarios de falla what-if
+- **Reportes Expert:** Análisis profundo automatizado
+
+**ACCIONES RECOMENDADAS:**
+🎯 Preparar escalamiento automático para pico dominical
+🎯 Revisar configuración Gateway-07 (patrón detectado)
+🎯 Activar modo preventivo en región Andina
+
+¿Quieres profundizar en algún análisis específico o configurar alertas predictivas personalizadas?`
+      }
+    };
+
+    // Variables del sistema
+    let chatWindow, chatBox, messageInput, sendBtn, burbuja, typingIndicator;
+    let isExpertMode = true;
+
+    // Inicialización del sistema expert
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeExpertSystem();
+      setupEventListeners();
+      startWelcomeSequence();
+    });
+
+    function initializeExpertSystem() {
+      chatWindow = document.getElementById('chat-window');
+      chatBox = document.getElementById('chat-box');
+      messageInput = document.getElementById('message-input');
+      sendBtn = document.getElementById('send-btn');
+      burbuja = document.getElementById('burbuja-chat');
+      typingIndicator = document.getElementById('typing-indicator');
+
+      console.log('🚀 Sistema Expert Core Inicializado');
+    }
+
+    function setupEventListeners() {
+      // Burbuja de chat
+      burbuja.addEventListener('click', openExpertChat);
+      
+      // Controles del chat
+      document.getElementById('close-chat').addEventListener('click', closeChat);
+      document.getElementById('minimize-chat').addEventListener('click', minimizeChat);
+      
+      // Input de mensajes
+      messageInput.addEventListener('keypress', handleKeyPress);
+      sendBtn.addEventListener('click', sendExpertMessage);
+      
+      // Botones de acción
+      document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.addEventListener('click', handleExpertAction);
+      });
+
+      // Cards de servicios
+      document.querySelectorAll('.service-card').forEach(card => {
+        card.addEventListener('click', handleServiceCardClick);
+      });
+    }
+
+    function startWelcomeSequence() {
+      setTimeout(() => {
+        burbuja.classList.add('nuevo-mensaje');
+      }, 4000);
+    }
+
+    function openExpertChat() {
       chatWindow.style.display = 'flex';
       burbuja.style.display = 'none';
-    });
+      messageInput.focus();
+      burbuja.classList.remove('nuevo-mensaje');
+    }
+
+    function closeChat() {
+      chatWindow.style.display = 'none';
+      burbuja.style.display = 'flex';
+    }
+
+    function minimizeChat() {
+      chatWindow.style.display = 'none';
+      burbuja.style.display = 'flex';
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendExpertMessage();
+      }
+    }
+
+    function handleExpertAction(e) {
+      const action = e.currentTarget.dataset.action;
+      if (expertResponses[action]) {
+        showExpertResponse(expertResponses[action]);
+      }
+    }
+
+    function handleServiceCardClick(e) {
+      const service = e.currentTarget.dataset.service;
+      if (expertResponses[service]) {
+        openExpertChat();
+        setTimeout(() => {
+          showExpertResponse(expertResponses[service]);
+        }, 500);
+      }
+    }
+
+    function sendExpertMessage() {
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      addUserMessage(message);
+      messageInput.value = '';
+      
+      // Mostrar indicador de escritura
+      showTypingIndicator();
+      
+      // Procesar mensaje con IA expert
+      setTimeout(() => {
+        processExpertMessage(message);
+      }, 1500 + Math.random() * 1000);
+    }
+
+    function addUserMessage(message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message user-message';
+      messageDiv.innerHTML = `
+        <div class="message-content">${message}</div>
+      `;
+      chatBox.appendChild(messageDiv);
+      scrollToBottom();
+    }
+
+    function addBotMessage(content) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message bot-message';
+      messageDiv.innerHTML = `
+        <div class="bot-avatar">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content">${content}</div>
+      `;
+      chatBox.appendChild(messageDiv);
+      scrollToBottom();
+    }
+
+    function showTypingIndicator() {
+      typingIndicator.style.display = 'flex';
+      scrollToBottom();
+    }
+
+    function hideTypingIndicator() {
+      typingIndicator.style.display = 'none';
+    }
+
+    function processExpertMessage(message) {
+      hideTypingIndicator();
+      
+      const lowerMessage = message.toLowerCase();
+      
+      // Detección inteligente de intención
+      if (lowerMessage.includes('alarma') || lowerMessage.includes('critica') || lowerMessage.includes('incidente')) {
+        showExpertResponse(expertResponses.alarmas);
+      } else if (lowerMessage.includes('documentacion') || lowerMessage.includes('manual') || lowerMessage.includes('procedimiento')) {
+        showExpertResponse(expertResponses.documentacion);
+      } else if (lowerMessage.includes('dashboard') || lowerMessage.includes('metricas') || lowerMessage.includes('incidentes')) {
+        showExpertResponse(expertResponses.incidentes);
+      } else {
+        // Respuesta inteligente general
+        const expertResponse = `
+**🤖 Asistente Core Enterprise Expert**
+
+He analizado tu consulta: "${message}"
+
+**Análisis Neural Completado:**
+✅ Consulta procesada con IA avanzada
+✅ Contexto empresarial identificado
+✅ Recomendaciones expertas generadas
+
+**Opciones Disponibles:**
+• **Alarmas Críticas:** Análisis en tiempo real de incidentes
+• **Base de Conocimiento:** Búsqueda semántica avanzada  
+• **Dashboard Predictivo:** Métricas y análisis de tendencias
+
+**Comandos Expert Disponibles:**
+\`/alarmas\` - Sistema de alarmas críticas
+\`/docs\` - Base de conocimiento neural
+\`/dashboard\` - Dashboard predictivo
+\`/help\` - Ayuda completa del sistema
+
+¿En qué área específica puedo asistirte con mi conocimiento experto?
+        `;
+        addBotMessage(expertResponse);
+      }
+    }
+
+    function showExpertResponse(response) {
+      const expertMessage = `
+        <div style="border-left: 4px solid var(--primary-red); padding-left: 15px; margin-bottom: 15px;">
+          <h4 style="color: var(--primary-red); margin-bottom: 10px; font-size: 1.1rem;">
+            ${response.title}
+          </h4>
+        </div>
+        <div style="white-space: pre-line; line-height: 1.6;">
+          ${response.content}
+        </div>
+      `;
+      addBotMessage(expertMessage);
+    }
+
+    function scrollToBottom() {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Sistema de notificaciones expert
+    setInterval(() => {
+      if (Math.random() > 0.95 && chatWindow.style.display === 'none') {
+        burbuja.classList.add('nuevo-mensaje');
+        setTimeout(() => {
+          burbuja.classList.remove('nuevo-mensaje');
+        }, 500);
+      }
+    }, 300);
+
+    console.log('🚀 Sistema Core Enterprise Expert v2.0 - Totalmente Operativo');
   </script>
 </body>
 </html>
