@@ -16,488 +16,68 @@
   <!-- Estilos locales -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
-   .chat-window {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 380px;
-  max-width: calc(100vw - 40px);
-  height: 600px;
-  max-height: calc(100vh - 40px);
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  z-index: 1001;
-  overflow: hidden;
-  border: 1px solid rgba(212, 21, 40, 0.1);
-}
+    #burbuja-chat {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 70px;
+      height: 70px;
+      background: #d41528;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1002;
+      transition: transform 0.3s;
+    }
 
-/* Responsive para móviles */
-@media (max-width: 768px) {
-  .chat-window {
-    width: calc(100vw - 20px);
-    height: calc(100vh - 100px);
-    bottom: 10px;
-    right: 10px;
-  }
-}
+    #burbuja-chat:hover {
+      transform: scale(1.1);
+    }
 
-/* Header del chat */
-.chat-header-premium {
-  background: linear-gradient(135deg, #d41528 0%, #b01220 100%);
-  color: white;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 2px 8px rgba(212, 21, 40, 0.2);
-  flex-shrink: 0;
-}
+    #burbuja-chat i {
+      font-size: 28px;
+      color: white;
+    }
 
-.chat-avatar {
-  position: relative;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
+    .bubble-notification {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: white;
+      color: #d41528;
+      border-radius: 50%;
+      padding: 4px 7px;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      display: none;
+    }
 
-.avatar-icon {
-  font-size: 20px;
-  color: white;
-}
+    .nuevo-mensaje .bubble-notification {
+      display: flex !important;
+    }
 
-.avatar-status {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 12px;
-  height: 12px;
-  background: #4ade80;
-  border: 2px solid white;
-  border-radius: 50%;
-}
+    .bubble-pulse {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: rgba(212, 21, 40, 0.35);
+      animation: pulse 2s infinite;
+      z-index: -1;
+    }
 
-.chat-title-section {
-  flex: 1;
-  min-width: 0;
-}
-
-.chat-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  color: white;
-  line-height: 1.2;
-}
-
-.chat-subtitle {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 400;
-}
-
-.chat-controls {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.control-btn {
-  width: 28px;
-  height: 28px;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-}
-
-.control-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.control-btn i {
-  font-size: 12px;
-}
-
-/* Área de mensajes */
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  background: white;
-  min-height: 0;
-}
-
-.chat-messages::-webkit-scrollbar {
-  width: 6px;
-}
-
-.chat-messages::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 3px;
-}
-
-.chat-messages::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-.chat-messages::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Mensaje de bienvenida */
-.welcome-message {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 16px;
-}
-
-.welcome-avatar {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, #d41528 0%, #b01220 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
-.welcome-avatar i {
-  font-size: 24px;
-  color: white;
-}
-
-.welcome-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.welcome-header h4 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0;
-}
-
-.timestamp {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.welcome-text {
-  color: #475569;
-  line-height: 1.6;
-  margin-bottom: 20px;
-  font-size: 14px;
-}
-
-/* Grid de capacidades */
-.capabilities-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.capability-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  font-size: 13px;
-  color: #475569;
-}
-
-.capability-item i {
-  color: #d41528;
-  font-size: 14px;
-}
-
-/* Botones de acción */
-.action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.action-btn {
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-
-.action-btn.primary {
-  background: linear-gradient(135deg, #d41528 0%, #b01220 100%);
-  color: white;
-}
-
-.action-btn.primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(212, 21, 40, 0.3);
-}
-
-.action-btn.secondary {
-  background: white;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-}
-
-.action-btn.secondary:hover {
-  background: #f8fafc;
-  border-color: #d41528;
-  color: #d41528;
-}
-
-/* Indicador de escritura */
-.typing-indicator {
-  display: none;
-  padding: 16px;
-  background: white;
-  border-top: 1px solid #e2e8f0;
-  flex-shrink: 0;
-}
-
-.typing-indicator.active {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.typing-avatar {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #d41528 0%, #b01220 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.typing-avatar i {
-  font-size: 14px;
-  color: white;
-}
-
-.typing-content {
-  flex: 1;
-}
-
-.typing-text {
-  font-size: 13px;
-  color: #64748b;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.typing-animation {
-  display: flex;
-  gap: 4px;
-}
-
-.typing-dot {
-  width: 6px;
-  height: 6px;
-  background: #cbd5e1;
-  border-radius: 50%;
-  animation: typing 1.4s infinite;
-}
-
-.typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes typing {
-  0%, 60%, 100% {
-    transform: translateY(0);
-    background: #cbd5e1;
-  }
-  30% {
-    transform: translateY(-10px);
-    background: #d41528;
-  }
-}
-
-/* Contenedor de input */
-.chat-input-container {
-  background: white;
-  border-top: 1px solid #e2e8f0;
-  padding: 16px;
-  flex-shrink: 0;
-}
-
-.input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 4px;
-  transition: border-color 0.2s;
-}
-
-.input-wrapper:focus-within {
-  border-color: #d41528;
-  background: white;
-}
-
-.attachment-btn,
-.voice-btn {
-  width: 36px;
-  height: 36px;
-  background: transparent;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.attachment-btn:hover,
-.voice-btn:hover {
-  background: #e2e8f0;
-  color: #d41528;
-}
-
-.chat-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 8px 4px;
-  font-size: 14px;
-  color: #1e293b;
-  outline: none;
-  min-width: 0;
-}
-
-.chat-input::placeholder {
-  color: #94a3b8;
-  font-size: 13px;
-}
-
-.send-btn {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #d41528 0%, #b01220 100%);
-  border: none;
-  color: white;
-  cursor: pointer;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.send-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(212, 21, 40, 0.3);
-}
-
-.input-footer {
-  margin-top: 8px;
-  text-align: center;
-}
-
-.input-help {
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-/* Estados del chat */
-.chat-window.minimized {
-  height: 60px;
-  overflow: hidden;
-}
-
-.chat-window.minimized .chat-messages,
-.chat-window.minimized .typing-indicator,
-.chat-window.minimized .chat-input-container {
-  display: none;
-}
-
-.chat-window.maximized {
-  width: 90vw;
-  height: 90vh;
-  bottom: 5vh;
-  right: 5vw;
-}
-
-/* Chat bubble - mantener el existente pero agregar funcionalidad */
-.chat-bubble {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 70px;
-  height: 70px;
-  background: #d41528;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1002;
-  transition: transform 0.3s;
-}
-
-.chat-bubble:hover {
-  transform: scale(1.1);
-}
-
-.bubble-icon i {
-  font-size: 28px;
-  color: white;
-}
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
   </style>
 </head>
-<body style="padding-top: 70px"> <!-- Añadido: padding para el header fijo -->
-  <!-- Añadido: Header fijo con logo Claro -->
-  <header class="top-banner">
-    <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Logo Claro">
-  </header>
-
-  <!-- Tu contenido original se mantiene intacto desde aquí -->
-  <div id="burbuja-chat">
+<body>
+   <div id="burbuja-chat">
     <i class="fas fa-comments"></i>
     <div class="bubble-notification" id="bubble-notification">1</div>
     <div class="bubble-pulse"></div>
@@ -567,7 +147,7 @@
           <div class="stat-item">
             <span class="stat-number">24/7</span>
             <span class="stat-label">Monitoreo</span>
-          </div>
+        
         </div>
       </div>
     </section>
@@ -646,6 +226,7 @@
     </div>
     
     <div class="chat-messages" id="chat-box">
+>
       <div class="welcome-message">
         <div class="welcome-avatar">
           <i class="fas fa-robot"></i>
@@ -755,99 +336,6 @@
       chatWindow.style.display = 'flex';
       burbuja.style.display = 'none';
     });
-
-    // Añadido: Observer para redirección
-    const chatBox = document.getElementById('chat-box');
-    if (chatBox) {
-      const observer = new MutationObserver(() => {
-        const mensajes = chatBox.querySelectorAll('.message-bot');
-        mensajes.forEach(msg => {
-          if (msg.innerText.toLowerCase().includes('detalles de la alarma')) {
-            window.location.href = 'detalle_alarma.html?volver=chat';
-          }
-        });
-      });
-      observer.observe(chatBox, { childList: true, subtree: true });
-    }
-    // JavaScript adicional para los controles del chat
-// Agregar después del script existente
-
-document.addEventListener('DOMContentLoaded', function() {
-  const chatBubble = document.getElementById('chat-bubble');
-  const chatWindow = document.getElementById('chat-window');
-  const closeBtn = document.getElementById('close-chat');
-  const minimizeBtn = document.getElementById('minimize-chat');
-  const maximizeBtn = document.getElementById('maximize-chat');
-  const messageInput = document.getElementById('message-input');
-  const sendBtn = document.getElementById('send-btn');
-
-  // Abrir chat al hacer clic en la burbuja
-  if (chatBubble) {
-    chatBubble.addEventListener('click', () => {
-      if (chatWindow) {
-        chatWindow.style.display = 'flex';
-        chatBubble.style.display = 'none';
-        messageInput?.focus();
-      }
-    });
-  }
-
-  // Cerrar chat
-  if (closeBtn && chatWindow && chatBubble) {
-    closeBtn.addEventListener('click', () => {
-      chatWindow.style.display = 'none';
-      chatBubble.style.display = 'flex';
-    });
-  }
-
-  // Minimizar chat
-  if (minimizeBtn && chatWindow) {
-    minimizeBtn.addEventListener('click', () => {
-      chatWindow.classList.toggle('minimized');
-    });
-  }
-
-  // Maximizar chat
-  if (maximizeBtn && chatWindow) {
-    maximizeBtn.addEventListener('click', () => {
-      chatWindow.classList.toggle('maximized');
-    });
-  }
-
-  // Enviar mensaje con Enter
-  if (messageInput) {
-    messageInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-  }
-
-  // Enviar mensaje al hacer clic en el botón
-  if (sendBtn) {
-    sendBtn.addEventListener('click', sendMessage);
-  }
-
-  function sendMessage() {
-    const message = messageInput?.value.trim();
-    if (message) {
-      console.log('Enviando mensaje:', message);
-      messageInput.value = '';
-      // Aquí puedes agregar la lógica para procesar el mensaje
-    }
-  }
-
-  // Funcionalidad de los botones de acción
-  const actionButtons = document.querySelectorAll('.action-btn');
-  actionButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const action = button.getAttribute('data-action');
-      console.log('Acción seleccionada:', action);
-      // Aquí puedes agregar la lógica específica para cada acción
-    });
-  });
-});
   </script>
 </body>
 </html>
