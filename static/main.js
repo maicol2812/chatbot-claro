@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
  
-  const urlParams = new URLSearchParams(window.location.search); // ← 🔧 Esta línea es necesaria
+  const urlParams = new URLSearchParams(window.location.search);
   
 
   // --------------------------
@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     handleWelcomeScreen();
 
-    const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('volver') && urlParams.get('volver') === 'chat') {
       openChat();
       setTimeout(() => {
@@ -85,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (elements.maximizeBtn) {
-      elements.maximizeBtn.addEventListener('click', maximizeChat); // ✅ corrección aquí
+      elements.maximizeBtn.addEventListener('click', maximizeChat);
     }
 
     document.addEventListener('click', (e) => {
@@ -100,6 +99,22 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && chatState.isOpen) {
         closeChat();
+      }
+    });
+
+    // Interacción de like para alarmas
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('like-btn')) {
+        const alarmaId = e.target.getAttribute('data-alarma-id');
+        let likedAlarmas = JSON.parse(localStorage.getItem('likedAlarmas') || '{}');
+        if (e.target.classList.contains('liked')) {
+          e.target.classList.remove('liked');
+          delete likedAlarmas[alarmaId];
+        } else {
+          e.target.classList.add('liked');
+          likedAlarmas[alarmaId] = true;
+        }
+        localStorage.setItem('likedAlarmas', JSON.stringify(likedAlarmas));
       }
     });
   }
@@ -122,14 +137,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // Funciones de UI del chat
   // --------------------------
   function toggleChat() {
-    // Persistencia de estado del chat
     if (chatState.isOpen) {
       if (chatState.isMinimized) {
-      restoreChat();
-      localStorage.setItem('chatState', 'open');
+        restoreChat();
+        localStorage.setItem('chatState', 'open');
       } else {
-      closeChat();
-      localStorage.setItem('chatState', 'closed');
+        closeChat();
+        localStorage.setItem('chatState', 'closed');
       }
     } else {
       openChat();
@@ -137,68 +151,58 @@ document.addEventListener('DOMContentLoaded', function() {
       chatState.unreadMessages = 0;
       updateNotification();
     }
-
-    // Interacción de like para alarmas
-    document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('like-btn')) {
-      const alarmaId = e.target.getAttribute('data-alarma-id');
-      let likedAlarmas = JSON.parse(localStorage.getItem('likedAlarmas') || '{}');
-      if (e.target.classList.contains('liked')) {
-        e.target.classList.remove('liked');
-        delete likedAlarmas[alarmaId];
-      } else {
-        e.target.classList.add('liked');
-        likedAlarmas[alarmaId] = true;
-      }
-      localStorage.setItem('likedAlarmas', JSON.stringify(likedAlarmas));
-      }
-    });
   }
 
   function openChat() {
-  chatState.isOpen = true;
-  chatState.isMinimized = false;
-  chatState.unreadMessages = 0;
-  updateNotification();
-  // Llama el CSS dinámicamente si es necesario
-  if (!document.getElementById('chat-css')) {
-    const link = document.createElement('link');
-    link.id = 'chat-css';
-    link.rel = 'stylesheet';
-    link.href = 'static/style.css'; // Ajusta la ruta si tu CSS está en otro lugar
-    document.head.appendChild(link);
-  }
-  elements.chatContainer?.classList.add('mostrar'); // si usas chatContainer
-  document.getElementById('chat-window')?.classList.add('mostrar'); // asegúrate que esto se aplique
+    chatState.isOpen = true;
+    chatState.isMinimized = false;
+    chatState.unreadMessages = 0;
+    updateNotification();
+    
+    // Asegúrate de que el chat sea visible
+    if (elements.chatContainer) {
+      elements.chatContainer.style.display = 'flex';
+      elements.chatContainer.classList.add('mostrar');
+    }
 
-  elements.burbujaChat.classList.remove('nuevo-mensaje');
+    if (elements.burbujaChat) {
+      elements.burbujaChat.classList.remove('nuevo-mensaje');
+    }
 
-  setTimeout(() => {
-    elements.messageInput.focus();
-  }, 300);
+    setTimeout(() => {
+      if (elements.messageInput) {
+        elements.messageInput.focus();
+      }
+    }, 300);
+
+    // Iniciar flujo solo si es la primera vez
     if (flujo.paso === 0 && chatState.messageCount === 0) {
-    setTimeout(() => flujoExperto(''), 500);
+      setTimeout(() => flujoExperto(''), 500);
+    }
+
+    scrollToBottom();
   }
-
-  scrollToBottom();
-}
-
-
-
-
-  // Funciones de cierre, minimización y maximización
 
   function closeChat() {
     chatState.isOpen = false;
-    elements.chatContainer.classList.remove('mostrar');
+    if (elements.chatContainer) {
+      elements.chatContainer.style.display = 'none';
+      elements.chatContainer.classList.remove('mostrar');
+    }
   }
 
   function minimizeChat() {
     chatState.isMinimized = true;
+    if (elements.chatContainer) {
+      elements.chatContainer.style.height = '60px';
+    }
   }
 
   function restoreChat() {
     chatState.isMinimized = false;
+    if (elements.chatContainer) {
+      elements.chatContainer.style.height = 'auto';
+    }
   }
 
   function maximizeChat() {
@@ -206,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function showNotification() {
-    if (!chatState.isOpen) {
+    if (!chatState.isOpen && elements.burbujaChat) {
       elements.burbujaChat.classList.add('nuevo-mensaje');
       chatState.unreadMessages++;
       updateNotification();
@@ -294,21 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = `detalle_alarma.html?volver=chat`;
       }, 1500);
     }, 2000);
-
-    if (respuesta.includes("detalles de la alarma")) {
-  window.location.href = "detalle_alarma.html?volver=chat";
-}
-
   }
-
-
-
-  if (urlParams.has('volver') && urlParams.get('volver') === 'chat') {
-  openChat();
-  setTimeout(() => {
-    addMessage('👋 ¡Bienvenido de nuevo! ¿En qué más puedo ayudarte?', 'bot');
-  }, 300);
-}
 
   // --------------------------
   // Funciones del bot
@@ -369,6 +359,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Utilidades
   // --------------------------
   function addMessage(text, sender) {
+    if (!elements.chatBox) return;
+    
     const msgDiv = document.createElement('div');
     msgDiv.className = `${sender}-msg`;
     msgDiv.innerHTML = text;
@@ -393,33 +385,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function showTyping() {
     chatState.waitingForResponse = true;
-    elements.typingIndicator.style.display = 'flex';
+    if (elements.typingIndicator) {
+      elements.typingIndicator.style.display = 'flex';
+    }
     scrollToBottom();
   }
 
   function hideTyping() {
     chatState.waitingForResponse = false;
-    elements.typingIndicator.style.display = 'none';
+    if (elements.typingIndicator) {
+      elements.typingIndicator.style.display = 'none';
+    }
   }
 
   function scrollToBottom() {
-    setTimeout(() => {
-      elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
-    }, 100);
+    if (elements.chatBox) {
+      setTimeout(() => {
+        elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+      }, 100);
+    }
   }
 
   function sendMessage() {
+    if (!elements.messageInput) return;
+    
     const message = elements.messageInput.value.trim();
     if (message.length === 0 || chatState.waitingForResponse) return;
 
     addMessage(message, 'user');
     elements.messageInput.value = '';
 
-    if (chatState.currentFlow === 'alarmas') {
-      handleAlarmFlow(message);
-    } else {
-      flujoExperto(message);
-    }
+    // Siempre usar flujoExperto para manejar la conversación
+    flujoExperto(message);
   }
 
   initialize();
