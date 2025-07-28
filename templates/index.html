@@ -74,139 +74,9 @@
       0% { transform: scale(1); opacity: 0.8; }
       100% { transform: scale(1.8); opacity: 0; }
     }
-
-    /* --- CHAT INTERFACE VISUAL MODS --- */
-    /* Remove chat header title and subtitle visually */
-    .chat-title-section .chat-title,
-    .chat-title-section .chat-subtitle {
-      display: none !important;
-    }
-
-    /* Clean chat header: only show avatar and controls */
-    .chat-header-premium {
-      display: flex;
-      align-items: center;
-      padding: 14px 18px 10px 18px;
-      border-bottom: 1px solid #f1f1f1;
-      background: #fff;
-      border-radius: 18px 18px 0 0;
-      min-height: 62px;
-      gap: 14px;
-    }
-    .chat-title-section {
-      min-width: 0;
-      flex: 1;
-      padding: 0;
-      margin: 0;
-    }
-
-    /* Prominent initial greeting in chat-messages */
-    .chat-messages .initial-greeting {
-      font-size: 1.18rem;
-      font-weight: 600;
-      color: #d41528;
-      margin-bottom: 18px;
-      margin-top: 6px;
-      text-align: left;
-      background: #fff7f8;
-      border-radius: 8px;
-      padding: 14px 18px;
-      box-shadow: 0 2px 8px rgba(212,21,40,0.07);
-      letter-spacing: 0.01em;
-    }
-
-    /* Menu options styling */
-    .chat-messages .menu-options {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-    .chat-messages .menu-option {
-      background: #f6f6f6;
-      border-radius: 7px;
-      padding: 12px 16px;
-      font-size: 1rem;
-      color: #222;
-      cursor: pointer;
-      border: 1px solid #ececec;
-      transition: background 0.18s, box-shadow 0.18s;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    }
-    .chat-messages .menu-option:hover {
-      background: #ffe5ea;
-      color: #d41528;
-      box-shadow: 0 2px 8px rgba(212,21,40,0.09);
-    }
-
-    /* Hide any legacy greeting or subtitle in chat header */
-    .chat-header-premium .chat-title-section {
-      display: none !important;
-    }
-
-    /* Responsive adjustments for chat container */
-    @media (max-width: 500px) {
-      #chat-container {
-      width: 98vw;
-      right: 1vw;
-      bottom: 1vw;
-      max-height: 98vh;
-      border-radius: 12px;
-      }
-      .chat-messages .initial-greeting {
-      font-size: 1rem;
-      padding: 10px 8px;
-      }
-      .chat-messages .menu-option {
-      font-size: 0.98rem;
-      padding: 10px 10px;
-      }
-    }
-
-    /* Chat container styles */
-    #chat-container {
-      position: fixed;
-      right: 30px;
-      bottom: 30px;
-      width: 370px;
-      max-height: 600px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-      border-radius: 18px;
-      transition: opacity 0.3s, transform 0.3s;
-      opacity: 0;
-      transform: translateY(40px);
-      display: none;
-      flex-direction: column;
-      background: white;
-    }
-
-    #chat-container.mostrar {
-      display: flex;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .chat-messages {
-      overflow-y: auto;
-      max-height: 340px;
-      padding: 15px;
-    }
-
-    /* Fix chat header text breaking */
-    .chat-title-section {
-      min-width: 180px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .chat-title, .chat-subtitle {
-      white-space: nowrap;
-      display: block;
-    }
   </style>
 </head>
 <body>
-   <!-- BURBUJA DE CHAT ÚNICA -->
    <div id="burbuja-chat">
     <i class="fas fa-comments"></i>
     <div class="bubble-notification" id="bubble-notification">1</div>
@@ -277,7 +147,7 @@
           <div class="stat-item">
             <span class="stat-number">24/7</span>
             <span class="stat-label">Monitoreo</span>
-          </div>
+        
         </div>
       </div>
     </section>
@@ -321,8 +191,16 @@
     </section>
   </main>
 
-  <!-- CHAT CONTAINER - CONTROLADO POR MAIN.JS -->
-  <div id="chat-container">
+  <!-- Chatbot -->
+  <div class="chat-bubble" id="chat-bubble">
+    <div class="bubble-icon">
+      <i class="fas fa-robot"></i>
+    </div>
+    <div class="bubble-notification" id="bubble-notification">1</div>
+    <div class="bubble-pulse"></div>
+  </div>
+
+  <div class="chat-window" id="chat-window" style="display:none">
     <div class="chat-header-premium">
       <div class="chat-avatar">
         <div class="avatar-icon">
@@ -347,9 +225,55 @@
       </div>
     </div>
     
-    <!-- CHAT BOX VACÍO - SE LLENARÁ CON TU FLUJO DE JAVASCRIPT -->
     <div class="chat-messages" id="chat-box">
-      <!-- Los mensajes aparecerán aquí dinámicamente -->
+>
+      <div class="welcome-message">
+        <div class="welcome-avatar">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="welcome-content">
+          <div class="welcome-header">
+            <h4>🚀 Bienvenido al Centro de Operaciones Core</h4>
+            <span class="timestamp">Ahora</span>
+          </div>
+          <p class="welcome-text">
+            Soy tu asistente de IA especializado en plataformas empresariales de Claro. 
+            Tengo acceso a sistemas críticos y bases de conocimiento avanzadas.
+          </p>
+          <div class="capabilities-grid">
+            <div class="capability-item">
+              <i class="fas fa-shield-alt"></i>
+              <span>Monitoreo 24/7</span>
+            </div>
+            <div class="capability-item">
+              <i class="fas fa-lightning-bolt"></i>
+              <span>Respuesta Inmediata</span>
+            </div>
+            <div class="capability-item">
+              <i class="fas fa-brain"></i>
+              <span>Análisis Predictivo</span>
+            </div>
+            <div class="capability-item">
+              <i class="fas fa-lock"></i>
+              <span>Nivel Enterprise</span>
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn primary" data-action="alarmas">
+              <i class="fas fa-exclamation-triangle"></i>
+              Consultar Alarmas Críticas
+            </button>
+            <button class="action-btn secondary" data-action="documentacion">
+              <i class="fas fa-book-open"></i>
+              Acceder a Documentación
+            </button>
+            <button class="action-btn secondary" data-action="incidentes">
+              <i class="fas fa-chart-line"></i>
+              Dashboard de Incidentes
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     
     <div class="typing-indicator" id="typing-indicator">
@@ -402,7 +326,16 @@
     </div>
   </footer>
 
-  <!-- Scripts - SOLO MAIN.JS MANEJA EL CHAT -->
+  <!-- Scripts -->
   <script src="{{ url_for('static', filename='main.js') }}"></script>
+  <script>
+    const burbuja = document.getElementById('burbuja-chat');
+    const chatWindow = document.getElementById('chat-window');
+
+    burbuja.addEventListener('click', () => {
+      chatWindow.style.display = 'flex';
+      burbuja.style.display = 'none';
+    });
+  </script>
 </body>
 </html>
