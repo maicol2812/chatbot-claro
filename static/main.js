@@ -122,14 +122,20 @@ document.addEventListener('DOMContentLoaded', function() {
   // Funciones de UI del chat
   // --------------------------
   function toggleChat() {
+    // Persistencia de estado del chat
     if (chatState.isOpen) {
       if (chatState.isMinimized) {
-        restoreChat();
+      restoreChat();
+      localStorage.setItem('chatState', 'open');
       } else {
-        closeChat();
+      closeChat();
+      localStorage.setItem('chatState', 'closed');
       }
     } else {
       openChat();
+      localStorage.setItem('chatState', 'open');
+      chatState.unreadMessages = 0;
+      updateNotification();
     }
   }
 
@@ -138,7 +144,14 @@ document.addEventListener('DOMContentLoaded', function() {
   chatState.isMinimized = false;
   chatState.unreadMessages = 0;
   updateNotification();
-
+  // Llama el CSS dinámicamente si es necesario
+  if (!document.getElementById('chat-css')) {
+    const link = document.createElement('link');
+    link.id = 'chat-css';
+    link.rel = 'stylesheet';
+    link.href = 'static/style.css'; // Ajusta la ruta si tu CSS está en otro lugar
+    document.head.appendChild(link);
+  }
   elements.chatContainer?.classList.add('mostrar'); // si usas chatContainer
   document.getElementById('chat-window')?.classList.add('mostrar'); // asegúrate que esto se aplique
 
