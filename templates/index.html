@@ -7,110 +7,618 @@
   <title>Plataformas Core - Claro</title>
 
   <!-- Ícono del sitio -->
-  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔴</text></svg>">
 
   <!-- Librerías externas -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Estilos locales -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
-    #burbuja-chat {
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-logo {
+      width: 50px;
+      height: 50px;
+      background: #d41528;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2d3748;
+    }
+
+    .brand-subtitle {
+      font-size: 0.9rem;
+      color: #718096;
+      font-weight: 500;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(72, 187, 120, 0.1);
+      border-radius: 20px;
+      border: 1px solid #48bb78;
+    }
+
+    .status-pulse {
+      width: 8px;
+      height: 8px;
+      background: #48bb78;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .system-metrics {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: #718096;
+    }
+
+    /* Main content */
+    .main-content {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+
+    .hero-section {
+      text-align: center;
+      padding: 4rem 0;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      margin-bottom: 3rem;
+    }
+
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-description {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 2rem;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Services grid */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .service-card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 2rem;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .service-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .service-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #d41528, #ff4757);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .service-icon i {
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .service-card h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #2d3748;
+    }
+
+    .service-card p {
+      color: #718096;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .service-badges {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    /* Chat System */
+    .chat-bubble {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      bottom: 30px;
+      right: 30px;
       width: 70px;
       height: 70px;
-      background: #d41528;
+      background: linear-gradient(135deg, #d41528, #ff4757);
       border-radius: 50%;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 25px rgba(212, 21, 40, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      z-index: 1002;
-      transition: transform 0.3s;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      animation: float 3s ease-in-out infinite;
     }
 
-    #burbuja-chat:hover {
+    .chat-bubble:hover {
       transform: scale(1.1);
+      box-shadow: 0 12px 35px rgba(212, 21, 40, 0.6);
     }
 
-    #burbuja-chat i {
+    .chat-bubble i {
       font-size: 28px;
       color: white;
     }
 
     .bubble-notification {
       position: absolute;
-      top: -6px;
-      right: -6px;
+      top: -8px;
+      right: -8px;
       background: white;
       color: #d41528;
       border-radius: 50%;
-      padding: 4px 7px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 12px;
       font-weight: bold;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      display: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      animation: bounce 2s infinite;
     }
 
-    .nuevo-mensaje .bubble-notification {
-      display: flex !important;
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
     }
 
-    .bubble-pulse {
-      position: absolute;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background: rgba(212, 21, 40, 0.35);
-      animation: pulse 2s infinite;
-      z-index: -1;
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-5px); }
+      60% { transform: translateY(-3px); }
     }
 
     @keyframes pulse {
       0% { transform: scale(1); opacity: 0.8; }
       100% { transform: scale(1.8); opacity: 0; }
     }
+
+    /* Chat Window */
+    .chat-window {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 420px;
+      height: 600px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: none;
+      flex-direction: column;
+      z-index: 1001;
+      overflow: hidden;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #d41528, #ff4757);
+      padding: 1.5rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-title-section {
+      flex: 1;
+    }
+
+    .chat-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+
+    .chat-subtitle {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+
+    .chat-controls {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .control-btn {
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      background: #f8fafc;
+    }
+
+    .welcome-message {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1rem;
+    }
+
+    .welcome-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .welcome-header h4 {
+      color: #2d3748;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .timestamp {
+      font-size: 0.8rem;
+      color: #718096;
+    }
+
+    .welcome-text {
+      color: #4a5568;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .option-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 1rem;
+      border-radius: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-weight: 500;
+    }
+
+    .option-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .option-btn i {
+      font-size: 1.2rem;
+      width: 24px;
+    }
+
+    .option-btn.critical {
+      background: linear-gradient(135deg, #ff4757, #d41528);
+    }
+
+    .option-btn.warning {
+      background: linear-gradient(135deg, #ffa726, #ff7043);
+    }
+
+    .option-btn.info {
+      background: linear-gradient(135deg, #42a5f5, #1e88e5);
+    }
+
+    .option-btn.success {
+      background: linear-gradient(135deg, #66bb6a, #43a047);
+    }
+
+    .option-btn.admin {
+      background: linear-gradient(135deg, #8e24aa, #5e35b1);
+    }
+
+    .chat-input-container {
+      padding: 1rem;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 0.8rem;
+      font-size: 0.9rem;
+      outline: none;
+      resize: none;
+    }
+
+    .input-btn {
+      width: 36px;
+      height: 36px;
+      background: #d41528;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .input-btn:hover {
+      background: #b91c1c;
+    }
+
+    .input-btn.send-btn:disabled {
+      background: #cbd5e0;
+      cursor: not-allowed;
+    }
+
+    .typing-indicator {
+      display: none;
+      padding: 1rem;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .typing-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .typing-animation {
+      display: flex;
+      gap: 0.3rem;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #cbd5e0;
+      border-radius: 50%;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: scale(1);
+        opacity: 0.5;
+      }
+      30% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+    }
+
+    /* Footer */
+    .footer-premium {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 2rem;
+      margin-top: 4rem;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .footer-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #718096;
+      font-size: 0.9rem;
+    }
+
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(72, 187, 120, 0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      color: #48bb78;
+      font-weight: 500;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .chat-window {
+        width: 100%;
+        height: 100%;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+      }
+
+      .hero-title {
+        font-size: 2rem;
+      }
+
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .system-metrics {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
-   <div id="burbuja-chat">
-    <i class="fas fa-comments"></i>
-    <div class="bubble-notification" id="bubble-notification">1</div>
-    <div class="bubble-pulse"></div>
-  </div>
-
-  <!-- Pantalla de bienvenida -->
-  <div id="welcome-screen">
-    <div class="welcome-content">
-      <div class="logo-container">
-        <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Logo Claro">
-        <div class="logo-glow"></div>
-      </div>
-      <h2 class="welcome-title">Centro de Operaciones Core</h2>
-      <p class="welcome-subtitle">Sistema Experto Neural • Versión Enterprise</p>
-      <div class="loading-container">
-        <div class="loading-bar">
-          <div class="loading-progress"></div>
-        </div>
-        <p class="loading-text">Inicializando módulos de IA...</p>
-      </div>
-    </div>
-    <div class="tech-grid">
-      <div class="tech-line"></div>
-      <div class="tech-line"></div>
-      <div class="tech-line"></div>
-    </div>
-  </div>
-
   <!-- Encabezado -->
   <header class="header">
     <div class="header-content">
       <div class="logo-section">
-        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
+        <div class="header-logo">C</div>
         <div class="logo-text">
           <span class="brand-name">Plataformas Core</span>
           <span class="brand-subtitle">Enterprise AI System</span>
@@ -118,7 +626,7 @@
       </div>
       <div class="header-controls">
         <div class="system-status">
-          <div class="status-indicator active">
+          <div class="status-indicator">
             <div class="status-pulse"></div>
             <span>Sistema Operativo</span>
           </div>
@@ -135,26 +643,23 @@
   <!-- Contenido principal -->
   <main class="main-content">
     <section class="hero-section">
-      <div class="hero-background"></div>
-      <div class="hero-content">
-        <h1 class="hero-title">Centro de Operaciones Core</h1>
-        <p class="hero-description">Plataforma de Inteligencia Artificial especializada en gestión empresarial</p>
-        <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-number">99.9%</span>
-            <span class="stat-label">Disponibilidad</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">24/7</span>
-            <span class="stat-label">Monitoreo</span>
-        
+      <h1 class="hero-title">Centro de Operaciones Core</h1>
+      <p class="hero-description">Plataforma de Inteligencia Artificial especializada en gestión empresarial</p>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number">99.9%</span>
+          <span class="stat-label">Disponibilidad</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">24/7</span>
+          <span class="stat-label">Monitoreo</span>
         </div>
       </div>
     </section>
 
     <section class="services-grid">
-      <div class="service-card premium">
-        <div class="service-icon alarm">
+      <div class="service-card">
+        <div class="service-icon">
           <i class="fas fa-shield-halved"></i>
         </div>
         <h3>Gestión Inteligente de Alarmas</h3>
@@ -165,8 +670,8 @@
         </div>
       </div>
 
-      <div class="service-card premium">
-        <div class="service-icon docs">
+      <div class="service-card">
+        <div class="service-icon">
           <i class="fas fa-brain"></i>
         </div>
         <h3>Base de Conocimiento Neural</h3>
@@ -177,8 +682,8 @@
         </div>
       </div>
 
-      <div class="service-card premium">
-        <div class="service-icon incidents">
+      <div class="service-card">
+        <div class="service-icon">
           <i class="fas fa-radar"></i>
         </div>
         <h3>Análisis Predictivo de Incidentes</h3>
@@ -191,97 +696,79 @@
     </section>
   </main>
 
-  <!-- Chatbot -->
+  <!-- Chat System -->
   <div class="chat-bubble" id="chat-bubble">
-    <div class="bubble-icon">
-      <i class="fas fa-robot"></i>
-    </div>
+    <i class="fas fa-robot"></i>
     <div class="bubble-notification" id="bubble-notification">1</div>
-    <div class="bubble-pulse"></div>
   </div>
 
-  <div class="chat-window" id="chat-window" style="display:none">
-    <div class="chat-header-premium">
-      <div class="chat-avatar">
-        <div class="avatar-icon">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div class="avatar-status"></div>
-      </div>
+  <div class="chat-window" id="chat-window">
+    <div class="chat-header">
       <div class="chat-title-section">
         <h3 class="chat-title">Asistente Core Enterprise</h3>
         <span class="chat-subtitle">IA Especializada • Siempre Activo</span>
       </div>
       <div class="chat-controls">
-        <button class="control-btn minimize-btn" id="minimize-chat" title="Minimizar">
+        <button class="control-btn" id="minimize-chat" title="Minimizar">
           <i class="fas fa-window-minimize"></i>
         </button>
-        <button class="control-btn maximize-btn" id="maximize-chat" title="Maximizar">
-          <i class="fas fa-expand"></i>
-        </button>
-        <button class="control-btn close-btn" id="close-chat" title="Cerrar">
+        <button class="control-btn" id="close-chat" title="Cerrar">
           <i class="fas fa-times"></i>
         </button>
       </div>
     </div>
-    
-    <div class="chat-messages" id="chat-box">
->
+
+    <div class="chat-messages" id="chat-messages">
       <div class="welcome-message">
-        <div class="welcome-avatar">
-          <i class="fas fa-robot"></i>
+        <div class="welcome-header">
+          <h4>🚀 Centro de Operaciones Core</h4>
+          <span class="timestamp">Ahora</span>
         </div>
-        <div class="welcome-content">
-          <div class="welcome-header">
-            <h4>🚀 Bienvenido al Centro de Operaciones Core</h4>
-            <span class="timestamp">Ahora</span>
-          </div>
-          <p class="welcome-text">
-            Soy tu asistente de IA especializado en plataformas empresariales de Claro. 
-            Tengo acceso a sistemas críticos y bases de conocimiento avanzadas.
-          </p>
-          <div class="capabilities-grid">
-            <div class="capability-item">
-              <i class="fas fa-shield-alt"></i>
-              <span>Monitoreo 24/7</span>
-            </div>
-            <div class="capability-item">
-              <i class="fas fa-lightning-bolt"></i>
-              <span>Respuesta Inmediata</span>
-            </div>
-            <div class="capability-item">
-              <i class="fas fa-brain"></i>
-              <span>Análisis Predictivo</span>
-            </div>
-            <div class="capability-item">
-              <i class="fas fa-lock"></i>
-              <span>Nivel Enterprise</span>
-            </div>
-          </div>
-          <div class="action-buttons">
-            <button class="action-btn primary" data-action="alarmas">
-              <i class="fas fa-exclamation-triangle"></i>
-              Consultar Alarmas Críticas
-            </button>
-            <button class="action-btn secondary" data-action="documentacion">
-              <i class="fas fa-book-open"></i>
-              Acceder a Documentación
-            </button>
-            <button class="action-btn secondary" data-action="incidentes">
-              <i class="fas fa-chart-line"></i>
-              Dashboard de Incidentes
-            </button>
-          </div>
+        <p class="welcome-text">
+          Bienvenido al sistema de IA especializado en plataformas empresariales de Claro. 
+          Selecciona una opción para acceder a los servicios avanzados:
+        </p>
+        
+        <div class="options-grid">
+          <button class="option-btn critical" data-action="alarmas">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Alarmas de Plataformas</span>
+          </button>
+          
+          <button class="option-btn info" data-action="documentacion">
+            <i class="fas fa-book-open"></i>
+            <span>Documentación de Plataformas</span>
+          </button>
+          
+          <button class="option-btn warning" data-action="incidentes">
+            <i class="fas fa-bug"></i>
+            <span>Incidentes Activos</span>
+          </button>
+          
+          <button class="option-btn success" data-action="estado">
+            <i class="fas fa-heartbeat"></i>
+            <span>Estado Operativo</span>
+          </button>
+          
+          <button class="option-btn info" data-action="cambios">
+            <i class="fas fa-code-branch"></i>
+            <span>Cambios Activos</span>
+          </button>
+          
+          <button class="option-btn admin" data-action="administrador">
+            <i class="fas fa-user-shield"></i>
+            <span>Contactar Administrador</span>
+          </button>
         </div>
       </div>
     </div>
-    
+
     <div class="typing-indicator" id="typing-indicator">
       <div class="typing-avatar">
         <i class="fas fa-robot"></i>
       </div>
       <div class="typing-content">
-        <span class="typing-text">El asistente está procesando...</span>
+        <span>Procesando solicitud...</span>
         <div class="typing-animation">
           <div class="typing-dot"></div>
           <div class="typing-dot"></div>
@@ -289,32 +776,29 @@
         </div>
       </div>
     </div>
-    
+
     <div class="chat-input-container">
       <div class="input-wrapper">
-        <button class="attachment-btn" title="Adjuntar archivo">
+        <button class="input-btn" title="Adjuntar archivo">
           <i class="fas fa-paperclip"></i>
         </button>
-        <input type="text" class="chat-input" id="message-input" placeholder="Describe tu consulta técnica o emergencia..." autocomplete="off">
-        <button class="voice-btn" title="Mensaje de voz">
+        <input type="text" class="chat-input" id="message-input" placeholder="Describe tu consulta técnica o emergencia...">
+        <button class="input-btn" title="Mensaje de voz">
           <i class="fas fa-microphone"></i>
         </button>
-        <button class="send-btn" id="send-btn" title="Enviar mensaje">
+        <button class="input-btn send-btn" id="send-btn" title="Enviar mensaje">
           <i class="fas fa-paper-plane"></i>
         </button>
-      </div>
-      <div class="input-footer">
-        <span class="input-help">Presiona Enter para enviar • Shift+Enter para nueva línea</span>
       </div>
     </div>
   </div>
 
-  <!-- Pie de página -->
+  <!-- Footer -->
   <footer class="footer-premium">
     <div class="footer-content">
       <div class="footer-left">
-        <span>Sistema Core Enterprise &copy; 2025 Claro Colombia</span>
-        <span class="separator">•</span>
+        <span>Sistema Core Enterprise © 2025 Claro Colombia</span>
+        <span style="margin: 0 1rem;">•</span>
         <span>Plataforma de IA Especializada</span>
       </div>
       <div class="footer-right">
@@ -326,16 +810,238 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
   <script>
-    const burbuja = document.getElementById('burbuja-chat');
+    // Variables globales
+    const chatBubble = document.getElementById('chat-bubble');
     const chatWindow = document.getElementById('chat-window');
+    const closeChat = document.getElementById('close-chat');
+    const minimizeChat = document.getElementById('minimize-chat');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const chatMessages = document.getElementById('chat-messages');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const bubbleNotification = document.getElementById('bubble-notification');
 
-    burbuja.addEventListener('click', () => {
-      chatWindow.style.display = 'flex';
-      burbuja.style.display = 'none';
+    // Estado del chat
+    let chatOpen = false;
+    let isTyping = false;
+
+    // Abrir chat
+    chatBubble.addEventListener('click', () => {
+      openChat();
     });
+
+    // Cerrar chat
+    closeChat.addEventListener('click', () => {
+      closeChatWindow();
+    });
+
+    // Minimizar chat
+    minimizeChat.addEventListener('click', () => {
+      closeChatWindow();
+    });
+
+    // Funciones principales
+    function openChat() {
+      chatWindow.style.display = 'flex';
+      chatBubble.style.display = 'none';
+      chatOpen = true;
+      bubbleNotification.style.display = 'none';
+      messageInput.focus();
+    }
+
+    function closeChatWindow() {
+      chatWindow.style.display = 'none';
+      chatBubble.style.display = 'flex';
+      chatOpen = false;
+    }
+
+    // Manejo de opciones del menú
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.option-btn')) {
+        const action = e.target.closest('.option-btn').dataset.action;
+        handleMenuAction(action);
+      }
+    });
+
+    function handleMenuAction(action) {
+      showTyping();
+      
+      setTimeout(() => {
+        hideTyping();
+        
+        switch(action) {
+          case 'alarmas':
+            addMessage('bot', `
+              <div class="response-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Estado de Alarmas - Plataformas Core</strong>
+              </div>
+              <div class="alarm-status">
+                <div class="alarm-item critical">
+                  <span class="alarm-icon">🔴</span>
+                  <span>Core Network - Latencia alta detectada</span>
+                  <span class="alarm-time">Hace 2 min</span>
+                </div>
+                <div class="alarm-item warning">
+                  <span class="alarm-icon">🟡</span>
+                  <span>Billing System - Uso de CPU al 85%</span>
+                  <span class="alarm-time">Hace 15 min</span>
+                </div>
+                <div class="alarm-item success">
+                  <span class="alarm-icon">🟢</span>
+                  <span>CRM Platform - Funcionando normalmente</span>
+                  <span class="alarm-time">Verificado</span>
+                </div>
+                <p><strong>Recomendación:</strong> Revisar inmediatamente la configuración de red del Core Network.</p>
+              </div>
+            `);
+            break;
+            
+          case 'documentacion':
+            addMessage('bot', `
+              <div class="response-header">
+                <i class="fas fa-book-open"></i>
+                <strong>Base de Conocimiento - Documentación</strong>
+              </div>
+              <div class="doc-links">
+                <a href="#" class="doc-link">📋 Procedimientos de Emergencia</a>
+                <a href="#" class="doc-link">🔧 Guías de Configuración</a>
+                <a href="#" class="doc-link">📊 Manuales de Monitoreo</a>
+                <a href="#" class="doc-link">🔐 Protocolos de Seguridad</a>
+                <a href="#" class="doc-link">📈 Análisis de Performance</a>
+              </div>
+              <p>¿Necesitas información específica sobre alguna plataforma?</p>
+            `);
+            break;
+            
+          case 'incidentes':
+            addMessage('bot', `
+              <div class="response-header">
+                <i class="fas fa-bug"></i>
+                <strong>Incidentes Activos - Dashboard</strong>
+              </div>
+              <div class="incident-list">
+                <div class="incident-item critical">
+                  <span class="incident-icon">🔴</span>
+                  <span>Core Network - Pérdida de paquetes</span>
+                  <span class="incident-time">Hace 5 min</span>
+                </div>
+                <div class="incident-item warning">
+                  <span class="incident-icon">🟡</span>
+                  <span>Billing System - Retraso en procesamiento</span>
+                  <span class="incident-time">Hace 20 min</span>
+                </div>  
+                <div class="incident-item success">
+                  <span class="incident-icon">🟢</span>
+                  <span>CRM Platform - Sin incidentes</span>
+                  <span class="incident-time">Verificado</span>
+                </div>
+              </div>
+              <p><strong>Acción sugerida:</strong> Verificar el estado de la red y contactar al equipo de soporte si el problema persiste.</p>
+            `);
+            break;
+            
+          case 'estado':
+            addMessage('bot', `
+              <div class="response-header">
+                <i class="fas fa-heartbeat"></i>
+                <strong>Estado Operativo General</strong>
+              </div>
+              <div class="status-overview">
+                <div class="status-item">
+                  <span class="status-icon">🟢</span>
+                  <span>Core Network - 99.8% Disponibilidad</span>
+                </div>
+                <div class="status-item">
+                  <span class="status-icon">🟢</span>
+                  <span>Billing System - 99.9% Disponibilidad</span>
+                </div>
+                <div class="status-item">
+                  <span class="status-icon">🟢</span>
+                  <span>CRM Platform - 100% Disponibilidad</span>
+                </div>
+              </div>
+              <p>Todos los sistemas principales están operando dentro de los parámetros normales.</p>
+            `);
+            break;
+            
+          case 'cambios':
+            addMessage('bot', `
+              <div class="response-header">
+                <i class="fas fa-code-branch"></i>
+                <strong>Cambios Recientes</strong>
+              </div>
+              <div class="changes-list">
+                <div class="change-item">
+                  <span class="change-icon">🔄</span>
+                  <span>Core Network - Actualización de firmware</span>
+                  <span class="change-time">Hace 3 horas</span>
+                </div>
+                <div class="change-item">
+                  <span class="change-icon">🔄</span>
+                  <span>Billing System - Parche de seguridad</span>
+                  <span class="change-time">Hace 6 horas</span>
+                </div>
+              </div>
+              <p>No se han detectado problemas relacionados con los cambios recientes.</p>
+            `);
+            break;
+            
+          case 'administrador':
+            addMessage('bot', `
+              <div class="response-header">
+                <i class="fas fa-user-shield"></i>
+                <strong>Contactar Administrador</strong>
+              </div>
+              <p>He notificado al administrador de plataforma sobre tu solicitud. Por favor, proporcióname más detalles sobre el problema para asignar la prioridad adecuada.</p>
+              <p>Mientras esperas, ¿hay algo más en lo que pueda ayudarte?</p>
+            `);
+            break;
+        }
+      }, 1500);
+    }
+
+    function showTyping() {
+      isTyping = true;
+      typingIndicator.style.display = 'flex';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function hideTyping() {
+      isTyping = false;
+      typingIndicator.style.display = 'none';
+    }
+
+    function addMessage(sender, content) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${sender}`;
+      messageDiv.innerHTML = content;
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Manejo de envío de mensajes
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    function sendMessage() {
+      const message = messageInput.value.trim();
+      if (message) {
+        addMessage('user', `<p>${message}</p>`);
+        messageInput.value = '';
+        
+        showTyping();
+        setTimeout(() => {
+          hideTyping();
+          addMessage('bot', `<p>He recibido tu mensaje sobre "${message}". Estoy procesando la solicitud y te responderé en breve.</p>`);
+        }, 2000);
+      }
+    }
   </script>
 </body>
 </html>
