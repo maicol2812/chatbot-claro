@@ -137,6 +137,22 @@ document.addEventListener('DOMContentLoaded', function() {
       chatState.unreadMessages = 0;
       updateNotification();
     }
+
+    // Interacción de like para alarmas
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('like-btn')) {
+      const alarmaId = e.target.getAttribute('data-alarma-id');
+      let likedAlarmas = JSON.parse(localStorage.getItem('likedAlarmas') || '{}');
+      if (e.target.classList.contains('liked')) {
+        e.target.classList.remove('liked');
+        delete likedAlarmas[alarmaId];
+      } else {
+        e.target.classList.add('liked');
+        likedAlarmas[alarmaId] = true;
+      }
+      localStorage.setItem('likedAlarmas', JSON.stringify(likedAlarmas));
+      }
+    });
   }
 
   function openChat() {

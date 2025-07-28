@@ -33,6 +33,17 @@
       transition: transform 0.3s;
     }
 
+    /* Fix chat header text breaking */
+    .chat-title-section {
+      min-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chat-title, .chat-subtitle {
+      white-space: nowrap;
+      display: block;
+    }
+
     #burbuja-chat:hover {
       transform: scale(1.1);
     }
@@ -200,7 +211,8 @@
     <div class="bubble-pulse"></div>
   </div>
 
-  <div class="chat-window" id="chat-window" style="display:none">
+  <!-- CHAT CONTAINER MODIFICADO - SIN MENSAJE DE BIENVENIDA -->
+  <div id="chat-container" class="chat-window" style="display:none">
     <div class="chat-header-premium">
       <div class="chat-avatar">
         <div class="avatar-icon">
@@ -225,55 +237,9 @@
       </div>
     </div>
     
+    <!-- CHAT BOX VACÍO - SE LLENARÁ CON JAVASCRIPT -->
     <div class="chat-messages" id="chat-box">
->
-      <div class="welcome-message">
-        <div class="welcome-avatar">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div class="welcome-content">
-          <div class="welcome-header">
-            <h4>🚀 Bienvenido al Centro de Operaciones Core</h4>
-            <span class="timestamp">Ahora</span>
-          </div>
-          <p class="welcome-text">
-            Soy tu asistente de IA especializado en plataformas empresariales de Claro. 
-            Tengo acceso a sistemas críticos y bases de conocimiento avanzadas.
-          </p>
-          <div class="capabilities-grid">
-            <div class="capability-item">
-              <i class="fas fa-shield-alt"></i>
-              <span>Monitoreo 24/7</span>
-            </div>
-            <div class="capability-item">
-              <i class="fas fa-lightning-bolt"></i>
-              <span>Respuesta Inmediata</span>
-            </div>
-            <div class="capability-item">
-              <i class="fas fa-brain"></i>
-              <span>Análisis Predictivo</span>
-            </div>
-            <div class="capability-item">
-              <i class="fas fa-lock"></i>
-              <span>Nivel Enterprise</span>
-            </div>
-          </div>
-          <div class="action-buttons">
-            <button class="action-btn primary" data-action="alarmas">
-              <i class="fas fa-exclamation-triangle"></i>
-              Consultar Alarmas Críticas
-            </button>
-            <button class="action-btn secondary" data-action="documentacion">
-              <i class="fas fa-book-open"></i>
-              Acceder a Documentación
-            </button>
-            <button class="action-btn secondary" data-action="incidentes">
-              <i class="fas fa-chart-line"></i>
-              Dashboard de Incidentes
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- Los mensajes se añadirán aquí dinámicamente -->
     </div>
     
     <div class="typing-indicator" id="typing-indicator">
@@ -330,7 +296,7 @@
   <script src="{{ url_for('static', filename='main.js') }}"></script>
   <script>
     const burbuja = document.getElementById('burbuja-chat');
-    const chatWindow = document.getElementById('chat-window');
+    const chatContainer = document.getElementById('chat-container');
     // --- Chat UI Enhancements ---
     const chatBubble = document.getElementById('chat-bubble');
     const minimizeBtn = document.getElementById('minimize-chat');
@@ -342,32 +308,32 @@
     let chatMinimized = false;
 
     // Chat alignment and transition
-    chatWindow.style.position = 'fixed';
-    chatWindow.style.right = '30px';
-    chatWindow.style.bottom = '30px';
-    chatWindow.style.width = '370px';
-    chatWindow.style.maxHeight = '600px';
-    chatWindow.style.boxShadow = '0 8px 32px rgba(0,0,0,0.18)';
-    chatWindow.style.borderRadius = '18px';
-    chatWindow.style.transition = 'opacity 0.3s, transform 0.3s';
-    chatWindow.style.opacity = '0';
-    chatWindow.style.transform = 'translateY(40px)';
-    chatWindow.style.display = 'none';
+    chatContainer.style.position = 'fixed';
+    chatContainer.style.right = '30px';
+    chatContainer.style.bottom = '30px';
+    chatContainer.style.width = '370px';
+    chatContainer.style.maxHeight = '600px';
+    chatContainer.style.boxShadow = '0 8px 32px rgba(0,0,0,0.18)';
+    chatContainer.style.borderRadius = '18px';
+    chatContainer.style.transition = 'opacity 0.3s, transform 0.3s';
+    chatContainer.style.opacity = '0';
+    chatContainer.style.transform = 'translateY(40px)';
+    chatContainer.style.display = 'none';
 
     // Show chat with animation
     burbuja.addEventListener('click', () => {
-      chatWindow.style.display = 'flex';
+      chatContainer.style.display = 'flex';
       setTimeout(() => {
-      chatWindow.style.opacity = '1';
-      chatWindow.style.transform = 'translateY(0)';
+        chatContainer.style.opacity = '1';
+        chatContainer.style.transform = 'translateY(0)';
       }, 10);
       burbuja.style.display = 'none';
     });
 
     // Minimize chat
     minimizeBtn.addEventListener('click', () => {
-      chatWindow.style.height = '60px';
-      chatWindow.style.opacity = '0.7';
+      chatContainer.style.height = '60px';
+      chatContainer.style.opacity = '0.7';
       chatMinimized = true;
       maximizeBtn.style.display = 'inline-block';
       minimizeBtn.style.display = 'none';
@@ -378,8 +344,8 @@
 
     // Maximize chat
     maximizeBtn.addEventListener('click', () => {
-      chatWindow.style.height = '600px';
-      chatWindow.style.opacity = '1';
+      chatContainer.style.height = '600px';
+      chatContainer.style.opacity = '1';
       chatMinimized = false;
       maximizeBtn.style.display = 'none';
       minimizeBtn.style.display = 'inline-block';
@@ -390,11 +356,11 @@
 
     // Close chat
     closeBtn.addEventListener('click', () => {
-      chatWindow.style.opacity = '0';
-      chatWindow.style.transform = 'translateY(40px)';
+      chatContainer.style.opacity = '0';
+      chatContainer.style.transform = 'translateY(40px)';
       setTimeout(() => {
-      chatWindow.style.display = 'none';
-      burbuja.style.display = 'flex';
+        chatContainer.style.display = 'none';
+        burbuja.style.display = 'flex';
       }, 300);
     });
 
@@ -417,90 +383,6 @@
     setTimeout(() => {
       showBubbleNotification(2);
     }, 4000);
-
-    // --- Action Buttons: Alarmas Form ---
-    // Insert alarm form HTML
-    const alarmFormHTML = `
-      <div class="chat-form" id="alarm-form" style="display:none;">
-      <h4>Consulta de Alarma</h4>
-      <form action="/consultar_alarma" method="post">
-        <input type="text" name="numero_alarma" placeholder="Número de alarma" required>
-        <input type="text" name="elemento_reportador" placeholder="Elemento reportador" required>
-        <button type="submit" class="alarm-btn">Consultar</button>
-      </form>
-      </div>
-    `;
-    chatBox.insertAdjacentHTML('beforeend', alarmFormHTML);
-
-    // Show alarm form on button click
-    document.querySelector('.action-btn[data-action="alarmas"]').addEventListener('click', () => {
-      document.getElementById('alarm-form').style.display = 'block';
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
-
-    // Hide alarm form on submit (optional, can redirect)
-    document.querySelector('#alarm-form form').addEventListener('submit', function(e) {
-      // Optionally redirect or handle via AJAX
-      // window.location.href = '/detalle_alarma.html';
-    });
-
-    // --- CSS for Alarm Form ---
-    const style = document.createElement('style');
-    style.textContent = `
-      .chat-form#alarm-form {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(212,21,40,0.08);
-      padding: 22px 18px 18px 18px;
-      margin: 18px 0;
-      font-family: 'Inter', sans-serif;
-      animation: fadeIn 0.3s;
-      }
-      .chat-form#alarm-form h4 {
-      color: #d41528;
-      font-size: 1.15rem;
-      margin-bottom: 14px;
-      font-weight: 700;
-      }
-      .chat-form#alarm-form input[type="text"] {
-      width: 100%;
-      padding: 10px 14px;
-      margin-bottom: 12px;
-      border: 1.5px solid #e2e2e2;
-      border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(212,21,40,0.07);
-      font-size: 1rem;
-      outline: none;
-      transition: border 0.2s;
-      }
-      .chat-form#alarm-form input[type="text"]:focus {
-      border-color: #d41528;
-      }
-      .chat-form#alarm-form .alarm-btn {
-      background: #d41528;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 22px;
-      font-size: 1rem;
-      font-weight: 600;
-      box-shadow: 0 2px 8px rgba(212,21,40,0.13);
-      cursor: pointer;
-      transition: background 0.2s;
-      }
-      .chat-form#alarm-form .alarm-btn:hover {
-      background: #b31222;
-      }
-      @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px);}
-      to { opacity: 1; transform: translateY(0);}
-      }
-    `;
-    document.head.appendChild(style);
-    burbuja.addEventListener('click', () => {
-      chatWindow.style.display = 'flex';
-      burbuja.style.display = 'none';
-    });
   </script>
 </body>
 </html>
