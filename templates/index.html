@@ -75,6 +75,94 @@
       100% { transform: scale(1.8); opacity: 0; }
     }
 
+    /* --- CHAT INTERFACE VISUAL MODS --- */
+    /* Remove chat header title and subtitle visually */
+    .chat-title-section .chat-title,
+    .chat-title-section .chat-subtitle {
+      display: none !important;
+    }
+
+    /* Clean chat header: only show avatar and controls */
+    .chat-header-premium {
+      display: flex;
+      align-items: center;
+      padding: 14px 18px 10px 18px;
+      border-bottom: 1px solid #f1f1f1;
+      background: #fff;
+      border-radius: 18px 18px 0 0;
+      min-height: 62px;
+      gap: 14px;
+    }
+    .chat-title-section {
+      min-width: 0;
+      flex: 1;
+      padding: 0;
+      margin: 0;
+    }
+
+    /* Prominent initial greeting in chat-messages */
+    .chat-messages .initial-greeting {
+      font-size: 1.18rem;
+      font-weight: 600;
+      color: #d41528;
+      margin-bottom: 18px;
+      margin-top: 6px;
+      text-align: left;
+      background: #fff7f8;
+      border-radius: 8px;
+      padding: 14px 18px;
+      box-shadow: 0 2px 8px rgba(212,21,40,0.07);
+      letter-spacing: 0.01em;
+    }
+
+    /* Menu options styling */
+    .chat-messages .menu-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .chat-messages .menu-option {
+      background: #f6f6f6;
+      border-radius: 7px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      color: #222;
+      cursor: pointer;
+      border: 1px solid #ececec;
+      transition: background 0.18s, box-shadow 0.18s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .chat-messages .menu-option:hover {
+      background: #ffe5ea;
+      color: #d41528;
+      box-shadow: 0 2px 8px rgba(212,21,40,0.09);
+    }
+
+    /* Hide any legacy greeting or subtitle in chat header */
+    .chat-header-premium .chat-title-section {
+      display: none !important;
+    }
+
+    /* Responsive adjustments for chat container */
+    @media (max-width: 500px) {
+      #chat-container {
+      width: 98vw;
+      right: 1vw;
+      bottom: 1vw;
+      max-height: 98vh;
+      border-radius: 12px;
+      }
+      .chat-messages .initial-greeting {
+      font-size: 1rem;
+      padding: 10px 8px;
+      }
+      .chat-messages .menu-option {
+      font-size: 0.98rem;
+      padding: 10px 10px;
+      }
+    }
+
     /* Chat container styles */
     #chat-container {
       position: fixed;
