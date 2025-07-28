@@ -33,17 +33,6 @@
       transition: transform 0.3s;
     }
 
-    /* Fix chat header text breaking */
-    .chat-title-section {
-      min-width: 180px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .chat-title, .chat-subtitle {
-      white-space: nowrap;
-      display: block;
-    }
-
     #burbuja-chat:hover {
       transform: scale(1.1);
     }
@@ -85,9 +74,51 @@
       0% { transform: scale(1); opacity: 0.8; }
       100% { transform: scale(1.8); opacity: 0; }
     }
+
+    /* Chat container styles */
+    #chat-container {
+      position: fixed;
+      right: 30px;
+      bottom: 30px;
+      width: 370px;
+      max-height: 600px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      border-radius: 18px;
+      transition: opacity 0.3s, transform 0.3s;
+      opacity: 0;
+      transform: translateY(40px);
+      display: none;
+      flex-direction: column;
+      background: white;
+    }
+
+    #chat-container.mostrar {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .chat-messages {
+      overflow-y: auto;
+      max-height: 340px;
+      padding: 15px;
+    }
+
+    /* Fix chat header text breaking */
+    .chat-title-section {
+      min-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .chat-title, .chat-subtitle {
+      white-space: nowrap;
+      display: block;
+    }
   </style>
 </head>
 <body>
+   <!-- BURBUJA DE CHAT ÚNICA -->
    <div id="burbuja-chat">
     <i class="fas fa-comments"></i>
     <div class="bubble-notification" id="bubble-notification">1</div>
@@ -158,7 +189,7 @@
           <div class="stat-item">
             <span class="stat-number">24/7</span>
             <span class="stat-label">Monitoreo</span>
-        
+          </div>
         </div>
       </div>
     </section>
@@ -202,17 +233,8 @@
     </section>
   </main>
 
-  <!-- Chatbot -->
-  <div class="chat-bubble" id="chat-bubble">
-    <div class="bubble-icon">
-      <i class="fas fa-robot"></i>
-    </div>
-    <div class="bubble-notification" id="bubble-notification">1</div>
-    <div class="bubble-pulse"></div>
-  </div>
-
-  <!-- CHAT CONTAINER MODIFICADO - SIN MENSAJE DE BIENVENIDA -->
-  <div id="chat-container" class="chat-window" style="display:none">
+  <!-- CHAT CONTAINER - CONTROLADO POR MAIN.JS -->
+  <div id="chat-container">
     <div class="chat-header-premium">
       <div class="chat-avatar">
         <div class="avatar-icon">
@@ -237,9 +259,9 @@
       </div>
     </div>
     
-    <!-- CHAT BOX VACÍO - SE LLENARÁ CON JAVASCRIPT -->
+    <!-- CHAT BOX VACÍO - SE LLENARÁ CON TU FLUJO DE JAVASCRIPT -->
     <div class="chat-messages" id="chat-box">
-      <!-- Los mensajes se añadirán aquí dinámicamente -->
+      <!-- Los mensajes aparecerán aquí dinámicamente -->
     </div>
     
     <div class="typing-indicator" id="typing-indicator">
@@ -292,97 +314,7 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
+  <!-- Scripts - SOLO MAIN.JS MANEJA EL CHAT -->
   <script src="{{ url_for('static', filename='main.js') }}"></script>
-  <script>
-    const burbuja = document.getElementById('burbuja-chat');
-    const chatContainer = document.getElementById('chat-container');
-    // --- Chat UI Enhancements ---
-    const chatBubble = document.getElementById('chat-bubble');
-    const minimizeBtn = document.getElementById('minimize-chat');
-    const maximizeBtn = document.getElementById('maximize-chat');
-    const closeBtn = document.getElementById('close-chat');
-    const chatBox = document.getElementById('chat-box');
-    const typingIndicator = document.getElementById('typing-indicator');
-    const bubbleNotification = document.querySelector('#burbuja-chat .bubble-notification');
-    let chatMinimized = false;
-
-    // Chat alignment and transition
-    chatContainer.style.position = 'fixed';
-    chatContainer.style.right = '30px';
-    chatContainer.style.bottom = '30px';
-    chatContainer.style.width = '370px';
-    chatContainer.style.maxHeight = '600px';
-    chatContainer.style.boxShadow = '0 8px 32px rgba(0,0,0,0.18)';
-    chatContainer.style.borderRadius = '18px';
-    chatContainer.style.transition = 'opacity 0.3s, transform 0.3s';
-    chatContainer.style.opacity = '0';
-    chatContainer.style.transform = 'translateY(40px)';
-    chatContainer.style.display = 'none';
-
-    // Show chat with animation
-    burbuja.addEventListener('click', () => {
-      chatContainer.style.display = 'flex';
-      setTimeout(() => {
-        chatContainer.style.opacity = '1';
-        chatContainer.style.transform = 'translateY(0)';
-      }, 10);
-      burbuja.style.display = 'none';
-    });
-
-    // Minimize chat
-    minimizeBtn.addEventListener('click', () => {
-      chatContainer.style.height = '60px';
-      chatContainer.style.opacity = '0.7';
-      chatMinimized = true;
-      maximizeBtn.style.display = 'inline-block';
-      minimizeBtn.style.display = 'none';
-      chatBox.style.display = 'none';
-      typingIndicator.style.display = 'none';
-      document.querySelector('.chat-input-container').style.display = 'none';
-    });
-
-    // Maximize chat
-    maximizeBtn.addEventListener('click', () => {
-      chatContainer.style.height = '600px';
-      chatContainer.style.opacity = '1';
-      chatMinimized = false;
-      maximizeBtn.style.display = 'none';
-      minimizeBtn.style.display = 'inline-block';
-      chatBox.style.display = 'block';
-      typingIndicator.style.display = 'flex';
-      document.querySelector('.chat-input-container').style.display = 'block';
-    });
-
-    // Close chat
-    closeBtn.addEventListener('click', () => {
-      chatContainer.style.opacity = '0';
-      chatContainer.style.transform = 'translateY(40px)';
-      setTimeout(() => {
-        chatContainer.style.display = 'none';
-        burbuja.style.display = 'flex';
-      }, 300);
-    });
-
-    // Scroll for chat messages
-    chatBox.style.overflowY = 'auto';
-    chatBox.style.maxHeight = '340px';
-
-    // Bubble notification for new messages
-    function showBubbleNotification(count) {
-      bubbleNotification.textContent = count;
-      bubbleNotification.style.display = 'flex';
-      burbuja.classList.add('nuevo-mensaje');
-    }
-    function hideBubbleNotification() {
-      bubbleNotification.style.display = 'none';
-      burbuja.classList.remove('nuevo-mensaje');
-    }
-
-    // Example: simulate new message notification
-    setTimeout(() => {
-      showBubbleNotification(2);
-    }, 4000);
-  </script>
 </body>
 </html>
