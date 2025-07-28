@@ -1033,6 +1033,34 @@
       const message = messageInput.value.trim();
       if (message) {
         addMessage('user', `<p>${message}</p>`);
+        // Lógica para flujo de consulta de alarma
+        if (!window.alarmFlow) window.alarmFlow = { step: 0, numero: '', elemento: '' };
+
+        if (window.alarmFlow.step === 0 && message === "1") {
+          window.alarmFlow.step = 1;
+          showTyping();
+          setTimeout(() => {
+            hideTyping();   
+            addMessage('bot', `<p>Por favor ingrese el número de alarma que desea consultar.</p>`);
+          }, 800);
+        } else if (window.alarmFlow.step === 1) {
+          window.alarmFlow.numero = message;
+          window.alarmFlow.step = 2;
+          showTyping();
+          setTimeout(() => {
+            hideTyping();
+            addMessage('bot', `<p>Por favor ingresa el nombre del elemento que reporta la alarma.</p>`);
+          }, 800);
+        } else if (window.alarmFlow.step === 2) {
+          window.alarmFlow.elemento = message;
+          // Redirigir a detalle_alarma.html con parámetros
+          const params = new URLSearchParams({
+            numero_alarma: window.alarmFlow.numero,
+            elemento: window.alarmFlow.elemento
+          }).toString();
+          window.alarmFlow = { step: 0, numero: '', elemento: '' }; // Reset flow
+          window.location.href = `detalle_alarma.html?${params}`;
+        }
         messageInput.value = '';
         
         showTyping();
