@@ -2,356 +2,104 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Detalle de Alarma - Plataformas Core</title>
-  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <!-- Pantalla de bienvenida -->
-  <div id="welcome-screen" style="position: fixed; inset: 0; background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; transition: all 1s ease;">
-    <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
-    <h2 style="margin-top: 2rem; color: #d41528; font-weight: 700; font-size: 1.8rem;">Detalle de Alarma</h2>
-    <p style="color: #666; margin-top: 1rem; font-size: 1.1rem;">Cargando información detallada...</p>
-    <div style="margin-top: 2rem; width: 200px; height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden;">
-      <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #d41528, #f8d7da); animation: loading 2s ease-in-out;"></div>
-    </div>
-  </div>
-
-  <video id="bg-video" autoplay muted loop>
-  <source src="..." type="video/mp4">
-</video>
-
-
-  <div class="bg-overlay"></div>
-
-  <!-- Header profesional -->
-  <header class="header">
-    <div class="header-content">
-      <div class="logo">
-        <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Logo Claro">
-        <span class="logo-text">Plataformas Core</span>
-      </div
-      <div class="header-actions">
-        <div class="status-indicator">
-          <div class="status-dot"></div>
-          Sistema Operativo
-        </div>
-        <a href="{{ url_for('index') }}" class="btn-nav">
-          <i class="fas fa-home"></i> Inicio
-        </a>
-      </div>
-    </div>
-  </header>
-
-  <main class="main-content">
-    <!-- Breadcrumb profesional -->
-    <nav class="breadcrumb-nav">
-      <div class="breadcrumb-container">
-        <a href="{{ url_for('index') }}" class="breadcrumb-item">
-          <i class="fas fa-home"></i> Inicio
-        </a>
-        <span class="breadcrumb-separator">
-          <i class="fas fa-chevron-right"></i>
-        </span>
-        <a href="{{ url_for('estado_alarmas') }}" class="breadcrumb-item">
-          <i class="fas fa-bell"></i> Estado Alarmas
-        </a>
-        <span class="breadcrumb-separator">
-          <i class="fas fa-chevron-right"></i>
-        </span>
-        <span class="breadcrumb-current">
-          <i class="fas fa-info-circle"></i> Detalle Alarma
-        </span>
-      </div>
-    </nav>
-
-    <!-- Hero section para detalle -->
-    <section class="hero-detail">
-      <div class="hero-content">
-        <div class="alarm-status-badge" id="alarm-status-badge">
-          <i class="fas fa-exclamation-triangle"></i>
-          <span>ALARMA CRÍTICA</span>
-        </div>
-        <h1>Detalle de Alarma</h1>
-        <p class="hero-subtitle">Información completa y diagnóstico avanzado del evento</p>
-      </div>
-    </section>
-
-    <!-- Contenido principal -->
-    <section class="alarm-detail-container">
-      <!-- Información principal -->
-      <div class="alarm-main-info">
-        <div class="info-header">
-          <h2><i class="fas fa-info-circle"></i> Información Principal</h2>
-          <div class="last-update">
-            <i class="fas fa-sync-alt"></i>
-            <span>Última actualización: <span id="last-update-time">--</span></span>
-          </div>
-        </div>
-        
-        <div class="info-grid">
-          <div class="info-card">
-            <div class="info-icon severity-critical">
-              <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="info-content">
-              <h3>Severidad</h3>
-              <p id="alarm-severity">--</p>
-            </div>
-          </div>
-
-          <div class="info-card">
-            <div class="info-icon">
-              <i class="fas fa-server"></i>
-            </div>
-            <div class="info-content">
-              <h3>Plataforma</h3>
-              <p id="alarm-platform">--</p>
-            </div>
-          </div>
-
-          <div class="info-card">
-            <div class="info-icon">
-              <i class="fas fa-clock"></i>
-            </div>
-            <div class="info-content">
-              <h3>Fecha/Hora</h3>
-              <p id="alarm-datetime">--</p>
-            </div>
-          </div>
-
-          <div class="info-card">
-            <div class="info-icon">
-              <i class="fas fa-map-marker-alt"></i>
-            </div>
-            <div class="info-content">
-              <h3>Localización</h3>
-              <p id="alarm-location">--</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Descripción detallada -->
-      <div class="alarm-description-section">
-        <h2><i class="fas fa-file-alt"></i> Descripción Detallada</h2>
-        <div class="description-card">
-          <div class="description-content">
-            <h3>Mensaje de Alarma</h3>
-            <p id="alarm-message">--</p>
-          </div>
-          <div class="description-content">
-            <h3>Descripción Técnica</h3>
-            <p id="alarm-description">--</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Impacto y acciones -->
-      <div class="alarm-actions-section">
-        <div class="impact-card">
-          <h2><i class="fas fa-exclamation-circle"></i> Impacto</h2>
-          <div class="impact-content">
-            <div class="impact-level" id="impact-level">
-              <i class="fas fa-signal"></i>
-              <span>Nivel de Impacto: <strong id="impact-severity">--</strong></span>
-            </div>
-            <p id="impact-description">--</p>
-          </div>
-        </div>
-
-        <div class="actions-card">
-          <h2><i class="fas fa-tools"></i> Acciones Recomendadas</h2>
-          <div class="actions-list" id="actions-list">
-            <!-- Las acciones se cargarán dinámicamente -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Historial y estado -->
-      <div class="alarm-history-section">
-        <h2><i class="fas fa-history"></i> Historial y Estado</h2>
-        <div class="history-timeline" id="history-timeline">
-          <!-- El historial se cargará dinámicamente -->
-        </div>
-      </div>
-
-      <!-- Botones de acción -->
-      <div class="action-buttons">
-        <button class="btn-primary" id="resolve-btn">
-          <i class="fas fa-check"></i> Resolver Alarma
-        </button>
-        <button class="btn-secondary" id="escalate-btn">
-          <i class="fas fa-arrow-up"></i> Escalar
-        </button>
-        <button class="btn-secondary" id="acknowledge-btn">
-          <i class="fas fa-eye"></i> Acusar Recibo
-        </button>
-        <button class="btn-secondary" id="export-btn">
-          <i class="fas fa-download"></i> Exportar Reporte
-        </button>
-      </div>
-    </section>
-  </main>
-
-  <!-- Chatbot -->
-  <div class="burbuja-chat" id="burbuja-chat">
-    <i class="fas fa-robot"></i>
-  </div>
-
-  <div class="chat-container" id="chat-container">
-    <div class="chat-header">
-      <h3><i class="fas fa-robot"></i> Asistente Core <span class="badge-experto">EXPERTO</span></h3>
-      <button class="close-btn" id="close-chat">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    <div class="chat-box" id="chat-box">
-      <div class="bot-msg">
-        <strong>🔍 Análisis de Alarma</strong>
-        <p>Estoy aquí para ayudarte con el análisis detallado de esta alarma</p>
-        <p>¿Necesitas ayuda con la resolución o más información técnica?</p>
-        <div class="suggestions-container">
-          <button class="suggestion-btn">🔧 Guía de resolución</button>
-          <button class="suggestion-btn">📊 Análisis de impacto</button>
-          <button class="suggestion-btn">📋 Procedimientos</button>
-        </div>
-      </div>
-    </div>
-    <div class="typing-indicator" id="typing-indicator">
-      <span>Asistente está escribiendo</span>
-      <div class="typing-dots">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-      </div>
-    </div>
-    <div class="chat-input">
-      <input type="text" id="message-input" placeholder="Pregunta sobre esta alarma..." autocomplete="off">
-      <button class="send-btn" id="send-btn">
-        <i class="fas fa-paper-plane"></i>
-      </button>
-    </div>
-  </div>
-
-  <footer>
-    <p>Sistema de Gestión de Alarmas Core &copy; 2025 - Claro Colombia | Plataforma Experta</p>
-  </footer>
-
   <style>
-    @keyframes loading {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(0); }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    /* Estilos específicos para detalle de alarma */
-    .btn-nav {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      background: rgba(212, 21, 40, 0.1);
-      color: #d41528;
-      text-decoration: none;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      border: 1px solid rgba(212, 21, 40, 0.2);
-    }
-    .btn-nav:hover {
-      background: #d41528;
-      color: white;
-      transform: translateY(-2px);
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+      color: #2c3e50;
     }
 
-    .breadcrumb-nav {
-      padding: 20px 0;
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    .header {
+      background: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-bottom: 3px solid #d41528;
     }
-    .breadcrumb-container {
+
+    .header-content {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .breadcrumb-item {
-      color: #666;
-      text-decoration: none;
-      transition: color 0.3s;
-    }
-    .breadcrumb-item:hover {
-      color: #d41528;
-    }
-    .breadcrumb-current {
-      color: #d41528;
-      font-weight: 600;
-    }
-    .breadcrumb-separator {
-      color: #999;
-      font-size: 0.8rem;
-    }
-
-    .hero-detail {
-      text-align: center;
-      padding: 60px 20px 40px;
-      background: linear-gradient(135deg, rgba(212, 21, 40, 0.05) 0%, rgba(248, 215, 218, 0.1) 100%);
-      border-radius: 20px;
-      margin: 20px;
-    }
-    .alarm-status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      background: linear-gradient(135deg, #dc3545, #ff6b6b);
-      color: white;
-      border-radius: 25px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      margin-bottom: 20px;
-      animation: pulse 2s infinite;
-    }
-
-    .alarm-detail-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-    }
-
-    .alarm-main-info {
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(15px);
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-    .info-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 25px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid rgba(212, 21, 40, 0.1);
     }
-    .info-header h2 {
-      color: #d41528;
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.5rem;
       font-weight: 700;
+      color: #d41528;
+    }
+
+    .btn-back {
+      padding: 8px 20px;
+      background: #d41528;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+      background: #b91225;
+      transform: translateY(-1px);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+
+    .alarm-header {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border-left: 6px solid #d41528;
+    }
+
+    .alarm-title {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 1rem;
+    }
+
+    .severity-badge {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .severity-critical { background: #fee; color: #dc3545; border: 1px solid #f5c6cb; }
+    .severity-major { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+    .severity-minor { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+
+    .alarm-title h1 {
+      font-size: 1.8rem;
+      color: #2c3e50;
       margin: 0;
     }
+
     .last-update {
-      color: #666;
+      color: #6c757d;
       font-size: 0.9rem;
       display: flex;
       align-items: center;
@@ -360,354 +108,372 @@
 
     .info-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
     }
-    .info-card {
+
+    .info-section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 1rem;
       display: flex;
       align-items: center;
-      gap: 15px;
-      padding: 20px;
-      background: rgba(248, 249, 250, 0.8);
-      border-radius: 15px;
-      border-left: 4px solid #d41528;
-      transition: all 0.3s ease;
+      gap: 10px;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #f8f9fa;
     }
-    .info-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+
+    .info-item {
+      margin-bottom: 1rem;
     }
-    .info-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: rgba(212, 21, 40, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #d41528;
-      font-size: 1.3rem;
+
+    .info-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
     }
-    .info-icon.severity-critical {
-      background: rgba(220, 53, 69, 0.1);
-      color: #dc3545;
-    }
-    .info-content h3 {
-      margin: 0;
-      color: #333;
+
+    .info-value {
       font-size: 1rem;
-      font-weight: 600;
-    }
-    .info-content p {
-      margin: 5px 0 0 0;
-      color: #666;
-      font-size: 0.95rem;
+      color: #2c3e50;
+      word-wrap: break-word;
     }
 
-    .alarm-description-section,
-    .alarm-actions-section,
-    .alarm-history-section {
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(15px);
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-    .alarm-description-section h2,
-    .alarm-actions-section h2,
-    .alarm-history-section h2 {
-      color: #d41528;
-      font-weight: 700;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid rgba(212, 21, 40, 0.1);
+    .description-section {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.06);
     }
 
-    .description-card {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
     .description-content {
-      padding: 20px;
-      background: rgba(248, 249, 250, 0.8);
-      border-radius: 15px;
-      border-left: 4px solid #d41528;
-    }
-    .description-content h3 {
-      color: #333;
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-    .description-content p {
-      color: #666;
       line-height: 1.6;
-      margin: 0;
+      color: #495057;
     }
 
-    .alarm-actions-section {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
+    .actions-section {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.06);
     }
-    .impact-card,
-    .actions-card {
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(15px);
-      border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    }
-    .impact-card h2,
-    .actions-card h2 {
-      border-bottom: none;
-      padding-bottom: 0;
-      margin-bottom: 15px;
-    }
-    .impact-level {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 15px;
-      background: rgba(220, 53, 69, 0.1);
-      border-radius: 10px;
-      color: #dc3545;
-      font-weight: 600;
-      margin-bottom: 15px;
-    }
-    .actions-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+
     .action-item {
-      padding: 12px 15px;
-      background: rgba(40, 167, 69, 0.1);
-      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      background: #f8f9fa;
+      border-radius: 8px;
       border-left: 4px solid #28a745;
-      color: #333;
-    }
-
-    .history-timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    .timeline-item {
       display: flex;
       align-items: center;
-      gap: 15px;
-      padding: 15px;
-      background: rgba(248, 249, 250, 0.8);
-      border-radius: 10px;
-      border-left: 4px solid #d41528;
-    }
-    .timeline-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: rgba(212, 21, 40, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #d41528;
-    }
-    .timeline-content {
-      flex: 1;
-    }
-    .timeline-content h4 {
-      margin: 0;
-      color: #333;
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
-    .timeline-content p {
-      margin: 5px 0 0 0;
-      color: #666;
-      font-size: 0.9rem;
+      gap: 10px;
     }
 
     .action-buttons {
       display: flex;
-      gap: 15px;
+      gap: 12px;
       justify-content: center;
-      margin-top: 30px;
+      margin-top: 2rem;
+      flex-wrap: wrap;
     }
-    .btn-primary,
-    .btn-secondary {
-      padding: 12px 25px;
+
+    .btn {
+      padding: 12px 24px;
       border: none;
-      border-radius: 25px;
+      border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
       display: flex;
       align-items: center;
       gap: 8px;
+      text-decoration: none;
     }
+
     .btn-primary {
-      background: linear-gradient(135deg, #28a745, #20c997);
+      background: #28a745;
       color: white;
     }
+
     .btn-primary:hover {
+      background: #218838;
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
     }
+
     .btn-secondary {
-      background: rgba(108, 117, 125, 0.1);
-      color: #6c757d;
-      border: 1px solid rgba(108, 117, 125, 0.2);
-    }
-    .btn-secondary:hover {
       background: #6c757d;
       color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
       transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #6c757d;
+      border: 2px solid #dee2e6;
+    }
+
+    .btn-outline:hover {
+      background: #6c757d;
+      color: white;
     }
 
     @media (max-width: 768px) {
-      .alarm-actions-section {
-        grid-template-columns: 1fr;
+      .container {
+        padding: 0 1rem;
       }
+      
+      .header {
+        padding: 1rem;
+      }
+      
       .info-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
       }
+      
       .action-buttons {
-        flex-wrap: wrap;
-      }
-      .breadcrumb-container {
-        padding: 0 15px;
+        flex-direction: column;
+        align-items: stretch;
       }
     }
   </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <i class="fas fa-server"></i>
+        Plataformas Core
+      </div>
+      <a href="/" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Volver
+      </a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Encabezado de la alarma -->
+    <div class="alarm-header">
+      <div class="alarm-title">
+        <div class="severity-badge severity-critical" id="severity-badge">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span id="severity-text">CRÍTICA</span>
+        </div>
+        <h1>Detalle de Alarma</h1>
+      </div>
+      <div class="last-update">
+        <i class="fas fa-clock"></i>
+        Última actualización: <span id="last-update">--</span>
+      </div>
+    </div>
+
+    <!-- Información principal -->
+    <div class="info-grid">
+      <div class="info-section">
+        <div class="section-title">
+          <i class="fas fa-info-circle"></i>
+          Información General
+        </div>
+        <div class="info-item">
+          <div class="info-label">Severidad</div>
+          <div class="info-value" id="alarm-severity">--</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Plataforma</div>
+          <div class="info-value" id="alarm-platform">--</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Fecha y Hora</div>
+          <div class="info-value" id="alarm-datetime">--</div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <div class="section-title">
+          <i class="fas fa-exclamation-circle"></i>
+          Estado y Impacto
+        </div>
+        <div class="info-item">
+          <div class="info-label">Estado Actual</div>
+          <div class="info-value">Activa</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Nivel de Impacto</div>
+          <div class="info-value" id="impact-level">Alto</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Duración</div>
+          <div class="info-value" id="duration">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Descripción -->
+    <div class="description-section">
+      <div class="section-title">
+        <i class="fas fa-file-alt"></i>
+        Descripción
+      </div>
+      <div class="description-content">
+        <div class="info-item">
+          <div class="info-label">Mensaje de Alarma</div>
+          <div class="info-value" id="alarm-message">--</div>
+        </div>
+        <div class="info-item" style="margin-top: 1.5rem;">
+          <div class="info-label">Descripción Técnica</div>
+          <div class="info-value" id="alarm-description">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones recomendadas -->
+    <div class="actions-section">
+      <div class="section-title">
+        <i class="fas fa-tools"></i>
+        Acciones Recomendadas
+      </div>
+      <div id="actions-list">
+        <!-- Las acciones se cargan dinámicamente -->
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="action-buttons">
+      <button class="btn btn-primary" id="resolve-btn">
+        <i class="fas fa-check"></i> Resolver
+      </button>
+      <button class="btn btn-secondary" id="escalate-btn">
+        <i class="fas fa-arrow-up"></i> Escalar
+      </button>
+      <button class="btn btn-outline" id="acknowledge-btn">
+        <i class="fas fa-eye"></i> Acusar Recibo
+      </button>
+      <button class="btn btn-outline" id="export-btn">
+        <i class="fas fa-download"></i> Exportar
+      </button>
+    </div>
+  </div>
 
   <script>
-    // Bienvenida experta con animación
-      window.addEventListener('load', () => {
-      setTimeout(() => {
-        const welcomeScreen = document.getElementById('welcome-screen');
-        welcomeScreen.style.opacity = '0';
-        welcomeScreen.style.transform = 'scale(0.9)';
-        setTimeout(() => {
-          welcomeScreen.remove();
-        }, 1000);
-      }, 2200);
-    });
-
-    
-    // Reemplazar simulación por datos reales desde localStorage
     document.addEventListener('DOMContentLoaded', function() {
-      const data = JSON.parse(localStorage.getItem('alarmaDetalle'));
+      // Cargar datos desde localStorage
+      const data = JSON.parse(localStorage.getItem('alarmaDetalle') || '{}');
 
-      if (!data) {
-        window.location.href = 'index.html';
+      if (Object.keys(data).length === 0) {
+        alert('No hay datos de alarma disponibles');
+        window.location.href = '/';
         return;
       }
 
+      // Llenar información básica
       document.getElementById('alarm-severity').textContent = data.Severidad || '--';
       document.getElementById('alarm-platform').textContent = data.Elemento || '--';
       document.getElementById('alarm-datetime').textContent = data.Fecha || '--';
-      document.getElementById('alarm-location').textContent = 'N/A';
       document.getElementById('alarm-message').textContent = data.Descripción || '--';
       document.getElementById('alarm-description').textContent = data.Significado || '--';
-      document.getElementById('last-update-time').textContent = new Date().toLocaleString();
+      document.getElementById('last-update').textContent = new Date().toLocaleString();
 
+      // Configurar badge de severidad
+      const severityBadge = document.getElementById('severity-badge');
+      const severityText = document.getElementById('severity-text');
+      const severity = data.Severidad?.toLowerCase() || '';
+      
+      if (severity.includes('crítica') || severity.includes('critical')) {
+        severityBadge.className = 'severity-badge severity-critical';
+        severityText.textContent = 'CRÍTICA';
+      } else if (severity.includes('mayor') || severity.includes('major')) {
+        severityBadge.className = 'severity-badge severity-major';
+        severityText.textContent = 'MAYOR';
+      } else {
+        severityBadge.className = 'severity-badge severity-minor';
+        severityText.textContent = 'MENOR';
+      }
+
+      // Calcular duración (simulada)
+      if (data.Fecha) {
+        const alarmTime = new Date(data.Fecha);
+        const now = new Date();
+        const diff = Math.abs(now - alarmTime);
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        document.getElementById('duration').textContent = `${hours}h ${minutes}m`;
+      }
+
+      // Cargar acciones recomendadas
       const actionsList = document.getElementById('actions-list');
-      const acciones = (data.Acciones || '').split(/[.;•●–-]/).map(a => a.trim()).filter(a => a.length > 0);
-      for (const accion of acciones) {
-        const actionItem = document.createElement('div');
-        actionItem.className = 'action-item';
-        actionItem.innerHTML = `<i class="fas fa-arrow-right"></i> ${accion}`;
-        actionsList.appendChild(actionItem);
+      if (data.Acciones) {
+        const acciones = data.Acciones.split(/[.;•●–-]/)
+          .map(a => a.trim())
+          .filter(a => a.length > 5);
+        
+        acciones.forEach(accion => {
+          const actionItem = document.createElement('div');
+          actionItem.className = 'action-item';
+          actionItem.innerHTML = `
+            <i class="fas fa-check-circle" style="color: #28a745;"></i>
+            ${accion}
+          `;
+          actionsList.appendChild(actionItem);
+        });
+      } else {
+        actionsList.innerHTML = '<div class="action-item"><i class="fas fa-info-circle"></i> No hay acciones específicas definidas</div>';
       }
 
-      const historyTimeline = document.getElementById('history-timeline');
-      const eventos = [
-        { time: data.Fecha, status: 'Alarma detectada', icon: 'exclamation-triangle' },
-        { time: new Date().toLocaleTimeString(), status: 'Analizando impacto', icon: 'search' }
-      ];
-      for (const item of eventos) {
-        const timelineItem = document.createElement('div');
-        timelineItem.className = 'timeline-item';
-        timelineItem.innerHTML = `
-          <div class="timeline-icon">
-            <i class="fas fa-${item.icon}"></i>
-          </div>
-          <div class="timeline-content">
-            <h4>${item.status}</h4>
-            <p>${item.time}</p>
-          </div>
-        `;
-        historyTimeline.appendChild(timelineItem);
-      }
-
+      // Event listeners para los botones
       document.getElementById('resolve-btn').addEventListener('click', function() {
-        alert('Iniciando proceso de resolución de alarma...');
+        if (confirm('¿Está seguro de que desea marcar esta alarma como resuelta?')) {
+          alert('Alarma marcada como resuelta');
+        }
       });
 
       document.getElementById('escalate-btn').addEventListener('click', function() {
-        alert('Escalando alarma al siguiente nivel...');
+        if (confirm('¿Desea escalar esta alarma al siguiente nivel?')) {
+          alert('Alarma escalada correctamente');
+        }
       });
 
       document.getElementById('acknowledge-btn').addEventListener('click', function() {
-        alert('Alarma marcada como vista...');
+        alert('Recibo acusado correctamente');
       });
 
       document.getElementById('export-btn').addEventListener('click', function() {
-        alert('Generando reporte de alarma...');
+        // Simular exportación
+        const exportData = {
+          severidad: data.Severidad,
+          plataforma: data.Elemento,
+          fecha: data.Fecha,
+          descripcion: data.Descripción,
+          significado: data.Significado,
+          acciones: data.Acciones
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `alarma_${Date.now()}.json`;
+        link.click();
       });
     });
   </script>
-  <script>
-  // Reemplazar simulación por datos reales desde localStorage
-  document.addEventListener('DOMContentLoaded', function() {
-    const data = JSON.parse(localStorage.getItem('alarmaDetalle'));
-
-    if (!data) {
-      window.location.href = '/';
-      return;
-    }
-
-    document.getElementById('alarm-severity').textContent = data.Severidad || '--';
-    document.getElementById('alarm-platform').textContent = data.Elemento || '--';
-    document.getElementById('alarm-datetime').textContent = data.Fecha || '--';
-    document.getElementById('alarm-location').textContent = 'N/A';
-
-    document.getElementById('alarm-message').textContent = data.Descripción || '--';
-    document.getElementById('alarm-description').textContent = data.Significado || '--';
-    document.getElementById('last-update-time').textContent = new Date().toLocaleString();
-
-    const actionsList = document.getElementById('actions-list');
-    const acciones = (data.Acciones || '').split(/[.;•●–-]/).map(a => a.trim()).filter(a => a.length > 0);
-    for (const accion of acciones) {
-      const actionItem = document.createElement('div');
-      actionItem.className = 'action-item';
-      actionItem.innerHTML = `<i class="fas fa-arrow-right"></i> ${accion}`;
-      actionsList.appendChild(actionItem);
-    }
-
-    // Historial falso por ahora
-    const historyTimeline = document.getElementById('history-timeline');
-    const eventos = [
-      { time: data.Fecha, status: 'Alarma detectada', icon: 'exclamation-triangle' },
-      { time: new Date().toLocaleTimeString(), status: 'Analizando impacto', icon: 'search' }
-    ];
-    for (const item of eventos) {
-      const timelineItem = document.createElement('div');
-      timelineItem.className = 'timeline-item';
-      timelineItem.innerHTML = `
-        <div class="timeline-icon">
-          <i class="fas fa-${item.icon}"></i>
-        </div>
-        <div class="timeline-content">
-          <h4>${item.status}</h4>
-          <p>${item.time}</p>
-        </div>
-      `;
-      historyTimeline.appendChild(timelineItem);
-    }
-  });
-</script>
-
-  <script src="{{ url_for('static', filename='main.js') }}" defer></script>
 </body>
 </html>

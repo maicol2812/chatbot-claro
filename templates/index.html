@@ -2,345 +2,339 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plataformas Core - Claro</title>
+
+  <!-- Ícono del sitio -->
+  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
+
+  <!-- Librerías externas -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos locales -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Arial', sans-serif;
-      background: #f5f5f5;
-      color: #333;
-    }
-
-    .header {
-      background: white;
-      padding: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .logo {
-      width: 50px;
-      height: 50px;
-      background: #d41528;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 24px;
-      font-weight: bold;
-    }
-
-    .header-text h1 {
-      font-size: 24px;
-      color: #d41528;
-      margin-bottom: 5px;
-    }
-
-    .header-text p {
-      color: #666;
-      font-size: 14px;
-    }
-
-    .main-container {
-      max-width: 1200px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
-
-    .services {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 30px;
-      margin-top: 40px;
-    }
-
-    .service-card {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      text-align: center;
-      transition: transform 0.3s ease;
-    }
-
-    .service-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .service-icon {
-      width: 80px;
-      height: 80px;
-      background: #d41528;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      color: white;
-      font-size: 32px;
-    }
-
-    .service-card h3 {
-      font-size: 20px;
-      margin-bottom: 15px;
-      color: #333;
-    }
-
-    .service-card p {
-      color: #666;
-      line-height: 1.6;
-    }
-
-    .chat-button {
+    #burbuja-chat {
       position: fixed;
-      bottom: 30px;
-      right: 30px;
-      width: 60px;
-      height: 60px;
+      bottom: 20px;
+      right: 20px;
+      width: 70px;
+      height: 70px;
       background: #d41528;
       border-radius: 50%;
-      border: none;
-      color: white;
-      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(212, 21, 40, 0.3);
-      transition: transform 0.3s ease;
+      z-index: 1002;
+      transition: transform 0.3s;
     }
 
-    .chat-button:hover {
+    #burbuja-chat:hover {
       transform: scale(1.1);
     }
 
-    .chat-window {
-      position: fixed;
-      bottom: 100px;
-      right: 30px;
-      width: 350px;
-      height: 450px;
+    #burbuja-chat i {
+      font-size: 28px;
+      color: white;
+    }
+
+    .bubble-notification {
+      position: absolute;
+      top: -6px;
+      right: -6px;
       background: white;
-      border-radius: 15px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-      display: none;
-      flex-direction: column;
-    }
-
-    .chat-header {
-      background: #d41528;
-      color: white;
-      padding: 15px 20px;
-      border-radius: 15px 15px 0 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .chat-header h4 {
-      font-size: 16px;
-    }
-
-    .close-chat {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    .chat-messages {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    .welcome-msg {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 10px;
-      border-left: 4px solid #d41528;
-    }
-
-    .welcome-msg h5 {
       color: #d41528;
-      margin-bottom: 10px;
-    }
-
-    .chat-input-area {
-      padding: 15px 20px;
-      border-top: 1px solid #eee;
-      display: flex;
-      gap: 10px;
-    }
-
-    .chat-input {
-      flex: 1;
-      padding: 10px 15px;
-      border: 1px solid #ddd;
-      border-radius: 25px;
-      outline: none;
-    }
-
-    .send-btn {
-      background: #d41528;
-      border: none;
-      color: white;
-      width: 40px;
-      height: 40px;
       border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 4px 7px;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      display: none;
     }
 
-    .footer {
-      background: #333;
-      color: white;
-      text-align: center;
-      padding: 20px;
-      margin-top: 60px;
+    .nuevo-mensaje .bubble-notification {
+      display: flex !important;
     }
 
-    @media (max-width: 768px) {
-      .services {
-        grid-template-columns: 1fr;
-      }
-      
-      .chat-window {
-        width: 90%;
-        right: 5%;
-        height: 400px;
-      }
+    .bubble-pulse {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: rgba(212, 21, 40, 0.35);
+      animation: pulse 2s infinite;
+      z-index: -1;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.8); opacity: 0; }
     }
   </style>
 </head>
 <body>
+   <div id="burbuja-chat">
+    <i class="fas fa-comments"></i>
+    <div class="bubble-notification" id="bubble-notification">1</div>
+    <div class="bubble-pulse"></div>
+  </div>
+
+  <!-- Pantalla de bienvenida -->
+  <div id="welcome-screen">
+    <div class="welcome-content">
+      <div class="logo-container">
+        <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Logo Claro">
+        <div class="logo-glow"></div>
+      </div>
+      <h2 class="welcome-title">Centro de Operaciones Core</h2>
+      <p class="welcome-subtitle">Sistema Experto Neural • Versión Enterprise</p>
+      <div class="loading-container">
+        <div class="loading-bar">
+          <div class="loading-progress"></div>
+        </div>
+        <p class="loading-text">Inicializando módulos de IA...</p>
+      </div>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-line"></div>
+      <div class="tech-line"></div>
+      <div class="tech-line"></div>
+    </div>
+  </div>
+
+  <!-- Encabezado -->
   <header class="header">
-    <div class="logo">C</div>
-    <div class="header-text">
-      <h1>Plataformas Core</h1>
-      <p>Sistema de Gestión Empresarial</p>
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
+        <div class="logo-text">
+          <span class="brand-name">Plataformas Core</span>
+          <span class="brand-subtitle">Enterprise AI System</span>
+        </div>
+      </div>
+      <div class="header-controls">
+        <div class="system-status">
+          <div class="status-indicator active">
+            <div class="status-pulse"></div>
+            <span>Sistema Operativo</span>
+          </div>
+          <div class="system-metrics">
+            <span class="metric">CPU: 12%</span>
+            <span class="metric">RAM: 8.2GB</span>
+            <span class="metric">Latencia: 45ms</span>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
-  <div class="main-container">
-    <div class="services">
-      <div class="service-card">
-        <div class="service-icon">
-          <i class="fas fa-bell"></i>
+  <!-- Contenido principal -->
+  <main class="main-content">
+    <section class="hero-section">
+      <div class="hero-background"></div>
+      <div class="hero-content">
+        <h1 class="hero-title">Centro de Operaciones Core</h1>
+        <p class="hero-description">Plataforma de Inteligencia Artificial especializada en gestión empresarial</p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">99.9%</span>
+            <span class="stat-label">Disponibilidad</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">24/7</span>
+            <span class="stat-label">Monitoreo</span>
+        
         </div>
-        <h3>Gestión de Alarmas</h3>
-        <p>Monitoreo y análisis de alarmas críticas del sistema en tiempo real.</p>
+      </div>
+    </section>
+
+    <section class="services-grid">
+      <div class="service-card premium">
+        <div class="service-icon alarm">
+          <i class="fas fa-shield-halved"></i>
+        </div>
+        <h3>Gestión Inteligente de Alarmas</h3>
+        <p>Sistema neural avanzado para análisis predictivo de alarmas críticas con correlación automática y recomendaciones de acción inmediata.</p>
+        <div class="service-badges">
+          <span class="badge">AI-Powered</span>
+          <span class="badge">Real-time</span>
+        </div>
       </div>
 
-      <div class="service-card">
-        <div class="service-icon">
-          <i class="fas fa-book"></i>
+      <div class="service-card premium">
+        <div class="service-icon docs">
+          <i class="fas fa-brain"></i>
         </div>
-        <h3>Documentación</h3>
-        <p>Base de conocimiento técnico y procedimientos operativos.</p>
+        <h3>Base de Conocimiento Neural</h3>
+        <p>Documentación técnica inteligente con búsqueda semántica y asistencia contextual para resolución de problemas complejos.</p>
+        <div class="service-badges">
+          <span class="badge">ML-Enhanced</span>
+          <span class="badge">Expert</span>
+        </div>
       </div>
 
-      <div class="service-card">
-        <div class="service-icon">
-          <i class="fas fa-chart-line"></i>
+      <div class="service-card premium">
+        <div class="service-icon incidents">
+          <i class="fas fa-radar"></i>
         </div>
-        <h3>Análisis de Incidentes</h3>
-        <p>Seguimiento y análisis de incidentes para mejora continua.</p>
+        <h3>Análisis Predictivo de Incidentes</h3>
+        <p>Monitoreo proactivo con algoritmos de machine learning para prevenir incidentes críticos antes de que impacten el servicio.</p>
+        <div class="service-badges">
+          <span class="badge">Predictive</span>
+          <span class="badge">Mission-Critical</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Chatbot -->
+  <div class="chat-bubble" id="chat-bubble">
+    <div class="bubble-icon">
+      <i class="fas fa-robot"></i>
+    </div>
+    <div class="bubble-notification" id="bubble-notification">1</div>
+    <div class="bubble-pulse"></div>
+  </div>
+
+  <div class="chat-window" id="chat-window" style="display:none">
+    <div class="chat-header-premium">
+      <div class="chat-avatar">
+        <div class="avatar-icon">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="avatar-status"></div>
+      </div>
+      <div class="chat-title-section">
+        <h3 class="chat-title">Asistente Core Enterprise</h3>
+        <span class="chat-subtitle">IA Especializada • Siempre Activo</span>
+      </div>
+      <div class="chat-controls">
+        <button class="control-btn minimize-btn" id="minimize-chat" title="Minimizar">
+          <i class="fas fa-window-minimize"></i>
+        </button>
+        <button class="control-btn maximize-btn" id="maximize-chat" title="Maximizar">
+          <i class="fas fa-expand"></i>
+        </button>
+        <button class="control-btn close-btn" id="close-chat" title="Cerrar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="chat-messages" id="chat-box">
+>
+      <div class="welcome-message">
+        <div class="welcome-avatar">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="welcome-content">
+          <div class="welcome-header">
+            <h4>🚀 Bienvenido al Centro de Operaciones Core</h4>
+            <span class="timestamp">Ahora</span>
+          </div>
+          <p class="welcome-text">
+            Soy tu asistente de IA especializado en plataformas empresariales de Claro. 
+            Tengo acceso a sistemas críticos y bases de conocimiento avanzadas.
+          </p>
+          <div class="capabilities-grid">
+            <div class="capability-item">
+              <i class="fas fa-shield-alt"></i>
+              <span>Monitoreo 24/7</span>
+            </div>
+            <div class="capability-item">
+              <i class="fas fa-lightning-bolt"></i>
+              <span>Respuesta Inmediata</span>
+            </div>
+            <div class="capability-item">
+              <i class="fas fa-brain"></i>
+              <span>Análisis Predictivo</span>
+            </div>
+            <div class="capability-item">
+              <i class="fas fa-lock"></i>
+              <span>Nivel Enterprise</span>
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn primary" data-action="alarmas">
+              <i class="fas fa-exclamation-triangle"></i>
+              Consultar Alarmas Críticas
+            </button>
+            <button class="action-btn secondary" data-action="documentacion">
+              <i class="fas fa-book-open"></i>
+              Acceder a Documentación
+            </button>
+            <button class="action-btn secondary" data-action="incidentes">
+              <i class="fas fa-chart-line"></i>
+              Dashboard de Incidentes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="typing-indicator" id="typing-indicator">
+      <div class="typing-avatar">
+        <i class="fas fa-robot"></i>
+      </div>
+      <div class="typing-content">
+        <span class="typing-text">El asistente está procesando...</span>
+        <div class="typing-animation">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chat-input-container">
+      <div class="input-wrapper">
+        <button class="attachment-btn" title="Adjuntar archivo">
+          <i class="fas fa-paperclip"></i>
+        </button>
+        <input type="text" class="chat-input" id="message-input" placeholder="Describe tu consulta técnica o emergencia..." autocomplete="off">
+        <button class="voice-btn" title="Mensaje de voz">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <button class="send-btn" id="send-btn" title="Enviar mensaje">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      <div class="input-footer">
+        <span class="input-help">Presiona Enter para enviar • Shift+Enter para nueva línea</span>
       </div>
     </div>
   </div>
 
-  <button class="chat-button" id="chat-toggle">
-    <i class="fas fa-comments"></i>
-  </button>
-
-  <div class="chat-window" id="chat-window">
-    <div class="chat-header">
-      <h4>Asistente Core</h4>
-      <button class="close-chat" id="close-chat">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    
-    <div class="chat-messages">
-      <div class="welcome-msg">
-        <h5>¡Hola!</h5>
-        <p>Soy tu asistente para Plataformas Core. ¿En qué puedo ayudarte hoy?</p>
+  <!-- Pie de página -->
+  <footer class="footer-premium">
+    <div class="footer-content">
+      <div class="footer-left">
+        <span>Sistema Core Enterprise &copy; 2025 Claro Colombia</span>
+        <span class="separator">•</span>
+        <span>Plataforma de IA Especializada</span>
+      </div>
+      <div class="footer-right">
+        <span class="security-badge">
+          <i class="fas fa-shield-check"></i>
+          Nivel de Seguridad: Enterprise
+        </span>
       </div>
     </div>
-    
-    <div class="chat-input-area">
-      <input type="text" class="chat-input" placeholder="Escribe tu mensaje..." id="message-input">
-      <button class="send-btn" id="send-btn">
-        <i class="fas fa-paper-plane"></i>
-      </button>
-    </div>
-  </div>
-
-  <footer class="footer">
-    <p>&copy; 2025 Claro Colombia - Plataformas Core</p>
   </footer>
 
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
   <script>
-    const chatToggle = document.getElementById('chat-toggle');
+    const burbuja = document.getElementById('burbuja-chat');
     const chatWindow = document.getElementById('chat-window');
-    const closeChat = document.getElementById('close-chat');
-    const sendBtn = document.getElementById('send-btn');
-    const messageInput = document.getElementById('message-input');
-    const chatMessages = document.querySelector('.chat-messages');
 
-    chatToggle.addEventListener('click', () => {
-      chatWindow.style.display = chatWindow.style.display === 'none' ? 'flex' : 'none';
-    });
-
-    closeChat.addEventListener('click', () => {
-      chatWindow.style.display = 'none';
-    });
-
-    function addMessage(message, isUser = false) {
-      const messageDiv = document.createElement('div');
-      messageDiv.style.cssText = `
-        background: ${isUser ? '#d41528' : '#f8f9fa'};
-        color: ${isUser ? 'white' : '#333'};
-        padding: 10px 15px;
-        border-radius: 15px;
-        margin: 10px 0;
-        max-width: 80%;
-        margin-left: ${isUser ? 'auto' : '0'};
-        margin-right: ${isUser ? '0' : 'auto'};
-      `;
-      messageDiv.textContent = message;
-      chatMessages.appendChild(messageDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function sendMessage() {
-      const message = messageInput.value.trim();
-      if (message) {
-        addMessage(message, true);
-        messageInput.value = '';
-        
-        setTimeout(() => {
-          addMessage('Gracias por tu mensaje. Un especialista te contactará pronto.');
-        }, 1000);
-      }
-    }
-
-    sendBtn.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
+    burbuja.addEventListener('click', () => {
+      chatWindow.style.display = 'flex';
+      burbuja.style.display = 'none';
     });
   </script>
 </body>
