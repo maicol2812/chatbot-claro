@@ -605,5 +605,6 @@ if __name__ == '__main__':
         app.logger.info("✅ Usando datos del archivo Excel")
     else:
         app.logger.info("⚠️  Usando datos de demostración - Coloca el archivo Excel para datos reales")
+        
     
     app.run(host='0.0.0.0', port=port, debug=debug_mode)
