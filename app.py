@@ -20,13 +20,127 @@ app.config.update({
 alarmas_cache = None
 ultima_actualizacion = None
 
+def crear_datos_demo():
+    """Crear datos de demostración cuando no existe el archivo Excel"""
+    datos_demo = [
+        {
+            'ID': 1,
+            'Elemento': 'Router_Core_01',
+            'Dominio': 'NETCOOL',
+            'Severidad': 'CRITICA',
+            'Descripcion': 'Pérdida de conectividad en router principal',
+            'Descripcion_Completa': 'Pérdida total de conectividad en router principal - Impacto en servicios críticos',
+            'Significado': 'Alarma crítica en Router_Core_01 - Requiere atención inmediata',
+            'Acciones': '1. Verificar estado del equipo • 2. Revisar conectividad • 3. Contactar NOC • 4. Escalar si es necesario',
+            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
+            'Criticidad': 'ALTA',
+            'Tipo_Aviso': 'FAULT'
+        },
+        {
+            'ID': 2,
+            'Elemento': 'Switch_Acceso_05',
+            'Dominio': 'NETCOOL',
+            'Severidad': 'ALTA',
+            'Descripcion': 'Puerto Ethernet fuera de servicio',
+            'Descripcion_Completa': 'Puerto Ethernet GE-0/0/24 fuera de servicio - Verificar cable de conexión',
+            'Significado': 'Alarma de alta prioridad en Switch_Acceso_05 - Intervención requerida',
+            'Acciones': '1. Revisar logs del sistema • 2. Verificar configuración • 3. Monitorear evolución • 4. Documentar solución',
+            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
+            'Criticidad': 'MEDIA',
+            'Tipo_Aviso': 'FAULT'
+        },
+        {
+            'ID': 3,
+            'Elemento': 'Core_5G_Norte',
+            'Dominio': 'SISTEMA',
+            'Severidad': 'MEDIA',
+            'Descripcion': 'CPU utilización alta',
+            'Descripcion_Completa': 'Utilización de CPU al 85% en core 5G zona norte - Monitorear tendencia',
+            'Significado': 'Alarma de severidad media en Core_5G_Norte - Seguimiento necesario',
+            'Acciones': '1. Monitorear comportamiento • 2. Revisar tendencias • 3. Programar mantenimiento • 4. Actualizar documentación',
+            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
+            'Criticidad': 'MEDIA',
+            'Tipo_Aviso': 'PERFORMANCE'
+        },
+        {
+            'ID': 4,
+            'Elemento': 'Servidor_RADIUS',
+            'Dominio': 'METOOL',
+            'Severidad': 'CRITICA',
+            'Descripcion': 'Servicio de autenticación caído',
+            'Descripcion_Completa': 'Servicio RADIUS no responde - Impacto en autenticación de usuarios',
+            'Significado': 'Alarma crítica en Servidor_RADIUS - Requiere atención inmediata',
+            'Acciones': '1. Verificar estado del equipo • 2. Revisar conectividad • 3. Contactar NOC • 4. Escalar si es necesario',
+            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
+            'Criticidad': 'ALTA',
+            'Tipo_Aviso': 'FAULT'
+        },
+        {
+            'ID': 5,
+            'Elemento': 'MPLS_Backbone',
+            'Dominio': 'NETCOOL',
+            'Severidad': 'ALTA',
+            'Descripcion': 'Latencia elevada en enlace',
+            'Descripcion_Completa': 'Latencia promedio de 150ms en enlace MPLS principal - Verificar QoS',
+            'Significado': 'Alarma de alta prioridad en MPLS_Backbone - Intervención requerida',
+            'Acciones': '1. Revisar logs del sistema • 2. Verificar configuración • 3. Monitorear evolución • 4. Documentar solución',
+            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
+            'Criticidad': 'MEDIA',
+            'Tipo_Aviso': 'PERFORMANCE'
+        },
+        {
+            'ID': 6,
+            'Elemento': 'Base_Datos_CRM',
+            'Dominio': 'SISTEMA',
+            'Severidad': 'MEDIA',
+            'Descripcion': 'Consultas lentas detectadas',
+            'Descripcion_Completa': 'Tiempo de respuesta de consultas superior a 5 segundos - Revisar índices',
+            'Significado': 'Alarma de severidad media en Base_Datos_CRM - Seguimiento necesario',
+            'Acciones': '1. Monitorear comportamiento • 2. Revisar tendencias • 3. Programar mantenimiento • 4. Actualizar documentación',
+            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
+            'Criticidad': 'BAJA',
+            'Tipo_Aviso': 'PERFORMANCE'
+        },
+        {
+            'ID': 7,
+            'Elemento': 'Firewall_Perimetral',
+            'Dominio': 'NETCOOL',
+            'Severidad': 'INFORMATIVA',
+            'Descripcion': 'Actualización de reglas completada',
+            'Descripcion_Completa': 'Actualización automática de reglas de firewall completada exitosamente',
+            'Significado': 'Alarma informativa en Firewall_Perimetral - Para conocimiento',
+            'Acciones': '1. Tomar nota del evento • 2. Revisar si es recurrente • 3. Actualizar base de conocimiento',
+            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
+            'Criticidad': 'BAJA',
+            'Tipo_Aviso': 'INFO'
+        },
+        {
+            'ID': 8,
+            'Elemento': 'Load_Balancer_Web',
+            'Dominio': 'SISTEMA',
+            'Severidad': 'ALTA',
+            'Descripcion': 'Servidor backend fuera de pool',
+            'Descripcion_Completa': 'Servidor web backend WEB-03 removido del pool por fallas de health check',
+            'Significado': 'Alarma de alta prioridad en Load_Balancer_Web - Intervención requerida',
+            'Acciones': '1. Revisar logs del sistema • 2. Verificar configuración • 3. Monitorear evolución • 4. Documentar solución',
+            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
+            'Criticidad': 'ALTA',
+            'Tipo_Aviso': 'FAULT'
+        }
+    ]
+    return datos_demo
+
 def cargar_alarmas(force=False):
-    """Función actualizada para cargar alarmas desde el catálogo consolidado"""
+    """Función actualizada para cargar alarmas desde el catálogo consolidado o datos demo"""
     global alarmas_cache, ultima_actualizacion
     try:
+        # Si no existe el archivo Excel, usar datos demo
         if not os.path.exists(app.config['EXCEL_ALARMAS']):
-            app.logger.warning(f"Archivo {app.config['EXCEL_ALARMAS']} no encontrado")
-            return []
+            app.logger.warning(f"Archivo {app.config['EXCEL_ALARMAS']} no encontrado - Usando datos de demostración")
+            if not alarmas_cache:
+                alarmas_cache = crear_datos_demo()
+                ultima_actualizacion = datetime.now().timestamp()
+            return alarmas_cache.copy()
 
         mod_time = os.path.getmtime(app.config['EXCEL_ALARMAS'])
         if not force and alarmas_cache and mod_time <= ultima_actualizacion:
@@ -36,8 +150,9 @@ def cargar_alarmas(force=False):
         try:
             df = pd.read_excel(app.config['EXCEL_ALARMAS'], sheet_name=0)
         except Exception as e:
-            # Si hay error con .xls, intentar como .xlsx
-            df = pd.read_excel(app.config['EXCEL_ALARMAS'].replace('.xls', '.xlsx'), sheet_name=0)
+            app.logger.error(f"Error leyendo Excel: {str(e)} - Usando datos demo")
+            alarmas_cache = crear_datos_demo()
+            return alarmas_cache.copy()
 
         # Limpiar nombres de columnas (remover espacios extra)
         df.columns = df.columns.str.strip()
@@ -123,7 +238,10 @@ def cargar_alarmas(force=False):
 
     except Exception as e:
         app.logger.error(f"Error cargando alarmas: {str(e)}\n{traceback.format_exc()}")
-        return []
+        # En caso de error, devolver datos demo
+        if not alarmas_cache:
+            alarmas_cache = crear_datos_demo()
+        return alarmas_cache.copy()
 
 def buscar_alarma_por_criterios(criterio, valor):
     """Buscar alarmas por diferentes criterios"""
@@ -169,7 +287,12 @@ def obtener_estadisticas_alarmas():
     try:
         alarmas = cargar_alarmas()
         if not alarmas:
-            return {}
+            return {
+                'total': 0,
+                'por_severidad': {},
+                'por_dominio': {},
+                'fecha_actualizacion': datetime.now().strftime('%d/%m/%Y %H:%M')
+            }
 
         total = len(alarmas)
         por_severidad = {}
@@ -188,12 +311,19 @@ def obtener_estadisticas_alarmas():
             'total': total,
             'por_severidad': por_severidad,
             'por_dominio': por_dominio,
-            'fecha_actualizacion': datetime.now().strftime('%d/%m/%Y %H:%M')
+            'fecha_actualizacion': datetime.now().strftime('%d/%m/%Y %H:%M'),
+            'es_demo': not os.path.exists(app.config['EXCEL_ALARMAS'])
         }
         
     except Exception as e:
         app.logger.error(f"Error generando estadísticas: {str(e)}")
-        return {}
+        return {
+            'total': 0,
+            'por_severidad': {},
+            'por_dominio': {},
+            'fecha_actualizacion': datetime.now().strftime('%d/%m/%Y %H:%M'),
+            'error': str(e)
+        }
 
 def obtener_documentos():
     """Función para obtener documentos técnicos"""
@@ -300,7 +430,7 @@ def generar_respuesta(mensaje):
         
     return respuesta
 
-# API Endpoints
+# API Endpoints (sin cambios)
 @app.route('/api/chat', methods=['POST'])
 def chat_api():
     try:
@@ -362,7 +492,7 @@ def servir_documento(nombre):
         app.logger.error(f"Error sirviendo documento {nombre}: {str(e)}")
         return jsonify({'error': 'Archivo no encontrado'}), 404
 
-# Rutas de páginas
+# Rutas de páginas (sin cambios)
 @app.route('/')
 def index():
     try:
@@ -405,6 +535,7 @@ def health():
             'alarmas_count': len(alarmas),
             'excel_exists': os.path.exists(app.config['EXCEL_ALARMAS']),
             'docs_folder_exists': os.path.exists(app.config['CARPETA_DOCS']),
+            'using_demo_data': stats.get('es_demo', False),
             'estadisticas': stats
         })
     except Exception as e:
@@ -441,7 +572,7 @@ def crear_archivos_iniciales():
         # Verificar si existe el archivo de catálogo
         if not os.path.exists(app.config['EXCEL_ALARMAS']):
             app.logger.warning(f"Archivo {app.config['EXCEL_ALARMAS']} no encontrado")
-            app.logger.info("Por favor, coloca el archivo 'Catalogo_Alarmas_Consolidado_17022025.xlsx' en el directorio raíz")
+            app.logger.info("Usando datos de demostración. Para usar datos reales, coloca el archivo Excel en el directorio raíz")
             
     except Exception as e:
         app.logger.error(f"Error creando archivos iniciales: {str(e)}")
@@ -468,5 +599,11 @@ if __name__ == '__main__':
     # Cargar alarmas al inicio para verificar funcionamiento
     alarmas_iniciales = cargar_alarmas()
     app.logger.info(f"Cargadas {len(alarmas_iniciales)} alarmas del catálogo")
+    
+    # Mostrar estado del sistema
+    if os.path.exists(app.config['EXCEL_ALARMAS']):
+        app.logger.info("✅ Usando datos del archivo Excel")
+    else:
+        app.logger.info("⚠️  Usando datos de demostración - Coloca el archivo Excel para datos reales")
     
     app.run(host='0.0.0.0', port=port, debug=debug_mode)
