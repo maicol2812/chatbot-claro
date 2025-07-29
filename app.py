@@ -10,7 +10,7 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # Configuración actualizada para el catálogo consolidado
 app.config.update({
-    'EXCEL_ALARMAS': 'Catalogo_Alarmas_Consolidado_17022025.xlsx',
+    'EXCEL_ALARMAS': 'CatalogoAlarmas.xlsx',
     'CARPETA_DOCS': 'documentacion_plataformas',
     'MAX_ALARMAS': 20,
     'TIPOS_SEVERIDAD': ['ALTA', 'MEDIA', 'BAJA', 'CRITICA', 'INFORMATIVA'],
