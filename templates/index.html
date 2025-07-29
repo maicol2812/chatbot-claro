@@ -13,28 +13,319 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Estilos locales -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
+    :root {
+      --claro-red: #d41528;
+      --claro-dark: #1a1a1a;
+      --claro-gray: #f5f5f5;
+      --accent-blue: #007bff;
+      --text-dark: #2d3748;
+      --text-light: #718096;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      color: var(--text-dark);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--claro-red);
+    }
+
+    .brand-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #10b981;
+      color: white;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .status-pulse {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Main Content */
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      text-align: center;
+      padding: 4rem 0;
+      color: white;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: linear-gradient(45deg, #fff, #f0f0f0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      margin-top: 3rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      min-width: 150px;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-number {
+      display: block;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Services Grid */
+    .services-section {
+      padding: 4rem 0;
+      background: white;
+      margin: 2rem 0;
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+      font-size: 1.125rem;
+      color: var(--text-light);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      padding: 0 2rem;
+    }
+
+    .service-card {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 2.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--claro-red), var(--accent-blue));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .service-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--claro-red);
+    }
+
+    .service-card:hover::before {
+      opacity: 1;
+    }
+
+    .service-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      background: linear-gradient(135deg, var(--claro-red), #ff4757);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .service-card h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+    }
+
+    .service-card p {
+      color: var(--text-light);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .service-badges {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: linear-gradient(135deg, var(--claro-red), #ff4757);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Chat Bubble */
     #burbuja-chat {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      bottom: 30px;
+      right: 30px;
       width: 70px;
       height: 70px;
-      background: #d41528;
+      background: linear-gradient(135deg, var(--claro-red), #ff4757);
       border-radius: 50%;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      box-shadow: var(--shadow-lg);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      z-index: 1002;
-      transition: transform 0.3s;
+      z-index: 1000;
+      transition: all 0.3s ease;
     }
 
     #burbuja-chat:hover {
       transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(212, 21, 40, 0.4);
     }
 
     #burbuja-chat i {
@@ -44,20 +335,18 @@
 
     .bubble-notification {
       position: absolute;
-      top: -6px;
-      right: -6px;
+      top: -8px;
+      right: -8px;
       background: white;
-      color: #d41528;
+      color: var(--claro-red);
       border-radius: 50%;
-      padding: 4px 7px;
+      padding: 6px 8px;
       font-size: 12px;
-      font-weight: bold;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      font-weight: 700;
+      box-shadow: var(--shadow-md);
       display: none;
-    }
-
-    .nuevo-mensaje .bubble-notification {
-      display: flex !important;
+      min-width: 20px;
+      text-align: center;
     }
 
     .bubble-pulse {
@@ -65,262 +354,231 @@
       width: 70px;
       height: 70px;
       border-radius: 50%;
-      background: rgba(212, 21, 40, 0.35);
-      animation: pulse 2s infinite;
+      background: rgba(212, 21, 40, 0.3);
+      animation: bubble-pulse 2s infinite;
       z-index: -1;
     }
 
-    @keyframes pulse {
+    @keyframes bubble-pulse {
       0% { transform: scale(1); opacity: 0.8; }
       100% { transform: scale(1.8); opacity: 0; }
     }
+
+    /* Footer */
+    .footer {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-color);
+      margin-top: 4rem;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--text-light);
+      font-size: 0.875rem;
+    }
+
+    .separator {
+      color: var(--border-color);
+    }
+
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #10b981;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .header-content {
+        padding: 1rem;
+      }
+
+      .hero-title {
+        font-size: 2.5rem;
+      }
+
+      .hero-stats {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: center;
+      }
+
+      .services-grid {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .main-container {
+        padding: 0 1rem;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .service-card {
+      animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .service-card:nth-child(1) { animation-delay: 0.1s; }
+    .service-card:nth-child(2) { animation-delay: 0.2s; }
+    .service-card:nth-child(3) { animation-delay: 0.3s; }
   </style>
 </head>
+
 <body>
-   <div id="burbuja-chat">
+  <!-- Chat Bubble -->
+  <div id="burbuja-chat">
     <i class="fas fa-comments"></i>
     <div class="bubble-notification" id="bubble-notification">1</div>
     <div class="bubble-pulse"></div>
   </div>
 
-  <!-- Pantalla de bienvenida -->
-  <div id="welcome-screen">
-    <div class="welcome-content">
-      <div class="logo-container">
-        <img src="{{ url_for('static', filename='trabajo.jpg') }}" alt="Logo Claro">
-        <div class="logo-glow"></div>
-      </div>
-      <h2 class="welcome-title">Centro de Operaciones Core</h2>
-      <p class="welcome-subtitle">Sistema Experto Neural • Versión Enterprise</p>
-      <div class="loading-container">
-        <div class="loading-bar">
-          <div class="loading-progress"></div>
-        </div>
-        <p class="loading-text">Inicializando módulos de IA...</p>
-      </div>
-    </div>
-    <div class="tech-grid">
-      <div class="tech-line"></div>
-      <div class="tech-line"></div>
-      <div class="tech-line"></div>
-    </div>
-  </div>
-
-  <!-- Encabezado -->
+  <!-- Header -->
   <header class="header">
     <div class="header-content">
       <div class="logo-section">
         <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
         <div class="logo-text">
           <span class="brand-name">Plataformas Core</span>
-          <span class="brand-subtitle">Enterprise AI System</span>
+          <span class="brand-subtitle">Sistema Empresarial</span>
         </div>
       </div>
-      <div class="header-controls">
-        <div class="system-status">
-          <div class="status-indicator active">
-            <div class="status-pulse"></div>
-            <span>Sistema Operativo</span>
-          </div>
-          <div class="system-metrics">
-            <span class="metric">CPU: 12%</span>
-            <span class="metric">RAM: 8.2GB</span>
-            <span class="metric">Latencia: 45ms</span>
-          </div>
+      <div class="system-status">
+        <div class="status-indicator">
+          <div class="status-pulse"></div>
+          <span>Sistema Operativo</span>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Contenido principal -->
-  <main class="main-content">
+  <!-- Main Content -->
+  <main class="main-container">
+    <!-- Hero Section -->
     <section class="hero-section">
-      <div class="hero-background"></div>
-      <div class="hero-content">
-        <h1 class="hero-title">Centro de Operaciones Core</h1>
-        <p class="hero-description">Plataforma de Inteligencia Artificial especializada en gestión empresarial</p>
-        <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-number">99.9%</span>
-            <span class="stat-label">Disponibilidad</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">24/7</span>
-            <span class="stat-label">Monitoreo</span>
-        
+      <h1 class="hero-title">Centro de Operaciones</h1>
+      <p class="hero-subtitle">Plataforma inteligente para gestión empresarial especializada</p>
+      
+      <div class="hero-stats">
+        <div class="stat-card">
+          <span class="stat-number">99.9%</span>
+          <span class="stat-label">Disponibilidad</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">24/7</span>
+          <span class="stat-label">Monitoreo</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">{{ estadisticas.total or '---' }}</span>
+          <span class="stat-label">Alarmas</span>
         </div>
       </div>
     </section>
 
-    <section class="services-grid">
-      <div class="service-card premium">
-        <div class="service-icon alarm">
-          <i class="fas fa-shield-halved"></i>
-        </div>
-        <h3>Gestión Inteligente de Alarmas</h3>
-        <p>Sistema neural avanzado para análisis predictivo de alarmas críticas con correlación automática y recomendaciones de acción inmediata.</p>
-        <div class="service-badges">
-          <span class="badge">AI-Powered</span>
-          <span class="badge">Real-time</span>
-        </div>
+    <!-- Services Section -->
+    <section class="services-section">
+      <div class="section-header">
+        <h2 class="section-title">Servicios Principales</h2>
+        <p class="section-subtitle">
+          Herramientas especializadas para la gestión y monitoreo de plataformas críticas
+        </p>
       </div>
 
-      <div class="service-card premium">
-        <div class="service-icon docs">
-          <i class="fas fa-brain"></i>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3>Gestión de Alarmas</h3>
+          <p>
+            Sistema inteligente para monitoreo y análisis de alarmas críticas 
+            con correlación automática y recomendaciones de acción.
+          </p>
+          <div class="service-badges">
+            <span class="badge">Tiempo Real</span>
+            <span class="badge">Inteligente</span>
+          </div>
         </div>
-        <h3>Base de Conocimiento Neural</h3>
-        <p>Documentación técnica inteligente con búsqueda semántica y asistencia contextual para resolución de problemas complejos.</p>
-        <div class="service-badges">
-          <span class="badge">ML-Enhanced</span>
-          <span class="badge">Expert</span>
-        </div>
-      </div>
 
-      <div class="service-card premium">
-        <div class="service-icon incidents">
-          <i class="fas fa-radar"></i>
+        <div class="service-card">
+          <div class="service-icon">
+            <i class="fas fa-book-open"></i>
+          </div>
+          <h3>Base de Conocimiento</h3>
+          <p>
+            Documentación técnica centralizada con búsqueda avanzada 
+            y asistencia contextual para resolución eficiente.
+          </p>
+          <div class="service-badges">
+            <span class="badge">Centralizado</span>
+            <span class="badge">Búsqueda</span>
+          </div>
         </div>
-        <h3>Análisis Predictivo de Incidentes</h3>
-        <p>Monitoreo proactivo con algoritmos de machine learning para prevenir incidentes críticos antes de que impacten el servicio.</p>
-        <div class="service-badges">
-          <span class="badge">Predictive</span>
-          <span class="badge">Mission-Critical</span>
+
+        <div class="service-card">
+          <div class="service-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Análisis de Incidentes</h3>
+          <p>
+            Monitoreo proactivo con análisis de tendencias para 
+            prevenir incidentes antes de que impacten el servicio.
+          </p>
+          <div class="service-badges">
+            <span class="badge">Preventivo</span>
+            <span class="badge">Análisis</span>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Chatbot -->
-  <div class="chat-bubble" id="chat-bubble">
-    <div class="bubble-icon">
-      <i class="fas fa-robot"></i>
-    </div>
-    <div class="bubble-notification" id="bubble-notification">1</div>
-    <div class="bubble-pulse"></div>
-  </div>
-
-  <div class="chat-window" id="chat-window" style="display:none">
-    <div class="chat-header-premium">
-      <div class="chat-avatar">
-        <div class="avatar-icon">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div class="avatar-status"></div>
-      </div>
-      <div class="chat-title-section">
-        <h3 class="chat-title">Asistente Core Enterprise</h3>
-        <span class="chat-subtitle">IA Especializada • Siempre Activo</span>
-      </div>
-      <div class="chat-controls">
-        <button class="control-btn minimize-btn" id="minimize-chat" title="Minimizar">
-          <i class="fas fa-window-minimize"></i>
-        </button>
-        <button class="control-btn maximize-btn" id="maximize-chat" title="Maximizar">
-          <i class="fas fa-expand"></i>
-        </button>
-        <button class="control-btn close-btn" id="close-chat" title="Cerrar">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    </div>
-    
-    <div class="chat-messages" id="chat-box">
->
-      <div class="welcome-message">
-        <div class="welcome-avatar">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div class="welcome-content">
-          <div class="welcome-header">
-            <h4>🚀 Bienvenido al Centro de Operaciones Core</h4>
-            <span class="timestamp">Ahora</span>
-          </div>
-          <p class="welcome-text">
-            Soy tu asistente de IA especializado en plataformas empresariales de Claro. 
-            Tengo acceso a sistemas críticos y bases de conocimiento avanzadas.
-          </p>
-          <div class="capabilities-grid">
-            <div class="capability-item">
-              <i class="fas fa-shield-alt"></i>
-              <span>Monitoreo 24/7</span>
-            </div>
-            <div class="capability-item">
-              <i class="fas fa-lightning-bolt"></i>
-              <span>Respuesta Inmediata</span>
-            </div>
-            <div class="capability-item">
-              <i class="fas fa-brain"></i>
-              <span>Análisis Predictivo</span>
-            </div>
-            <div class="capability-item">
-              <i class="fas fa-lock"></i>
-              <span>Nivel Enterprise</span>
-            </div>
-          </div>
-          <div class="action-buttons">
-            <button class="action-btn primary" data-action="alarmas">
-              <i class="fas fa-exclamation-triangle"></i>
-              Consultar Alarmas Críticas
-            </button>
-            <button class="action-btn secondary" data-action="documentacion">
-              <i class="fas fa-book-open"></i>
-              Acceder a Documentación
-            </button>
-            <button class="action-btn secondary" data-action="incidentes">
-              <i class="fas fa-chart-line"></i>
-              Dashboard de Incidentes
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="typing-indicator" id="typing-indicator">
-      <div class="typing-avatar">
-        <i class="fas fa-robot"></i>
-      </div>
-      <div class="typing-content">
-        <span class="typing-text">El asistente está procesando...</span>
-        <div class="typing-animation">
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="chat-input-container">
-      <div class="input-wrapper">
-        <button class="attachment-btn" title="Adjuntar archivo">
-          <i class="fas fa-paperclip"></i>
-        </button>
-        <input type="text" class="chat-input" id="message-input" placeholder="Describe tu consulta técnica o emergencia..." autocomplete="off">
-        <button class="voice-btn" title="Mensaje de voz">
-          <i class="fas fa-microphone"></i>
-        </button>
-        <button class="send-btn" id="send-btn" title="Enviar mensaje">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </div>
-      <div class="input-footer">
-        <span class="input-help">Presiona Enter para enviar • Shift+Enter para nueva línea</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pie de página -->
-  <footer class="footer-premium">
+  <!-- Footer -->
+  <footer class="footer">
     <div class="footer-content">
       <div class="footer-left">
-        <span>Sistema Core Enterprise &copy; 2025 Claro Colombia</span>
+        <span>Sistema Core &copy; 2025 Claro Colombia</span>
         <span class="separator">•</span>
-        <span>Plataforma de IA Especializada</span>
+        <span>Plataforma Empresarial</span>
       </div>
       <div class="footer-right">
         <span class="security-badge">
           <i class="fas fa-shield-check"></i>
-          Nivel de Seguridad: Enterprise
+          Seguridad Enterprise
         </span>
       </div>
     </div>
@@ -329,12 +587,23 @@
   <!-- Scripts -->
   <script src="{{ url_for('static', filename='main.js') }}"></script>
   <script>
-    const burbuja = document.getElementById('burbuja-chat');
-    const chatWindow = document.getElementById('chat-window');
+    // Funcionalidad básica del chat bubble
+    document.addEventListener('DOMContentLoaded', function() {
+      const burbuja = document.getElementById('burbuja-chat');
+      
+      // Mostrar notificación después de unos segundos
+      setTimeout(() => {
+        const notification = document.getElementById('bubble-notification');
+        if (notification) {
+          notification.style.display = 'flex';
+        }
+      }, 3000);
 
-    burbuja.addEventListener('click', () => {
-      chatWindow.style.display = 'flex';
-      burbuja.style.display = 'none';
+      // Funcionalidad del bubble (se conectará con main.js)
+      burbuja.addEventListener('click', () => {
+        // Esta funcionalidad se manejará desde main.js
+        console.log('Chat bubble clicked');
+      });
     });
   </script>
 </body>
