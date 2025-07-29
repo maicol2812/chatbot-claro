@@ -10,7 +10,7 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # Configuración actualizada para el catálogo consolidado
 app.config.update({
-    'EXCEL_ALARMAS': 'Catalogo_Alarmas_Consolidado_17022025.xls',
+    'EXCEL_ALARMAS': 'Catalogo_Alarmas_Consolidado_17022025.xlsx',
     'CARPETA_DOCS': 'documentacion_plataformas',
     'MAX_ALARMAS': 20,
     'TIPOS_SEVERIDAD': ['ALTA', 'MEDIA', 'BAJA', 'CRITICA', 'INFORMATIVA'],
@@ -441,7 +441,7 @@ def crear_archivos_iniciales():
         # Verificar si existe el archivo de catálogo
         if not os.path.exists(app.config['EXCEL_ALARMAS']):
             app.logger.warning(f"Archivo {app.config['EXCEL_ALARMAS']} no encontrado")
-            app.logger.info("Por favor, coloca el archivo 'Catalogo_Alarmas_Consolidado_17022025.xls' en el directorio raíz")
+            app.logger.info("Por favor, coloca el archivo 'Catalogo_Alarmas_Consolidado_17022025.xlsx' en el directorio raíz")
             
     except Exception as e:
         app.logger.error(f"Error creando archivos iniciales: {str(e)}")
