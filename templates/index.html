@@ -273,7 +273,19 @@
       overflow-y: auto;
     }
     
-    .pdf-option {
+    .alarma-activa {
+      background-color: #fff8e1;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+      border-left: 4px solid var(--claro-red);
+    }
+    
+    .alarma-activa strong {
+      color: var(--claro-red);
+    }
+    
+    .doc-option {
       display: block;
       padding: 0.8rem;
       margin: 0.5rem 0;
@@ -285,24 +297,18 @@
       transition: background-color 0.2s;
     }
     
-    .pdf-option:hover {
+    .doc-option:hover {
       background-color: #d1e0f0;
     }
     
-    .pdf-viewer-container {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 50%;
-      height: 100vh;
-      background-color: white;
-      box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-      z-index: 1001;
+    /* Document Viewer - Ahora dentro del panel de chat */
+    .doc-viewer-container {
       display: none;
       flex-direction: column;
+      height: 100%;
     }
     
-    .pdf-header {
+    .doc-header {
       padding: 1rem;
       background-color: var(--claro-dark);
       color: white;
@@ -311,7 +317,7 @@
       align-items: center;
     }
     
-    .close-pdf {
+    .close-doc {
       background: none;
       border: none;
       color: white;
@@ -319,16 +325,25 @@
       cursor: pointer;
     }
     
-    .pdf-viewer {
+    .doc-viewer {
       flex-grow: 1;
       border: none;
+      width: 100%;
+      min-height: 400px;
+    }
+    
+    .back-to-list {
+      display: block;
+      padding: 0.5rem;
+      background-color: var(--claro-gray);
+      color: var(--claro-dark);
+      text-align: center;
+      text-decoration: none;
+      margin-top: 0.5rem;
+      border-radius: 5px;
     }
     
     @media (max-width: 768px) {
-      .pdf-viewer-container {
-        width: 100%;
-      }
-      
       .chat-panel {
         width: 300px;
       }
@@ -438,20 +453,9 @@
       <h4>Asistente de Documentación</h4>
       <button class="close-chat" id="closeChat">&times;</button>
     </div>
-    <div class="chat-content">
-      <p>Seleccione el documento que desea consultar:</p>
-      <a href="#" class="pdf-option" data-pdf="Alarmas vSR.pdf">Alarmas vSR.pdf</a>
-      <a href="#" class="pdf-option" data-pdf="vDSR Alarms and KPIs.pdf">vDSR Alarms and KPIs.pdf</a>
+    <div class="chat-content" id="chatContent">
+      <!-- Contenido dinámico se insertará aquí -->
     </div>
-  </div>
-  
-  <!-- PDF Viewer -->
-  <div class="pdf-viewer-container" id="pdfViewerContainer">
-    <div class="pdf-header">
-      <span id="pdfTitle">Documento PDF</span>
-      <button class="close-pdf" id="closePdf">&times;</button>
-    </div>
-    <iframe class="pdf-viewer" id="pdfViewer" frameborder="0"></iframe>
   </div>
   
   <script>
@@ -459,11 +463,108 @@
       const chatBubble = document.getElementById('chatBubble');
       const chatPanel = document.getElementById('chatPanel');
       const closeChat = document.getElementById('closeChat');
-      const pdfOptions = document.querySelectorAll('.pdf-option');
-      const pdfViewerContainer = document.getElementById('pdfViewerContainer');
-      const pdfViewer = document.getElementById('pdfViewer');
-      const pdfTitle = document.getElementById('pdfTitle');
-      const closePdf = document.getElementById('closePdf');
+      const chatContent = document.getElementById('chatContent');
+      
+      // Obtener parámetros de URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const alarmId = urlParams.get('alarm_id');
+      const alarmName = urlParams.get('alarm_name');
+      
+      // Mostrar lista de documentos
+      function showDocumentList() {
+        let chatHTML = '';
+        
+        if (alarmId) {
+          chatHTML += `
+            <div class="alarma-activa">
+              <strong>Alarma activa:</strong> ${alarmName || 'ID: '+alarmId}
+            </div>
+            <p>Documentos relacionados:</p>
+          `;
+        } else {
+          chatHTML += `<p>Seleccione el documento que desea consultar:</p>`;
+        }
+        
+        chatHTML += `
+          <a href="#" class="doc-option" data-doc="Alarmas_vSR.pdf" data-type="pdf">
+            <i class="fas fa-file-pdf"></i> Alarmas vSR.pdf
+          </a>
+          <a href="#" class="doc-option" data-doc="vDSR_Alarms.pdf" data-type="pdf">
+            <i class="fas fa-file-pdf"></i> vDSR Alarms.pdf
+          </a>
+          <a href="#" class="doc-option" data-doc="Manual_Procedimientos.docx" data-type="word">
+            <i class="fas fa-file-word"></i> Manual Procedimientos.docx
+          </a>
+        `;
+        
+        chatContent.innerHTML = chatHTML;
+        
+        // Agregar eventos a los documentos
+        document.querySelectorAll('.doc-option').forEach(option => {
+          option.addEventListener('click', function(e) {
+            e.preventDefault();
+            showDocument(this.getAttribute('data-doc'), this.getAttribute('data-type'));
+          });
+        });
+      }
+      
+      // Mostrar documento seleccionado
+      function showDocument(docFile, docType) {
+        let docUrl = `{{ url_for('static', filename='') }}docs/${docFile}`;
+        let docHTML = '';
+        
+        docHTML += `
+          <div class="doc-viewer-container" id="docViewerContainer">
+            <div class="doc-header">
+              <span>${docFile}</span>
+              <button class="close-doc" id="closeDoc">&times;</button>
+            </div>
+            <iframe class="doc-viewer" id="docViewer" frameborder="0"></iframe>
+            <a href="#" class="back-to-list" id="backToList">
+              <i class="fas fa-arrow-left"></i> Volver a la lista de documentos
+            </a>
+          </div>
+        `;
+        
+        chatContent.innerHTML = docHTML;
+        
+        // Configurar el visor según el tipo de documento
+        const docViewer = document.getElementById('docViewer');
+        
+        if (docType === 'pdf') {
+          // Para PDFs, añadir parámetros de búsqueda si hay alarma
+          if (alarmName) {
+            docUrl += `#search="${encodeURIComponent(alarmName)}"`;
+          }
+          docViewer.src = docUrl;
+        } else if (docType === 'word') {
+          // Para Word, usamos el visor de Office Online
+          docUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(docUrl)}`;
+          docViewer.src = docUrl;
+          
+          if (alarmName) {
+            // Nota: El visor de Word no soporta búsqueda directa, mostramos mensaje
+            setTimeout(() => {
+              alert(`Busque manualmente: "${alarmName}"`);
+            }, 3000);
+          }
+        }
+        
+        // Configurar botón para volver
+        document.getElementById('backToList').addEventListener('click', function(e) {
+          e.preventDefault();
+          showDocumentList();
+        });
+        
+        // Configurar botón para cerrar (que también vuelve a la lista)
+        document.getElementById('closeDoc').addEventListener('click', function(e) {
+          e.preventDefault();
+          showDocumentList();
+        });
+      }
+      
+      // Inicializar mostrando la lista de documentos
+      showDocumentList();
       
       // Toggle chat panel
       chatBubble.addEventListener('click', function() {
@@ -473,43 +574,7 @@
       closeChat.addEventListener('click', function() {
         chatPanel.style.display = 'none';
       });
-      
-      // Handle PDF selection
-      pdfOptions.forEach(option => {
-        option.addEventListener('click', function(e) {
-          e.preventDefault();
-          const pdfFile = this.getAttribute('data-pdf');
-          pdfTitle.textContent = pdfFile;
-          pdfViewer.src = `{{ url_for('static', filename='') }}${pdfFile}`;
-          pdfViewerContainer.style.display = 'flex';
-          chatPanel.style.display = 'none';
-        });
-      });
-      
-      // Close PDF viewer
-      closePdf.addEventListener('click', function() {
-        pdfViewerContainer.style.display = 'none';
-        pdfViewer.src = '';
-      });
     });
   </script>
 </body>
 </html>
-  <script>
-    // Initialize chat bubble click event
-    document.querySelectorAll('.chat-bubble').forEach(bubble => {
-      bubble.addEventListener('click', function() {
-        document.getElementById('chatPanel').style.display = 'flex';
-      });
-    });
-
-    // Initialize close chat button
-    document.getElementById('closeChat').addEventListener('click', function() {
-      document.getElementById('chatPanel').style.display = 'none';
-    });
-
-    // Initialize PDF viewer close button
-    document.getElementById('closePdf').addEventListener('click', function() {
-      document.getElementById('pdfViewerContainer').style.display = 'none';
-      document.getElementById('pdfViewer').src = '';
-    });
