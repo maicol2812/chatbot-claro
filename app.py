@@ -9,9 +9,10 @@ from flask_cors import CORS
 import PyPDF2
 import docx
 from pathlib import Path
+import uuid
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key_development_only')  # Usa variable de entorno en producción
+app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key_development_only')
 CORS(app)
 
 # Configuración
@@ -21,39 +22,69 @@ CONFIG = {
     'DOCS_ALARMAS': ['Alarmas vSR.pdf', 'vDSR Alarms and KPIs.pdf'],
     'ALLOWED_EXTENSIONS': {'pdf', 'docx'},
     'TIPOS_SEVERIDAD': ['CRITICA', 'ALTA', 'MEDIA', 'BAJA', 'INFORMATIVA'],
-    'MAX_ALARMAS': 50
-}
-
-# Base de datos simulada de alarmas
-alarmas_db = {
-    "1001": {
-        "id": "1001",
-        "elemento": "Router Cisco ASR9000",
-        "descripcion": "Fallo en interfaz GigabitEthernet0/0/0/1",
-        "severidad": "CRITICA",
-        "accion": "Verificar estado físico de la interfaz y revisar logs",
-        "documentos": ["Alarmas vSR.pdf", "vDSR Alarms and KPIs.pdf"],
-        "contacto": "soporte_redes@empresa.com"
-    },
-    "2002": {
-        "id": "2002",
-        "elemento": "Firewall Fortigate 100F",
-        "descripcion": "Alta utilización de CPU",
-        "severidad": "ALTA",
-        "accion": "Revisar procesos activos y reglas de firewall",
-        "documentos": ["Alarmas vSR.pdf"],
-        "contacto": "soporte_seguridad@empresa.com"
-    },
-    "3003": {
-        "id": "3003",
-        "elemento": "Switch HP 5130",
-        "descripcion": "Pérdida de paquetes en el enlace troncal",
-        "severidad": "MEDIA",
-        "accion": "Verificar ancho de banda y configuración de QoS",
-        "documentos": ["vDSR Alarms and KPIs.pdf"],
-        "contacto": "soporte_redes@empresa.com"
+    'MAX_ALARMAS': 50,
+    'EXCEL_COLUMNAS': {
+        'FABRICANTE': 'Fabricante',
+        'SERVICIO': 'SERVICIO Y/O SISTEMA GESTIONADO',
+        'GESTOR': 'GESTOR',
+        'TEXTO_1': 'TEXTO 1 DE LA ALARMA',
+        'TEXTO_2': 'TEXTO 2 DE LA ALARMA', 
+        'TEXTO_3': 'TEXTO 3 DE LA ALARMA',
+        'TEXTO_4': 'TEXTO 4 DE LA ALARMA',
+        'TIPO': 'BAJA / ALTA / BLOQUEO',
+        'DOMINIO': 'DOMINIO',
+        'SEVERIDAD': 'SEVERIDAD',
+        'INSTRUCTIVO': 'KM (TITULO DEL INSTRUCTIVO)',
+        'TIER_1': 'TIER 1',
+        'TIER_2': 'TIER 2',
+        'TIER_3': 'TIER 3',
+        'TIPO_ALARMA': 'TIPO DE ALARMA',
+        'GRUPO_ATENCION': 'GRUPO DE ATENCIÓN',
+        'CRITICIDAD': 'CRITICIDAD',
+        'DUEÑO': 'DUEÑO DE PLATAFORMA',
+        'PANEL': 'PANEL NETCOOL'
     }
 }
+
+# Cargar alarmas desde Excel
+def cargar_alarmas_desde_excel():
+    try:
+        df = pd.read_excel(CONFIG['EXCEL_ALARMAS'])
+        alarmas = {}
+        
+        for _, row in df.iterrows():
+            # Generar un ID único si no hay columna ID
+            alarma_id = str(uuid.uuid4())[:8]
+            
+            alarmas[alarma_id] = {
+                "id": alarma_id,
+                "fabricante": row[CONFIG['EXCEL_COLUMNAS']['FABRICANTE']],
+                "servicio": row[CONFIG['EXCEL_COLUMNAS']['SERVICIO']],
+                "gestor": row[CONFIG['EXCEL_COLUMNAS']['GESTOR']],
+                "descripcion": f"{row[CONFIG['EXCEL_COLUMNAS']['TEXTO_1']]} | {row[CONFIG['EXCEL_COLUMNAS']['TEXTO_2']]} | {row[CONFIG['EXCEL_COLUMNAS']['TEXTO_3']]} | {row[CONFIG['EXCEL_COLUMNAS']['TEXTO_4']]}",
+                "tipo": row[CONFIG['EXCEL_COLUMNAS']['TIPO']],
+                "dominio": row[CONFIG['EXCEL_COLUMNAS']['DOMINIO']],
+                "severidad": row[CONFIG['EXCEL_COLUMNAS']['SEVERIDAD']],
+                "instructivo": row[CONFIG['EXCEL_COLUMNAS']['INSTRUCTIVO']],
+                "tier_1": row[CONFIG['EXCEL_COLUMNAS']['TIER_1']],
+                "tier_2": row[CONFIG['EXCEL_COLUMNAS']['TIER_2']],
+                "tier_3": row[CONFIG['EXCEL_COLUMNAS']['TIER_3']],
+                "tipo_alarma": row[CONFIG['EXCEL_COLUMNAS']['TIPO_ALARMA']],
+                "grupo_atencion": row[CONFIG['EXCEL_COLUMNAS']['GRUPO_ATENCION']],
+                "criticidad": row[CONFIG['EXCEL_COLUMNAS']['CRITICIDAD']],
+                "dueño": row[CONFIG['EXCEL_COLUMNAS']['DUEÑO']],
+                "panel": row[CONFIG['EXCEL_COLUMNAS']['PANEL']],
+                "documentos": CONFIG['DOCS_ALARMAS'],
+                "contacto": row[CONFIG['EXCEL_COLUMNAS']['GRUPO_ATENCION']] + "@empresa.com"
+            }
+        
+        return alarmas
+    except Exception as e:
+        logging.error(f"Error cargando alarmas desde Excel: {str(e)}")
+        return {}
+
+# Base de datos de alarmas cargada desde Excel
+alarmas_db = cargar_alarmas_desde_excel()
 
 # Configuración de logging
 logging.basicConfig(
@@ -104,7 +135,7 @@ def get_severity_color(severidad):
         'BAJA': '#7cb342',
         'INFORMATIVA': '#4285F4'
     }
-    return colors.get(severidad, '#757575')
+    return colors.get(severidad.upper(), '#757575')
 
 # Rutas principales
 @app.route('/')
@@ -114,7 +145,12 @@ def home():
 @app.route('/health')
 def health_check():
     """Endpoint para verificación de salud"""
-    return jsonify({"status": "healthy"}), 200
+    return jsonify({
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "service": "asesor-claro-ia",
+        "version": "1.0.0"
+    }), 200
 
 @app.route('/inicio', methods=['GET', 'POST'])
 def inicio():
@@ -345,14 +381,26 @@ def mostrar_alarma():
         </h2>
         
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
-            <p><strong>Elemento:</strong> {alarma['elemento']}</p>
+            <p><strong>Fabricante:</strong> {alarma['fabricante']}</p>
+            <p><strong>Servicio/Sistema:</strong> {alarma['servicio']}</p>
+            <p><strong>Gestor:</strong> {alarma['gestor']}</p>
             <p><strong>Descripción:</strong> {alarma['descripcion']}</p>
+            <p><strong>Tipo:</strong> {alarma['tipo']}</p>
+            <p><strong>Dominio:</strong> {alarma['dominio']}</p>
             <p><strong>Severidad:</strong> 
                 <span style="color: {get_severity_color(alarma['severidad'])}; font-weight: bold;">
                     {alarma['severidad']}
                 </span>
             </p>
-            <p><strong>Acción recomendada:</strong> {alarma['accion']}</p>
+            <p><strong>Instructivo:</strong> {alarma['instructivo']}</p>
+            <p><strong>Tier 1:</strong> {alarma['tier_1']}</p>
+            <p><strong>Tier 2:</strong> {alarma['tier_2']}</p>
+            <p><strong>Tier 3:</strong> {alarma['tier_3']}</p>
+            <p><strong>Tipo de Alarma:</strong> {alarma['tipo_alarma']}</p>
+            <p><strong>Grupo de Atención:</strong> {alarma['grupo_atencion']}</p>
+            <p><strong>Criticidad:</strong> {alarma['criticidad']}</p>
+            <p><strong>Dueño de Plataforma:</strong> {alarma['dueño']}</p>
+            <p><strong>Panel Netcool:</strong> {alarma['panel']}</p>
             <p><strong>Contacto:</strong> {alarma['contacto']}</p>
         </div>
         
@@ -459,7 +507,7 @@ def previsualizar_documento(nombre_documento):
         logger.error(f"Error en previsualización: {str(e)}")
         return 'Error al generar la previsualización', 500
 
-if __name__ == '__main__':
+def create_app():
     # Crear carpeta de documentos si no existe
     os.makedirs(CONFIG['CARPETA_DOCS_ALARMAS'], exist_ok=True)
     
@@ -469,6 +517,10 @@ if __name__ == '__main__':
         if not os.path.exists(doc_path):
             logger.warning(f"Documento faltante: {doc_path}")
     
-    # Configuración para Render
+    return app
+
+# Solo para desarrollo local
+if __name__ == '__main__':
+    app = create_app()
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=True)

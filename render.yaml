@@ -1,17 +1,16 @@
-servicios:
-  - tipo: web
-    nombre: asesor-claro-ia
-    entorno: python
-    comandoConstruccion: pip install -r requirements.txt && python -m flask db upgrade
-    comandoInicio: gunicorn --bind 0.0.0.0:$PORT app:app  # Modificado para usar $PORT
-    variablesEntorno:
-      - clave: FLASK_ENV
-        valor: production
-      - clave: SECRET_KEY
-        generarValor: true
-      - clave: DATABASE_URL
-        desdeBaseDatos:
-          nombre: chatbot-db
-          propiedad: cadenaConexion
-    rutaChequeoSalud: /health
-    puerto: 10000
+services:
+  - type: web
+    name: asesor-claro-ia
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT app:create_app()
+    healthCheckPath: /health
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chatbot-db
+          property: connectionString
