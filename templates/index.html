@@ -2,563 +2,419 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plataformas Core - Claro</title>
-
-  <!-- Ícono del sitio -->
   <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
-
-  <!-- Librerías externas -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
   <style>
     :root {
       --claro-red: #d41528;
       --claro-dark: #1a1a1a;
-      --claro-gray: #f5f5f5;
-      --accent-blue: #007bff;
-      --text-dark: #2d3748;
-      --text-light: #718096;
-      --border-color: #e2e8f0;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
-      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-      --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+      --claro-blue: #005baa;
+      --claro-light: #f8f9fa;
+      --claro-gray: #e9ecef;
     }
-
-    * {
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
+      background-color: var(--claro-light);
+      color: #333;
     }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      line-height: 1.6;
-      color: var(--text-dark);
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-    }
-
-    /* Header */
-    .header {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border-color);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    
+    header {
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-
-    .logo-section {
+    
+    .logo {
       display: flex;
       align-items: center;
       gap: 1rem;
     }
-
-    .header-logo {
-      width: 50px;
+    
+    .logo img {
       height: 50px;
-      border-radius: 12px;
-      box-shadow: var(--shadow-sm);
     }
-
-    .logo-text {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .brand-name {
-      font-size: 1.25rem;
-      font-weight: 700;
+    
+    .logo-text h1 {
       color: var(--claro-red);
-    }
-
-    .brand-subtitle {
-      font-size: 0.875rem;
-      color: var(--text-light);
-      font-weight: 500;
-    }
-
-    .system-status {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-    }
-
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: #10b981;
-      color: white;
-      border-radius: 20px;
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-
-    .status-pulse {
-      width: 8px;
-      height: 8px;
-      background: white;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    /* Main Content */
-    .main-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 2rem;
-    }
-
-    /* Hero Section */
-    .hero-section {
-      text-align: center;
-      padding: 4rem 0;
-      color: white;
-    }
-
-    .hero-title {
-      font-size: 3.5rem;
-      font-weight: 800;
-      margin-bottom: 1rem;
-      background: linear-gradient(45deg, #fff, #f0f0f0);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .hero-subtitle {
-      font-size: 1.25rem;
-      margin-bottom: 2rem;
-      opacity: 0.9;
-      font-weight: 400;
-    }
-
-    .hero-stats {
-      display: flex;
-      justify-content: center;
-      gap: 3rem;
-      margin-top: 3rem;
-    }
-
-    .stat-card {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      padding: 2rem;
-      text-align: center;
-      min-width: 150px;
-      transition: all 0.3s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-5px);
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .stat-number {
-      display: block;
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: white;
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-label {
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 0.875rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Services Grid */
-    .services-section {
-      padding: 4rem 0;
-      background: white;
-      margin: 2rem 0;
-      border-radius: 24px;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .section-header {
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-
-    .section-title {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 1rem;
-    }
-
-    .section-subtitle {
-      font-size: 1.125rem;
-      color: var(--text-light);
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 2rem;
-      padding: 0 2rem;
-    }
-
-    .service-card {
-      background: white;
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 2.5rem;
-      text-align: center;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .service-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--claro-red), var(--accent-blue));
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .service-card:hover {
-      transform: translateY(-8px);
-      box-shadow: var(--shadow-lg);
-      border-color: var(--claro-red);
-    }
-
-    .service-card:hover::before {
-      opacity: 1;
-    }
-
-    .service-icon {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 1.5rem;
-      background: linear-gradient(135deg, var(--claro-red), #ff4757);
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      color: white;
-      box-shadow: var(--shadow-md);
-    }
-
-    .service-card h3 {
+      margin: 0;
       font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      color: var(--text-dark);
     }
-
-    .service-card p {
-      color: var(--text-light);
-      line-height: 1.7;
-      margin-bottom: 1.5rem;
+    
+    .logo-text p {
+      margin: 0;
+      color: var(--claro-dark);
+      font-size: 0.9rem;
     }
-
-    .service-badges {
+    
+    .status {
+      background-color: #28a745;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
       display: flex;
+      align-items: center;
       gap: 0.5rem;
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background-color: white;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    .hero {
+      text-align: center;
+      padding: 3rem 0;
+      background: linear-gradient(135deg, var(--claro-blue), var(--claro-red));
+      color: white;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+    }
+    
+    .hero h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .hero p {
+      font-size: 1.2rem;
+      max-width: 700px;
+      margin: 0 auto 2rem;
+    }
+    
+    .stats {
+      display: flex;
       justify-content: center;
+      gap: 2rem;
       flex-wrap: wrap;
     }
-
-    .badge {
-      background: linear-gradient(135deg, var(--claro-red), #ff4757);
-      color: white;
-      padding: 0.25rem 0.75rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    
+    .stat {
+      background-color: rgba(255,255,255,0.2);
+      padding: 1.5rem;
+      border-radius: 10px;
+      min-width: 150px;
+      text-align: center;
     }
-
-    /* Chat Bubble */
-    #burbuja-chat {
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    
+    .services {
+      background-color: white;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+    
+    .services h3 {
+      text-align: center;
+      font-size: 2rem;
+      color: var(--claro-dark);
+      margin-bottom: 2rem;
+    }
+    
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .service-card {
+      background-color: var(--claro-light);
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: transform 0.3s, box-shadow 0.3s;
+      border-top: 4px solid var(--claro-red);
+    }
+    
+    .service-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .service-icon {
+      background-color: var(--claro-red);
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 1.5rem;
+    }
+    
+    .service-card h4 {
+      text-align: center;
+      color: var(--claro-dark);
+      margin-bottom: 1rem;
+    }
+    
+    .service-card p {
+      text-align: center;
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+    
+    .badges {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .badge {
+      background-color: var(--claro-blue);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+    
+    footer {
+      background-color: var(--claro-dark);
+      color: white;
+      text-align: center;
+      padding: 1.5rem;
+      margin-top: 3rem;
+    }
+    
+    /* Chat bubble */
+    .chat-bubble {
       position: fixed;
       bottom: 30px;
       right: 30px;
-      width: 70px;
-      height: 70px;
-      background: linear-gradient(135deg, var(--claro-red), #ff4757);
+      width: 60px;
+      height: 60px;
+      background-color: var(--claro-red);
       border-radius: 50%;
-      box-shadow: var(--shadow-lg);
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      z-index: 1000;
-      transition: all 0.3s ease;
-    }
-
-    #burbuja-chat:hover {
-      transform: scale(1.1);
-      box-shadow: 0 8px 25px rgba(212, 21, 40, 0.4);
-    }
-
-    #burbuja-chat i {
-      font-size: 28px;
       color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 1000;
     }
-
-    .bubble-notification {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: white;
-      color: var(--claro-red);
-      border-radius: 50%;
-      padding: 6px 8px;
-      font-size: 12px;
-      font-weight: 700;
-      box-shadow: var(--shadow-md);
+    
+    .chat-bubble:hover {
+      transform: scale(1.1);
+    }
+    
+    /* Chat panel */
+    .chat-panel {
+      position: fixed;
+      bottom: 100px;
+      right: 30px;
+      width: 350px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      z-index: 1000;
       display: none;
-      min-width: 20px;
-      text-align: center;
+      flex-direction: column;
+      max-height: 500px;
     }
-
-    .bubble-pulse {
-      position: absolute;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background: rgba(212, 21, 40, 0.3);
-      animation: bubble-pulse 2s infinite;
-      z-index: -1;
-    }
-
-    @keyframes bubble-pulse {
-      0% { transform: scale(1); opacity: 0.8; }
-      100% { transform: scale(1.8); opacity: 0; }
-    }
-
-    /* Footer */
-    .footer {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border-color);
-      margin-top: 4rem;
-    }
-
-    .footer-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem;
+    
+    .chat-header {
+      background-color: var(--claro-red);
+      color: white;
+      padding: 1rem;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-
-    .footer-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      color: var(--text-light);
-      font-size: 0.875rem;
+    
+    .chat-header h4 {
+      margin: 0;
     }
-
-    .separator {
-      color: var(--border-color);
-    }
-
-    .security-badge {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: #10b981;
+    
+    .close-chat {
+      background: none;
+      border: none;
       color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.875rem;
-      font-weight: 500;
+      font-size: 1.2rem;
+      cursor: pointer;
     }
-
-    /* Responsive Design */
+    
+    .chat-content {
+      padding: 1rem;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+    
+    .pdf-option {
+      display: block;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      background-color: var(--claro-gray);
+      border-radius: 5px;
+      color: var(--claro-blue);
+      text-decoration: none;
+      text-align: center;
+      transition: background-color 0.2s;
+    }
+    
+    .pdf-option:hover {
+      background-color: #d1e0f0;
+    }
+    
+    .pdf-viewer-container {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 50%;
+      height: 100vh;
+      background-color: white;
+      box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+      z-index: 1001;
+      display: none;
+      flex-direction: column;
+    }
+    
+    .pdf-header {
+      padding: 1rem;
+      background-color: var(--claro-dark);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .close-pdf {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    
+    .pdf-viewer {
+      flex-grow: 1;
+      border: none;
+    }
+    
     @media (max-width: 768px) {
-      .header-content {
-        padding: 1rem;
+      .pdf-viewer-container {
+        width: 100%;
       }
-
-      .hero-title {
-        font-size: 2.5rem;
+      
+      .chat-panel {
+        width: 300px;
       }
-
-      .hero-stats {
+      
+      .hero h2 {
+        font-size: 2rem;
+      }
+      
+      .stats {
         flex-direction: column;
-        gap: 1.5rem;
         align-items: center;
       }
-
-      .services-grid {
-        grid-template-columns: 1fr;
-        padding: 0 1rem;
-      }
-
-      .footer-content {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-      }
-
-      .main-container {
-        padding: 0 1rem;
-      }
     }
-
-    /* Animations */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .service-card {
-      animation: fadeInUp 0.6s ease forwards;
-    }
-
-    .service-card:nth-child(1) { animation-delay: 0.1s; }
-    .service-card:nth-child(2) { animation-delay: 0.2s; }
-    .service-card:nth-child(3) { animation-delay: 0.3s; }
   </style>
 </head>
-
 <body>
-  <!-- Chat Bubble -->
-  <div id="burbuja-chat">
-    <i class="fas fa-comments"></i>
-    <div class="bubble-notification" id="bubble-notification">1</div>
-    <div class="bubble-pulse"></div>
-  </div>
-
-  <!-- Header -->
-  <header class="header">
-    <div class="header-content">
-      <div class="logo-section">
-        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
-        <div class="logo-text">
-          <span class="brand-name">Plataformas Core</span>
-          <span class="brand-subtitle">Sistema Empresarial</span>
-        </div>
-      </div>
-      <div class="system-status">
-        <div class="status-indicator">
-          <div class="status-pulse"></div>
-          <span>Sistema Operativo</span>
-        </div>
+  <header>
+    <div class="logo">
+      <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro">
+      <div class="logo-text">
+        <h1>Plataformas Core</h1>
+        <p>Sistema Empresarial</p>
       </div>
     </div>
+    <div class="status">
+      <div class="status-dot"></div>
+      <span>Sistema Operativo</span>
+    </div>
   </header>
-
-  <!-- Main Content -->
-  <main class="main-container">
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <h1 class="hero-title">Centro de Operaciones</h1>
-      <p class="hero-subtitle">Plataforma inteligente para gestión empresarial especializada</p>
+  
+  <main>
+    <section class="hero">
+      <h2>Centro de Operaciones</h2>
+      <p>Plataforma inteligente para gestión empresarial especializada</p>
       
-      <div class="hero-stats">
-        <div class="stat-card">
-          <span class="stat-number">99.9%</span>
-          <span class="stat-label">Disponibilidad</span>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-number">99.9%</div>
+          <div>Disponibilidad</div>
         </div>
-        <div class="stat-card">
-          <span class="stat-number">24/7</span>
-          <span class="stat-label">Monitoreo</span>
+        <div class="stat">
+          <div class="stat-number">24/7</div>
+          <div>Monitoreo</div>
         </div>
-        <div class="stat-card">
-          <span class="stat-number">{{ estadisticas.total or '---' }}</span>
-          <span class="stat-label">Alarmas</span>
+        <div class="stat">
+          <div class="stat-number">{{ estadisticas.total or '---' }}</div>
+          <div>Alarmas</div>
         </div>
       </div>
     </section>
-
-    <!-- Services Section -->
-    <section class="services-section">
-      <div class="section-header">
-        <h2 class="section-title">Servicios Principales</h2>
-        <p class="section-subtitle">
-          Herramientas especializadas para la gestión y monitoreo de plataformas críticas
-        </p>
-      </div>
-
+    
+    <section class="services">
+      <h3>Servicios Principales</h3>
+      
       <div class="services-grid">
         <div class="service-card">
           <div class="service-icon">
             <i class="fas fa-exclamation-triangle"></i>
           </div>
-          <h3>Gestión de Alarmas</h3>
-          <p>
-            Sistema inteligente para monitoreo y análisis de alarmas críticas 
-            con correlación automática y recomendaciones de acción.
-          </p>
-          <div class="service-badges">
+          <h4>Gestión de Alarmas</h4>
+          <p>Sistema inteligente para monitoreo y análisis de alarmas críticas.</p>
+          <div class="badges">
             <span class="badge">Tiempo Real</span>
             <span class="badge">Inteligente</span>
           </div>
         </div>
-
+        
         <div class="service-card">
           <div class="service-icon">
             <i class="fas fa-book-open"></i>
           </div>
-          <h3>Base de Conocimiento</h3>
-          <p>
-            Documentación técnica centralizada con búsqueda avanzada 
-            y asistencia contextual para resolución eficiente.
-          </p>
-          <div class="service-badges">
+          <h4>Base de Conocimiento</h4>
+          <p>Documentación técnica centralizada con búsqueda avanzada.</p>
+          <div class="badges">
             <span class="badge">Centralizado</span>
             <span class="badge">Búsqueda</span>
           </div>
         </div>
-
+        
         <div class="service-card">
           <div class="service-icon">
             <i class="fas fa-chart-line"></i>
           </div>
-          <h3>Análisis de Incidentes</h3>
-          <p>
-            Monitoreo proactivo con análisis de tendencias para 
-            prevenir incidentes antes de que impacten el servicio.
-          </p>
-          <div class="service-badges">
+          <h4>Análisis de Incidentes</h4>
+          <p>Monitoreo proactivo con análisis de tendencias para prevenir incidentes.</p>
+          <div class="badges">
             <span class="badge">Preventivo</span>
             <span class="badge">Análisis</span>
           </div>
@@ -566,45 +422,94 @@
       </div>
     </section>
   </main>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-content">
-      <div class="footer-left">
-        <span>Sistema Core &copy; 2025 Claro Colombia</span>
-        <span class="separator">•</span>
-        <span>Plataforma Empresarial</span>
-      </div>
-      <div class="footer-right">
-        <span class="security-badge">
-          <i class="fas fa-shield-check"></i>
-          Seguridad Enterprise
-        </span>
-      </div>
-    </div>
+  
+  <footer>
+    <p>Sistema Core &copy; 2025 Claro Colombia - Plataforma Empresarial</p>
   </footer>
-
-  <!-- Scripts -->
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
+  
+  <!-- Chat bubble -->
+  <div class="chat-bubble" id="chatBubble">
+    <i class="fas fa-comments"></i>
+  </div>
+  
+  <!-- Chat panel -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <h4>Asistente de Documentación</h4>
+      <button class="close-chat" id="closeChat">&times;</button>
+    </div>
+    <div class="chat-content">
+      <p>Seleccione el documento que desea consultar:</p>
+      <a href="#" class="pdf-option" data-pdf="Alarmas vSR.pdf">Alarmas vSR.pdf</a>
+      <a href="#" class="pdf-option" data-pdf="vDSR Alarms and KPIs.pdf">vDSR Alarms and KPIs.pdf</a>
+    </div>
+  </div>
+  
+  <!-- PDF Viewer -->
+  <div class="pdf-viewer-container" id="pdfViewerContainer">
+    <div class="pdf-header">
+      <span id="pdfTitle">Documento PDF</span>
+      <button class="close-pdf" id="closePdf">&times;</button>
+    </div>
+    <iframe class="pdf-viewer" id="pdfViewer" frameborder="0"></iframe>
+  </div>
+  
   <script>
-    // Funcionalidad básica del chat bubble
     document.addEventListener('DOMContentLoaded', function() {
-      const burbuja = document.getElementById('burbuja-chat');
+      const chatBubble = document.getElementById('chatBubble');
+      const chatPanel = document.getElementById('chatPanel');
+      const closeChat = document.getElementById('closeChat');
+      const pdfOptions = document.querySelectorAll('.pdf-option');
+      const pdfViewerContainer = document.getElementById('pdfViewerContainer');
+      const pdfViewer = document.getElementById('pdfViewer');
+      const pdfTitle = document.getElementById('pdfTitle');
+      const closePdf = document.getElementById('closePdf');
       
-      // Mostrar notificación después de unos segundos
-      setTimeout(() => {
-        const notification = document.getElementById('bubble-notification');
-        if (notification) {
-          notification.style.display = 'flex';
-        }
-      }, 3000);
-
-      // Funcionalidad del bubble (se conectará con main.js)
-      burbuja.addEventListener('click', () => {
-        // Esta funcionalidad se manejará desde main.js
-        console.log('Chat bubble clicked');
+      // Toggle chat panel
+      chatBubble.addEventListener('click', function() {
+        chatPanel.style.display = chatPanel.style.display === 'flex' ? 'none' : 'flex';
+      });
+      
+      closeChat.addEventListener('click', function() {
+        chatPanel.style.display = 'none';
+      });
+      
+      // Handle PDF selection
+      pdfOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+          e.preventDefault();
+          const pdfFile = this.getAttribute('data-pdf');
+          pdfTitle.textContent = pdfFile;
+          pdfViewer.src = `{{ url_for('static', filename='') }}${pdfFile}`;
+          pdfViewerContainer.style.display = 'flex';
+          chatPanel.style.display = 'none';
+        });
+      });
+      
+      // Close PDF viewer
+      closePdf.addEventListener('click', function() {
+        pdfViewerContainer.style.display = 'none';
+        pdfViewer.src = '';
       });
     });
   </script>
 </body>
 </html>
+  <script>
+    // Initialize chat bubble click event
+    document.querySelectorAll('.chat-bubble').forEach(bubble => {
+      bubble.addEventListener('click', function() {
+        document.getElementById('chatPanel').style.display = 'flex';
+      });
+    });
+
+    // Initialize close chat button
+    document.getElementById('closeChat').addEventListener('click', function() {
+      document.getElementById('chatPanel').style.display = 'none';
+    });
+
+    // Initialize PDF viewer close button
+    document.getElementById('closePdf').addEventListener('click', function() {
+      document.getElementById('pdfViewerContainer').style.display = 'none';
+      document.getElementById('pdfViewer').src = '';
+    });

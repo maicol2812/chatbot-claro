@@ -7,6 +7,10 @@ from flask import send_file
 import numpy as np
 from flask_cors import CORS
 import logging
+import PyPDF2
+import docx
+from pathlib import Path
+import re
 
 # Configuración inicial de la aplicación
 app = Flask(__name__, static_folder='static', template_folder='templates')
@@ -16,15 +20,18 @@ CORS(app)
 app.config.update({
     'EXCEL_ALARMAS': 'CatalogoAlarmas.xlsx',
     'CARPETA_DOCS': 'documentacion_plataformas',
+    'CARPETA_DOCS_ALARMAS': 'documentos_alarmas',  # Nueva carpeta para PDFs de alarmas
     'MAX_ALARMAS': 50,
     'TIPOS_SEVERIDAD': ['CRITICA', 'ALTA', 'MEDIA', 'BAJA', 'INFORMATIVA', 'BLOQUEO'],
     'DOMINIOS': ['NETCOOL', 'METOOL', 'SISTEMA', 'Domain amx_ns:.DOM.COLM_TRIARA_U2000_DOM'],
-    'SHEET_NAME': 'Afectacion'
+    'SHEET_NAME': 'Afectacion',
+    'DOCS_ALARMAS': ['Alarmas vSR.pdf', 'vDSR Alarms and KPIs.pdf']  # Lista de documentos de alarmas
 })
 
 # Variables globales para caché
 alarmas_cache = None
 ultima_actualizacion = None
+docs_cache = {}  # Cache para contenido de documentos
 
 # Configuración de logging
 logging.basicConfig(
@@ -33,8 +40,114 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def crear_archivos_iniciales():
+    """Crear estructura de carpetas y archivos iniciales"""
+    carpetas = [
+        app.config['CARPETA_DOCS'],
+        app.config['CARPETA_DOCS_ALARMAS']
+    ]
+    
+    for carpeta in carpetas:
+        if not os.path.exists(carpeta):
+            os.makedirs(carpeta)
+            logger.info(f"Creada carpeta: {carpeta}")
+
+def extraer_texto_pdf(ruta_archivo):
+    """Extraer texto de un archivo PDF"""
+    try:
+        texto = ""
+        with open(ruta_archivo, 'rb') as archivo:
+            lector_pdf = PyPDF2.PdfReader(archivo)
+            for pagina in lector_pdf.pages:
+                texto += pagina.extract_text() + "\n"
+        return texto
+    except Exception as e:
+        logger.error(f"Error extrayendo texto de PDF {ruta_archivo}: {str(e)}")
+        return ""
+
+def extraer_texto_docx(ruta_archivo):
+    """Extraer texto de un archivo DOCX"""
+    try:
+        doc = docx.Document(ruta_archivo)
+        texto = ""
+        for parrafo in doc.paragraphs:
+            texto += parrafo.text + "\n"
+        return texto
+    except Exception as e:
+        logger.error(f"Error extrayendo texto de DOCX {ruta_archivo}: {str(e)}")
+        return ""
+
+def cargar_documentos_alarmas():
+    """Cargar y cachear el contenido de los documentos de alarmas"""
+    global docs_cache
+    
+    carpeta_docs = app.config['CARPETA_DOCS_ALARMAS']
+    documentos = app.config['DOCS_ALARMAS']
+    
+    for nombre_doc in documentos:
+        ruta_completa = os.path.join(carpeta_docs, nombre_doc)
+        
+        if os.path.exists(ruta_completa):
+            if nombre_doc not in docs_cache:
+                logger.info(f"Cargando documento: {nombre_doc}")
+                
+                if nombre_doc.lower().endswith('.pdf'):
+                    contenido = extraer_texto_pdf(ruta_completa)
+                elif nombre_doc.lower().endswith('.docx'):
+                    contenido = extraer_texto_docx(ruta_completa)
+                else:
+                    contenido = ""
+                
+                docs_cache[nombre_doc] = {
+                    'contenido': contenido,
+                    'ruta': ruta_completa,
+                    'fecha_carga': datetime.now()
+                }
+        else:
+            logger.warning(f"Documento no encontrado: {ruta_completa}")
+
+def buscar_en_documentos(termino_busqueda):
+    """Buscar información relacionada con una alarma en los documentos"""
+    resultados = []
+    
+    # Asegurar que los documentos estén cargados
+    cargar_documentos_alarmas()
+    
+    termino_busqueda = termino_busqueda.lower().strip()
+    
+    for nombre_doc, info_doc in docs_cache.items():
+        contenido = info_doc['contenido'].lower()
+        
+        if termino_busqueda in contenido:
+            # Encontrar contexto alrededor del término
+            lineas = contenido.split('\n')
+            fragmentos_relevantes = []
+            
+            for i, linea in enumerate(lineas):
+                if termino_busqueda in linea:
+                    # Obtener contexto (3 líneas antes y después)
+                    inicio = max(0, i - 3)
+                    
+                    fin = min(len(lineas), i + 4)
+                    contexto = '\n'.join(lineas[inicio:fin])
+                    
+                    fragmentos_relevantes.append({
+                        'fragmento': contexto,
+                        'linea': i + 1
+                    })
+            
+            if fragmentos_relevantes:
+                resultados.append({
+                    'documento': nombre_doc,
+                    'ruta': info_doc['ruta'],
+                    'fragmentos': fragmentos_relevantes[:3],  # Máximo 3 fragmentos por documento
+                    'total_ocurrencias': len(fragmentos_relevantes)
+                })
+    
+    return resultados
+
 def crear_datos_demo():
-    """Datos de demostración completos (igual que tu versión original)"""
+    """Datos de demostración completos"""
     return [
         {
             'ID': 1,
@@ -59,11 +172,33 @@ def crear_datos_demo():
             'Significado': 'Alarma crítica en AAA Huawei - Requiere atención inmediata',
             'Acciones': '1. Verificar estado del equipo • 2. Revisar conectividad • 3. Contactar NOC • 4. Escalar si es necesario'
         },
-        # ... (todos tus datos demo originales)
+        {
+            'ID': 2,
+            'Fabricante': 'Ericsson',
+            'Servicio_Gestionado': 'MME Ericsson',
+            'Gestor': 'NETCOOL',
+            'Codigo_Alarma': '2001',
+            'Descripcion_Corta': 'S1AP Connection Lost',
+            'Descripcion_Larga': 'Pérdida de conexión S1AP',
+            'Detalles_Adicionales': 'Interfaz S1 no disponible',
+            'Nivel': 'CRITICA',
+            'Dominio': 'NETCOOL',
+            'Severidad': 'CRITICA',
+            'Tipo_Aviso': 'CONNECTIVITY',
+            'Grupo_Atencion': 'CORE NETWORK',
+            'Criticidad': 'CRITICA',
+            'Dueño_Plataforma': 'LUIS MARTINEZ',
+            'Panel_Netcool': 'CORE LTE',
+            'Elemento': 'MME Ericsson',
+            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
+            'Descripcion_Completa': 'S1AP Connection Lost • Pérdida de conexión S1AP • Interfaz S1 no disponible',
+            'Significado': 'Alarma crítica en MME Ericsson - Pérdida de conectividad',
+            'Acciones': '1. Verificar enlaces de red • 2. Revisar configuración S1AP • 3. Coordinar con transporte • 4. Escalar a fabricante'
+        }
     ]
 
 def cargar_alarmas(force=False):
-    """Versión completa idéntica a tu función original"""
+    """Cargar alarmas desde Excel o usar datos demo"""
     global alarmas_cache, ultima_actualizacion
     try:
         if not os.path.exists(app.config['EXCEL_ALARMAS']):
@@ -91,7 +226,7 @@ def cargar_alarmas(force=False):
             alarmas_cache = crear_datos_demo()
             return alarmas_cache.copy()
 
-        # Procesamiento completo del DataFrame (igual que tu versión)
+        # Procesamiento del DataFrame
         df.columns = df.columns.str.strip()
         
         column_mapping = {
@@ -184,37 +319,8 @@ def cargar_alarmas(force=False):
             alarmas_cache = crear_datos_demo()
         return alarmas_cache.copy()
 
-# Todos tus endpoints originales completos
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-@app.route('/api/alarmas')
-def alarmas_api():
-    try:
-        filtro = request.args.get('filtro', '')
-        criterio = request.args.get('criterio', 'texto')
-        
-        if filtro:
-            alarmas = buscar_alarma_por_criterios(criterio, filtro)
-        else:
-            alarmas = cargar_alarmas()[:app.config['MAX_ALARMAS']]
-            
-        return jsonify({
-            'alarmas': alarmas,
-            'total': len(alarmas),
-            'criterio': criterio,
-            'filtro': filtro,
-            'estadisticas': obtener_estadisticas_alarmas()
-        })
-    except Exception as e:
-        logger.error(f"Error en alarmas_api: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-# ... (todos los demás endpoints originales)
-
 def buscar_alarma_por_criterios(criterio, valor):
-    """Función completa de búsqueda idéntica a tu versión"""
+    """Función completa de búsqueda"""
     try:
         alarmas = cargar_alarmas()
         if not alarmas:
@@ -259,10 +365,194 @@ def buscar_alarma_por_criterios(criterio, valor):
         logger.error(f"Error buscando alarmas: {str(e)}")
         return []
 
-# ... (todas las demás funciones auxiliares originales)
+def obtener_estadisticas_alarmas():
+    """Obtener estadísticas de las alarmas cargadas"""
+    try:
+        alarmas = cargar_alarmas()
+        if not alarmas:
+            return {'total': 0}
+        
+        stats = {
+            'total': len(alarmas),
+            'por_severidad': {},
+            'por_dominio': {},
+            'por_fabricante': {}
+        }
+        
+        for alarma in alarmas:
+            # Severidad
+            sev = alarma.get('Severidad', 'NO DEFINIDA')
+            stats['por_severidad'][sev] = stats['por_severidad'].get(sev, 0) + 1
+            
+            # Dominio
+            dom = alarma.get('Dominio', 'NO DEFINIDO')
+            stats['por_dominio'][dom] = stats['por_dominio'].get(dom, 0) + 1
+            
+            # Fabricante
+            fab = alarma.get('Fabricante', 'NO DEFINIDO')
+            stats['por_fabricante'][fab] = stats['por_fabricante'].get(fab, 0) + 1
+        
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Error obteniendo estadísticas: {str(e)}")
+        return {'total': 0}
+
+# ENDPOINTS
+
+@app.route('/')
+def home():
+    estadisticas = obtener_estadisticas_alarmas()
+    return render_template('index.html', estadisticas=estadisticas)
+
+@app.route('/api/alarmas')
+def alarmas_api():
+    try:
+        filtro = request.args.get('filtro', '')
+        criterio = request.args.get('criterio', 'texto')
+        
+        if filtro:
+            alarmas = buscar_alarma_por_criterios(criterio, filtro)
+        else:
+            alarmas = cargar_alarmas()[:app.config['MAX_ALARMAS']]
+            
+        return jsonify({
+            'alarmas': alarmas,
+            'total': len(alarmas),
+            'criterio': criterio,
+            'filtro': filtro,
+            'estadisticas': obtener_estadisticas_alarmas()
+        })
+    except Exception as e:
+        logger.error(f"Error en alarmas_api: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/alarma/<int:id>')
+def alarma_detalle(id):
+    try:
+        alarmas = cargar_alarmas()
+        alarma = next((a for a in alarmas if a.get('ID') == id), None)
+        
+        if not alarma:
+            return jsonify({'error': 'Alarma no encontrada'}), 404
+        
+        # Buscar documentación relacionada
+        terminos_busqueda = [
+            alarma.get('Codigo_Alarma', ''),
+            alarma.get('Descripcion_Corta', ''),
+            alarma.get('Elemento', ''),
+            alarma.get('Servicio_Gestionado', '')
+        ]
+        
+        documentacion = []
+        for termino in terminos_busqueda:
+            if termino and len(termino.strip()) > 2:
+                docs_encontrados = buscar_en_documentos(termino.strip())
+                for doc in docs_encontrados:
+                    # Evitar duplicados
+                    if not any(d['documento'] == doc['documento'] for d in documentacion):
+                        documentacion.append(doc)
+        
+        return jsonify({
+            'alarma': alarma,
+            'documentacion': documentacion
+        })
+        
+    except Exception as e:
+        logger.error(f"Error obteniendo detalle de alarma {id}: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/documentos')
+def listar_documentos():
+    """Listar documentos disponibles de alarmas"""
+    try:
+        cargar_documentos_alarmas()
+        
+        documentos_info = []
+        for nombre_doc, info in docs_cache.items():
+            documentos_info.append({
+                'nombre': nombre_doc,
+                'ruta': info['ruta'],
+                'fecha_carga': info['fecha_carga'].strftime('%Y-%m-%d %H:%M:%S'),
+                'tamaño_contenido': len(info['contenido'])
+            })
+        
+        return jsonify({
+            'documentos': documentos_info,
+            'total': len(documentos_info)
+        })
+    except Exception as e:
+        logger.error(f"Error listando documentos: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/buscar_documentos')
+def buscar_documentos_api():
+    """Buscar en documentos de alarmas"""
+    try:
+        termino = request.args.get('termino', '')
+        if not termino or len(termino.strip()) < 2:
+            return jsonify({'error': 'Término de búsqueda debe tener al menos 2 caracteres'}), 400
+        
+        resultados = buscar_en_documentos(termino)
+        
+        return jsonify({
+            'termino': termino,
+            'resultados': resultados,
+            'total_documentos': len(resultados)
+        })
+    except Exception as e:
+        logger.error(f"Error buscando en documentos: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/descargar_documento/<nombre_documento>')
+def descargar_documento(nombre_documento):
+    """Descargar documento específico"""
+    try:
+        if nombre_documento not in app.config['DOCS_ALARMAS']:
+            return jsonify({'error': 'Documento no autorizado'}), 403
+        
+        ruta_archivo = os.path.join(app.config['CARPETA_DOCS_ALARMAS'], nombre_documento)
+        
+        if not os.path.exists(ruta_archivo):
+            return jsonify({'error': 'Documento no encontrado'}), 404
+        
+        return send_file(ruta_archivo, as_attachment=True)
+    except Exception as e:
+        logger.error(f"Error descargando documento {nombre_documento}: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/estadisticas')
+def estadisticas_api():
+    try:
+        return jsonify(obtener_estadisticas_alarmas())
+    except Exception as e:
+        logger.error(f"Error obteniendo estadísticas: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recargar')
+def recargar_datos():
+    try:
+        # Recargar alarmas
+        global alarmas_cache
+        alarmas_cache = None
+        alarmas = cargar_alarmas(force=True)
+        
+        # Recargar documentos
+        global docs_cache
+        docs_cache = {}
+        cargar_documentos_alarmas()
+        
+        return jsonify({
+            'mensaje': 'Datos recargados exitosamente',
+            'alarmas_cargadas': len(alarmas),
+            'documentos_cargados': len(docs_cache)
+        })
+    except Exception as e:
+        logger.error(f"Error recargando datos: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    # Configuración idéntica a tu versión original
+    # Configuración
     crear_archivos_iniciales()
     port = int(os.environ.get('PORT', 5000))
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
@@ -270,7 +560,11 @@ if __name__ == '__main__':
     logger.info(f"Iniciando aplicación en puerto {port}")
     logger.info(f"Modo debug: {debug_mode}")
     
+    # Cargar datos iniciales
     alarmas_iniciales = cargar_alarmas()
     logger.info(f"Cargadas {len(alarmas_iniciales)} alarmas del catálogo")
+    
+    cargar_documentos_alarmas()
+    logger.info(f"Cargados {len(docs_cache)} documentos de alarmas")
         
     app.run(host='0.0.0.0', port=port, debug=debug_mode)

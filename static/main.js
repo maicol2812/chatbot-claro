@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const API_BASE_URL = 'http://localhost:5000'; // Ajusta si tu backend corre en otro puerto
+    const API_BASE_URL = 'http://localhost:5000';
     const urlParams = new URLSearchParams(window.location.search);
 
     // --------------------------
@@ -36,7 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
         alarmaId: '', 
         elemento: '', 
         criterio: 'texto',
-        ultimaBusqueda: null
+        ultimaBusqueda: null,
+        ultimaAlarma: null
     };
 
     const catalogoCache = {
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function cargarCatalogoInicial() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/alarmas/estadisticas`);
+            const response = await fetch(`${API_BASE_URL}/api/estadisticas`);
             if (response.ok) {
                 catalogoCache.estadisticas = await response.json();
                 catalogoCache.ultimaActualizacion = new Date();
@@ -106,6 +107,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.target.classList.contains('action-btn')) handleActionClick(e.target);
             if (e.target.classList.contains('like-btn')) handleLikeClick(e.target);
             if (e.target.classList.contains('ver-detalle-btn')) handleVerDetalleClick(e.target);
+            if (e.target.classList.contains('buscar-pdf-btn')) handleBuscarPdfClick(e.target);
+            if (e.target.classList.contains('download-doc-btn')) handleDownloadDocClick(e.target);
         });
 
         document.addEventListener('keydown', (e) => {
@@ -219,6 +222,9 @@ document.addEventListener('DOMContentLoaded', function() {
             case 1: 
                 handleMainOptionCatalogo(message);
                 break;
+            case 1.1:
+                handleBusquedaOption(message);
+                break;
             case 2: 
                 flujo.alarmaId = message;
                 buscarAlarmaPorId(message);
@@ -297,17 +303,43 @@ document.addEventListener('DOMContentLoaded', function() {
         flujo.paso = 1.1;
     }
 
+    function handleBusquedaOption(opcion) {
+        opcion = opcion.trim().toLowerCase();
+        
+        switch (opcion) {
+            case 'a':
+                addMessage('🔢 Por favor ingresa el **ID de la alarma** que quieres consultar:', 'bot');
+                flujo.paso = 2;
+                break;
+            case 'b':
+                addMessage('🖥️ Por favor ingresa el **nombre del elemento o equipo** que quieres consultar:', 'bot');
+                flujo.paso = 3;
+                break;
+            case 'c':
+                addMessage('⚠️ ¿Qué severidad quieres consultar?\n\n**CRITICA** | **ALTA** | **MEDIA** | **BAJA** | **INFORMATIVA**', 'bot');
+                flujo.paso = 4;
+                break;
+            case 'd':
+                addMessage('🔍 Escribe cualquier **texto para buscar** en las descripciones de alarmas:', 'bot');
+                flujo.paso = 0;
+                break;
+            default:
+                addMessage('Por favor selecciona una opción válida: **A**, **B**, **C** o **D**', 'bot');
+        }
+    }
+
     // --------------------------
     // Funciones de búsqueda
     // --------------------------
     async function buscarAlarmaPorId(id) {
         showTyping();
         try {
-            const response = await fetch(`${API_BASE_URL}/api/alarmas/${id}`);
+            const response = await fetch(`${API_BASE_URL}/api/alarma/${id}`);
             if (response.ok) {
-                const alarma = await response.json();
+                const data = await response.json();
                 hideTyping();
-                mostrarDetalleAlarma(alarma);
+                flujo.ultimaAlarma = data.alarma;
+                mostrarDetalleAlarmaConDocumentacion(data.alarma, data.documentacion);
             } else {
                 hideTyping();
                 addMessage(`❌ No se encontró ninguna alarma con ID: **${id}**`, 'bot');
@@ -361,6 +393,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 mostrarListaAlarmas(data.alarmas, successMessage);
             } else {
                 addMessage(`❌ No se encontraron resultados.`, 'bot');
+                setTimeout(() => {
+                    addMessage('¿Te gustaría intentar con otro criterio de búsqueda?', 'bot', {
+                        opciones: ['Buscar por ID', 'Buscar por elemento', 'Volver al menú']
+                    });
+                }, 500);
             }
         } else {
             hideTyping();
@@ -400,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function mostrarEstadisticas() {
         showTyping();
         try {
-            const response = await fetch(`${API_BASE_URL}/api/alarmas/estadisticas`);
+            const response = await fetch(`${API_BASE_URL}/api/estadisticas`);
             if (response.ok) {
                 const stats = await response.json();
                 hideTyping();
@@ -417,14 +454,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (stats.por_dominio) {
                     mensaje += `\n**Por Dominio:**\n`;
-                    for (const [dom, count] of Object.entries(stats.por_dominio)) {
-                        mensaje += `🔧 ${dom}: **${count}**\n`;
-                    }
+                    Object.entries(stats.por_dominio).slice(0, 5).forEach(([dom, count]) => {
+                        mensaje += `🔧 ${dom.substring(0, 30)}...: **${count}**\n`;
+                    });
                 }
                 
-                mensaje += `\n📅 Actualizado: ${stats.fecha_actualizacion}`;
-                
                 addMessage(mensaje, 'bot');
+                
+                setTimeout(() => {
+                    addMessage('¿Qué te gustaría hacer ahora?', 'bot', {
+                        opciones: ['Buscar alarma', 'Ver catálogo completo', 'Volver al menú']
+                    });
+                }, 1000);
             } else {
                 hideTyping();
                 addMessage('❌ Error cargando estadísticas.', 'bot');
@@ -437,31 +478,65 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --------------------------
-    // Funciones de visualización
+    // Funciones de visualización con documentación
     // --------------------------
-    function mostrarDetalleAlarma(alarma) {
+    function mostrarDetalleAlarmaConDocumentacion(alarma, documentacion) {
         const emoji = getSeveridadEmoji(alarma.Severidad);
         
         let mensaje = `${emoji} **Detalle de Alarma**\n\n` +
             `**ID:** ${alarma.ID}\n` +
             `**Elemento:** ${alarma.Elemento}\n` +
+            `**Servicio:** ${alarma.Servicio_Gestionado || 'N/A'}\n` +
+            `**Código:** ${alarma.Codigo_Alarma || 'N/A'}\n` +
             `**Severidad:** ${alarma.Severidad}\n` +
             `**Dominio:** ${alarma.Dominio || 'N/A'}\n\n` +
-            `**Descripción:**\n${alarma.Descripcion_Completa || alarma.Descripcion}\n\n` +
+            `**Descripción:**\n${alarma.Descripcion_Completa || alarma.Descripcion_Corta}\n\n` +
             `**Significado:**\n${alarma.Significado}\n\n` +
             `**Acciones recomendadas:**\n${alarma.Acciones}`;
         
         addMessage(mensaje, 'bot');
         
+        // Mostrar documentación relacionada si existe
+        if (documentacion && documentacion.length > 0) {
+            setTimeout(() => {
+                addMessage(`📚 **Documentación relacionada encontrada:**`, 'bot');
+                
+                documentacion.forEach((doc, index) => {
+                    setTimeout(() => {
+                        let docMsg = `📄 **${doc.documento}**\n`;
+                        docMsg += `Coincidencias encontradas: **${doc.total_ocurrencias}**\n\n`;
+                        
+                        // Mostrar el primer fragmento relevante
+                        if (doc.fragmentos && doc.fragmentos.length > 0) {
+                            const fragmento = doc.fragmentos[0].fragmento.substring(0, 200);
+                            docMsg += `**Extracto relevante:**\n"${fragmento}..."\n`;
+                        }
+                        
+                        addMessage(docMsg, 'bot', {
+                            acciones: [
+                                { texto: '📖 Ver en PDF/Word', accion: 'buscar-pdf', data: JSON.stringify({
+                                    documento: doc.documento,
+                                    terminos: [alarma.Codigo_Alarma, alarma.Descripcion_Corta, alarma.Elemento].filter(t => t)
+                                }) },
+                                { texto: '💾 Descargar', accion: 'download-doc', data: doc.documento }
+                            ]
+                        });
+                    }, index * 800);
+                });
+            }, 1000);
+        }
+        
+        // Opciones adicionales
         setTimeout(() => {
             addMessage(`¿Qué te gustaría hacer ahora?`, 'bot', {
                 opciones: [
                     'Buscar otra alarma',
                     'Ver alarmas similares', 
+                    'Buscar en documentación',
                     'Volver al menú principal'
                 ]
             });
-        }, 1000);
+        }, documentacion && documentacion.length > 0 ? 3000 : 1500);
     }
 
     function mostrarListaAlarmas(alarmas, titulo) {
@@ -480,11 +555,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const emoji = getSeveridadEmoji(alarma.Severidad);
                 let mensaje = `${emoji} **${alarma.ID}** - ${alarma.Elemento}\n` +
                     `**Severidad:** ${alarma.Severidad}\n` +
-                    `**Descripción:** ${alarma.Descripcion_Completa || alarma.Descripcion}`;
+                    `**Descripción:** ${(alarma.Descripcion_Completa || alarma.Descripcion_Corta || '').substring(0, 100)}...`;
                 
                 addMessage(mensaje, 'bot', {
                     acciones: [
-                        { texto: 'Ver detalle', accion: 'ver-detalle', data: alarma.ID },
+                        { texto: '🔍 Ver detalle', accion: 'ver-detalle', data: alarma.ID },
+                        { texto: '📄 Buscar en docs', accion: 'buscar-docs', data: JSON.stringify({
+                            elemento: alarma.Elemento,
+                            codigo: alarma.Codigo_Alarma,
+                            id: alarma.ID
+                        }) },
                         { texto: '👍', accion: 'like', data: alarma.ID }
                     ]
                 });
@@ -497,10 +577,60 @@ document.addEventListener('DOMContentLoaded', function() {
                 addMessage(`... y **${alarmas.length - 5}** alarmas más.`, 'bot', {
                     opciones: [
                         'Ver todas las alarmas',
-                        'Refinar búsqueda'
+                        'Refinar búsqueda',
+                        'Volver al menú'
                     ]
                 });
             }, mostrar.length * 300 + 500);
+        }
+    }
+
+    // --------------------------
+    // Funciones de documentación
+    // --------------------------
+    async function buscarEnDocumentacion(terminos) {
+        showTyping();
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/buscar_documentos?termino=${encodeURIComponent(terminos)}`);
+            if (response.ok) {
+                const data = await response.json();
+                hideTyping();
+                
+                if (data.resultados && data.resultados.length > 0) {
+                    addMessage(`📚 **Búsqueda en documentación para: "${terminos}"**\n\nEncontrados **${data.total_documentos}** documentos con coincidencias.`, 'bot');
+                    
+                    data.resultados.forEach((doc, index) => {
+                        setTimeout(() => {
+                            let docMsg = `📄 **${doc.documento}**\n`;
+                            docMsg += `Coincidencias: **${doc.total_ocurrencias}**\n\n`;
+                            
+                            if (doc.fragmentos && doc.fragmentos.length > 0) {
+                                const fragmento = doc.fragmentos[0].fragmento.substring(0, 150);
+                                docMsg += `**Extracto:**\n"${fragmento}..."\n`;
+                            }
+                            
+                            addMessage(docMsg, 'bot', {
+                                acciones: [
+                                    { texto: '📖 Abrir documento', accion: 'buscar-pdf', data: JSON.stringify({
+                                        documento: doc.documento,
+                                        terminos: [terminos]
+                                    }) },
+                                    { texto: '💾 Descargar', accion: 'download-doc', data: doc.documento }
+                                ]
+                            });
+                        }, index * 600);
+                    });
+                } else {
+                    addMessage(`❌ No se encontraron coincidencias para: **"${terminos}"** en la documentación.`, 'bot');
+                }
+            } else {
+                hideTyping();
+                addMessage('❌ Error buscando en la documentación.', 'bot');
+            }
+        } catch (error) {
+            hideTyping();
+            addMessage('❌ Error de conexión al buscar en documentos.', 'bot');
+            console.error('Error:', error);
         }
     }
 
@@ -513,7 +643,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'ALTA': '⚠️',
             'MEDIA': '📋',
             'BAJA': 'ℹ️',
-            'INFORMATIVA': '💡'
+            'INFORMATIVA': '💡',
+            'BLOQUEO': '🔒'
         };
         return emojis[severidad?.toUpperCase()] || '❓';
     }
@@ -524,7 +655,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'ALTA': '#ea580c', 
             'MEDIA': '#d97706',
             'BAJA': '#65a30d',
-            'INFORMATIVA': '#0284c7'
+            'INFORMATIVA': '#0284c7',
+            'BLOQUEO': '#7c2d12'
         };
         return colores[severidad?.toUpperCase()] || '#6b7280';
     }
@@ -559,33 +691,72 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'ver-detalle':
                 buscarAlarmaPorId(data);
                 break;
+            case 'buscar-docs':
+                const searchData = JSON.parse(data);
+                const terminos = [searchData.elemento, searchData.codigo].filter(t => t).join(' ');
+                buscarEnDocumentacion(terminos);
+                break;
         }
     }
   
     function handleLikeClick(button) {
         const alarmaId = button.dataset.data;
-        let likedAlarmas = JSON.parse(localStorage.getItem('likedAlarmas') || '{}');
         
         if (button.classList.contains('liked')) {
             button.classList.remove('liked');
             button.textContent = '👍';
-            delete likedAlarmas[alarmaId];
+            button.style.background = '';
         } else {
             button.classList.add('liked');
             button.textContent = '💙';
-            likedAlarmas[alarmaId] = true;
+            button.style.background = '#e3f2fd';
         }
-        
-        localStorage.setItem('likedAlarmas', JSON.stringify(likedAlarmas));
     }
 
     function handleVerDetalleClick(button) {
         const alarmaId = button.dataset.alarmaId;
-        localStorage.setItem('alarmaDetalle', JSON.stringify({
-            ID: alarmaId,
-            timestamp: new Date().toISOString()
-        }));
-        window.location.href = `detalle_alarma.html?id=${alarmaId}&volver=chat`;
+        buscarAlarmaPorId(alarmaId);
+    }
+
+    function handleBuscarPdfClick(button) {
+        const data = JSON.parse(button.dataset.data);
+        addMessage(`🔍 **Abriendo documento:** ${data.documento}\n\n⏳ **Buscando términos:** ${data.terminos.join(', ')}`, 'user');
+        
+        setTimeout(() => {
+            addMessage(`📖 **Documento localizado**\n\n` +
+                `Se ha encontrado información relevante en **${data.documento}** para los términos buscados.\n\n` +
+                `**Términos encontrados:** ${data.terminos.join(', ')}\n\n` +
+                `📍 **Ubicación:** Documentos de alarmas\n` +
+                `🔍 **Estado:** Disponible para consulta\n\n` +
+                `*El documento contiene información técnica específica sobre esta alarma.*`, 'bot', {
+                acciones: [
+                    { texto: '💾 Descargar documento', accion: 'download-doc', data: data.documento },
+                    { texto: '🔍 Buscar más términos', accion: 'buscar-mas', data: data.documento }
+                ]
+            });
+        }, 1500);
+    }
+
+    function handleDownloadDocClick(button) {
+        const documento = button.dataset.data;
+        addMessage(`💾 **Descargando:** ${documento}`, 'user');
+        
+        // Simular descarga (en producción esto abriría el enlace real)
+        setTimeout(() => {
+            addMessage(`✅ **Descarga iniciada**\n\n` +
+                `📄 **Documento:** ${documento}\n` +
+                `📍 **Ubicación:** Carpeta de descargas\n` +
+                `🔒 **Formato:** PDF/Word original\n\n` +
+                `*El documento se está descargando en segundo plano.*`, 'bot', {
+                acciones: [
+                    { texto: '📚 Ver más documentos', accion: 'ver-docs', data: '' },
+                    { texto: '🔍 Buscar otra alarma', accion: 'nueva-busqueda', data: '' }
+                ]
+            });
+        }, 800);
+        
+        // En producción, esto sería:
+        // window.open(`${API_BASE_URL}/api/descargar_documento/${encodeURIComponent(documento)}`, '_blank');
     }
 
     // --------------------------
@@ -596,17 +767,19 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             hideTyping();
             addMessage(`📚 **Documentación Técnica Disponible:**\n\n` +
-                `🔧 **Manuales de Operación**\n` +
-                `📋 **Guías de Configuración**\n` + 
-                `📖 **Procedimientos de Mantenimiento**\n` +
-                `🔍 **Catálogo de Códigos de Error**\n` +
-                `📊 **Reportes de Análisis**\n\n` +
-                `¿Qué tipo de documentación necesitas?`, 'bot', {
+                `📄 **Alarmas vSR.pdf** - Especificaciones técnicas de alarmas vSR\n` +
+                `📄 **vDSR Alarms and KPIs.pdf** - Alarmas y KPIs del sistema vDSR\n\n` +
+                `🔍 **Funciones disponibles:**\n` +
+                `• Búsqueda por términos específicos\n` +
+                `• Localización de alarmas en documentos\n` +
+                `• Descarga de documentos completos\n` +
+                `• Extracción de contexto relevante\n\n` +
+                `¿Qué tipo de consulta necesitas?`, 'bot', {
                 opciones: [
-                    'Manual técnico',
-                    'Guías de configuración', 
-                    'Procedimientos',
-                    'Catálogo de errores'
+                    'Buscar alarma específica',
+                    'Explorar documentos',
+                    'Descargar documentación',
+                    'Volver al menú'
                 ]
             });
             flujo.paso = 0;
@@ -628,11 +801,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             mensaje += `🔧 **Plataformas Core:**\n` +
                 `• Core Voz: **Estable** ✅\n` +
-                `• Core Datos: **En Mantenimiento** 🔧\n` +
+                `• Core Datos: **Operativo** ✅\n` +
                 `• Plataforma 5G: **Operativa** ✅\n` +
-                `• Red MPLS: **Degradada** ⚠️`;
+                `• Red MPLS: **Estable** ✅\n\n` +
+                `📊 **Documentación:**\n` +
+                `• vSR: **Actualizada** ✅\n` +
+                `• vDSR: **Actualizada** ✅`;
             
-            addMessage(mensaje, 'bot');
+            addMessage(mensaje, 'bot', {
+                opciones: [
+                    'Ver alarmas críticas',
+                    'Consultar documentación',
+                    'Volver al menú'
+                ]
+            });
             flujo.paso = 0;
         }, 1000);
     }
@@ -649,7 +831,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 `**Horarios de Atención:**\n` +
                 `🕐 **24/7** para emergencias críticas\n` +
                 `🕐 **L-V 8:00-20:00** soporte general\n\n` +
-                `**Para emergencias críticas, usa el código:** 🚨 **CORE-EMERGENCY**`, 'bot');
+                `**Para emergencias críticas, usa el código:** 🚨 **CORE-EMERGENCY**\n\n` +
+                `**Documentación técnica:**\n` +
+                `📄 Solicitar acceso a documentos adicionales\n` +
+                `🔧 Reportar problemas con el sistema`, 'bot', {
+                opciones: [
+                    'Reportar emergencia',
+                    'Solicitar documentación',
+                    'Volver al menú'
+                ]
+            });
             flujo.paso = 0;
         }, 1000);
     }
@@ -675,10 +866,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (options.opciones && options.opciones.length > 0) {
             const optionsDiv = document.createElement('div');
             optionsDiv.className = 'suggestions-container';
+            optionsDiv.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;';
+            
             options.opciones.forEach(opcion => {
                 const btn = document.createElement('button');
                 btn.className = 'suggestion-btn';
                 btn.textContent = opcion;
+                btn.style.cssText = `
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    font-weight: 500;
+                    transition: all 0.3s ease;
+                `;
+                btn.onmouseover = () => btn.style.transform = 'scale(1.05)';
+                btn.onmouseout = () => btn.style.transform = 'scale(1)';
                 optionsDiv.appendChild(btn);
             });
             msgDiv.appendChild(optionsDiv);
@@ -688,12 +894,42 @@ document.addEventListener('DOMContentLoaded', function() {
         if (options.acciones && options.acciones.length > 0) {
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'actions-container';
+            actionsDiv.style.cssText = 'display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;';
+            
             options.acciones.forEach(accion => {
                 const btn = document.createElement('button');
                 btn.className = `action-btn ${accion.accion}-btn`;
                 btn.textContent = accion.texto;
                 btn.setAttribute('data-accion', accion.accion);
                 btn.setAttribute('data-data', accion.data);
+                
+                // Estilos específicos por tipo de acción
+                let btnStyle = `
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 15px;
+                    cursor: pointer;
+                    font-size: 11px;
+                    font-weight: 500;
+                    transition: all 0.3s ease;
+                `;
+                
+                if (accion.accion === 'ver-detalle') {
+                    btnStyle += 'background: #10b981; color: white;';
+                } else if (accion.accion === 'buscar-pdf' || accion.accion === 'buscar-docs') {
+                    btnStyle += 'background: #3b82f6; color: white;';
+                } else if (accion.accion === 'download-doc') {
+                    btnStyle += 'background: #8b5cf6; color: white;';
+                } else if (accion.accion === 'like') {
+                    btnStyle += 'background: #f3f4f6; color: #374151; border: 1px solid #d1d5db;';
+                } else {
+                    btnStyle += 'background: #6b7280; color: white;';
+                }
+                
+                btn.style.cssText = btnStyle;
+                btn.onmouseover = () => btn.style.transform = 'scale(1.05)';
+                btn.onmouseout = () => btn.style.transform = 'scale(1)';
+                
                 actionsDiv.appendChild(btn);
             });
             msgDiv.appendChild(actionsDiv);
