@@ -1,570 +1,473 @@
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, render_template, jsonify, request, session, send_file, redirect, url_for
 import pandas as pd
 import os
-from datetime import datetime
-import traceback
-from flask import send_file
-import numpy as np
-from flask_cors import CORS
+from datetime import datetime, timedelta
 import logging
+import re
+from werkzeug.utils import secure_filename
+from flask_cors import CORS
 import PyPDF2
 import docx
 from pathlib import Path
-import re
 
-# Configuración inicial de la aplicación
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'  # Cambia esto en producción
 CORS(app)
 
-# Configuración para el catálogo de alarmas
-app.config.update({
+# Configuración
+CONFIG = {
     'EXCEL_ALARMAS': 'CatalogoAlarmas.xlsx',
-    'CARPETA_DOCS': 'documentacion_plataformas',
-    'CARPETA_DOCS_ALARMAS': 'documentos_alarmas',  # Nueva carpeta para PDFs de alarmas
-    'MAX_ALARMAS': 50,
-    'TIPOS_SEVERIDAD': ['CRITICA', 'ALTA', 'MEDIA', 'BAJA', 'INFORMATIVA', 'BLOQUEO'],
-    'DOMINIOS': ['NETCOOL', 'METOOL', 'SISTEMA', 'Domain amx_ns:.DOM.COLM_TRIARA_U2000_DOM'],
-    'SHEET_NAME': 'Afectacion',
-    'DOCS_ALARMAS': ['Alarmas vSR.pdf', 'vDSR Alarms and KPIs.pdf']  # Lista de documentos de alarmas
-})
+    'CARPETA_DOCS_ALARMAS': 'documentos_alarmas',
+    'DOCS_ALARMAS': ['Alarmas vSR.pdf', 'vDSR Alarms and KPIs.docx'],
+    'ALLOWED_EXTENSIONS': {'pdf', 'docx'},
+    'TIPOS_SEVERIDAD': ['CRITICA', 'ALTA', 'MEDIA', 'BAJA', 'INFORMATIVA'],
+    'MAX_ALARMAS': 50
+}
 
-# Variables globales para caché
-alarmas_cache = None
-ultima_actualizacion = None
-docs_cache = {}  # Cache para contenido de documentos
+# Base de datos simulada de alarmas (puedes reemplazar con tu carga real)
+alarmas_db = {
+    "1001": {
+        "id": "1001",
+        "elemento": "Router Cisco ASR9000",
+        "descripcion": "Fallo en interfaz GigabitEthernet0/0/0/1",
+        "severidad": "CRITICA",
+        "accion": "Verificar estado físico de la interfaz y revisar logs",
+        "documentos": ["Alarmas vSR.pdf", "vDSR Alarms and KPIs.docx"],
+        "contacto": "soporte_redes@empresa.com"
+    },
+    "2002": {
+        "id": "2002",
+        "elemento": "Firewall Fortigate 100F",
+        "descripcion": "Alta utilización de CPU",
+        "severidad": "ALTA",
+        "accion": "Revisar procesos activos y reglas de firewall",
+        "documentos": ["Alarmas vSR.pdf"],
+        "contacto": "soporte_seguridad@empresa.com"
+    },
+    "3003": {
+        "id": "3003",
+        "elemento": "Switch HP 5130",
+        "descripcion": "Pérdida de paquetes en el enlace troncal",
+        "severidad": "MEDIA",
+        "accion": "Verificar ancho de banda y configuración de QoS",
+        "documentos": ["vDSR Alarms and KPIs.docx"],
+        "contacto": "soporte_redes@empresa.com"
+    }
+}
 
 # Configuración de logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('alarmas.log'),
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger(__name__)
 
-def crear_archivos_iniciales():
-    """Crear estructura de carpetas y archivos iniciales"""
-    carpetas = [
-        app.config['CARPETA_DOCS'],
-        app.config['CARPETA_DOCS_ALARMAS']
-    ]
-    
-    for carpeta in carpetas:
-        if not os.path.exists(carpeta):
-            os.makedirs(carpeta)
-            logger.info(f"Creada carpeta: {carpeta}")
+# Helpers
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in CONFIG['ALLOWED_EXTENSIONS']
 
-def extraer_texto_pdf(ruta_archivo):
-    """Extraer texto de un archivo PDF"""
+def secure_path(path):
+    """Prevenir ataques de directory traversal"""
+    return os.path.abspath(os.path.join(os.getcwd(), path))
+
+def extract_text(filepath):
+    """Extraer texto de PDF o DOCX"""
+    ext = os.path.splitext(filepath)[1].lower()
     try:
-        texto = ""
-        with open(ruta_archivo, 'rb') as archivo:
-            lector_pdf = PyPDF2.PdfReader(archivo)
-            for pagina in lector_pdf.pages:
-                texto += pagina.extract_text() + "\n"
-        return texto
+        if ext == '.pdf':
+            with open(filepath, 'rb') as f:
+                reader = PyPDF2.PdfReader(f)
+                return '\n'.join([page.extract_text() for page in reader.pages])
+        elif ext == '.docx':
+            doc = docx.Document(filepath)
+            return '\n'.join([para.text for para in doc.paragraphs])
+        return ""
     except Exception as e:
-        logger.error(f"Error extrayendo texto de PDF {ruta_archivo}: {str(e)}")
+        logger.error(f"Error extrayendo texto de {filepath}: {str(e)}")
         return ""
 
-def extraer_texto_docx(ruta_archivo):
-    """Extraer texto de un archivo DOCX"""
-    try:
-        doc = docx.Document(ruta_archivo)
-        texto = ""
-        for parrafo in doc.paragraphs:
-            texto += parrafo.text + "\n"
-        return texto
-    except Exception as e:
-        logger.error(f"Error extrayendo texto de DOCX {ruta_archivo}: {str(e)}")
-        return ""
+def log_interaction(action, details):
+    """Registrar interacciones importantes"""
+    logger.info(f"User Interaction - Action: {action}, Details: {details}")
 
-def cargar_documentos_alarmas():
-    """Cargar y cachear el contenido de los documentos de alarmas"""
-    global docs_cache
-    
-    carpeta_docs = app.config['CARPETA_DOCS_ALARMAS']
-    documentos = app.config['DOCS_ALARMAS']
-    
-    for nombre_doc in documentos:
-        ruta_completa = os.path.join(carpeta_docs, nombre_doc)
-        
-        if os.path.exists(ruta_completa):
-            if nombre_doc not in docs_cache:
-                logger.info(f"Cargando documento: {nombre_doc}")
-                
-                if nombre_doc.lower().endswith('.pdf'):
-                    contenido = extraer_texto_pdf(ruta_completa)
-                elif nombre_doc.lower().endswith('.docx'):
-                    contenido = extraer_texto_docx(ruta_completa)
-                else:
-                    contenido = ""
-                
-                docs_cache[nombre_doc] = {
-                    'contenido': contenido,
-                    'ruta': ruta_completa,
-                    'fecha_carga': datetime.now()
-                }
-        else:
-            logger.warning(f"Documento no encontrado: {ruta_completa}")
-
-def buscar_en_documentos(termino_busqueda):
-    """Buscar información relacionada con una alarma en los documentos"""
-    resultados = []
-    
-    # Asegurar que los documentos estén cargados
-    cargar_documentos_alarmas()
-    
-    termino_busqueda = termino_busqueda.lower().strip()
-    
-    for nombre_doc, info_doc in docs_cache.items():
-        contenido = info_doc['contenido'].lower()
-        
-        if termino_busqueda in contenido:
-            # Encontrar contexto alrededor del término
-            lineas = contenido.split('\n')
-            fragmentos_relevantes = []
-            
-            for i, linea in enumerate(lineas):
-                if termino_busqueda in linea:
-                    # Obtener contexto (3 líneas antes y después)
-                    inicio = max(0, i - 3)
-                    
-                    fin = min(len(lineas), i + 4)
-                    contexto = '\n'.join(lineas[inicio:fin])
-                    
-                    fragmentos_relevantes.append({
-                        'fragmento': contexto,
-                        'linea': i + 1
-                    })
-            
-            if fragmentos_relevantes:
-                resultados.append({
-                    'documento': nombre_doc,
-                    'ruta': info_doc['ruta'],
-                    'fragmentos': fragmentos_relevantes[:3],  # Máximo 3 fragmentos por documento
-                    'total_ocurrencias': len(fragmentos_relevantes)
-                })
-    
-    return resultados
-
-def crear_datos_demo():
-    """Datos de demostración completos"""
-    return [
-        {
-            'ID': 1,
-            'Fabricante': 'Huawei',
-            'Servicio_Gestionado': 'AAA Huawei',
-            'Gestor': 'NETCOOL',
-            'Codigo_Alarma': '1003',
-            'Descripcion_Corta': 'Module Fault',
-            'Descripcion_Larga': 'Error en módulo del sistema',
-            'Detalles_Adicionales': 'Módulo principal presenta fallas',
-            'Nivel': 'ALTA',
-            'Dominio': 'Domain amx_ns:.DOM.COLM_TRIARA_U2000_DOM',
-            'Severidad': 'CRITICA',
-            'Tipo_Aviso': 'GENERAL',
-            'Grupo_Atencion': 'BO CORE',
-            'Criticidad': 'ALTA',
-            'Dueño_Plataforma': 'EDISON GONZALEZ',
-            'Panel_Netcool': 'AEL PACKET CORE VAS II',
-            'Elemento': 'AAA Huawei',
-            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
-            'Descripcion_Completa': 'Module Fault • Error en módulo del sistema • Módulo principal presenta fallas',
-            'Significado': 'Alarma crítica en AAA Huawei - Requiere atención inmediata',
-            'Acciones': '1. Verificar estado del equipo • 2. Revisar conectividad • 3. Contactar NOC • 4. Escalar si es necesario'
-        },
-        {
-            'ID': 2,
-            'Fabricante': 'Ericsson',
-            'Servicio_Gestionado': 'MME Ericsson',
-            'Gestor': 'NETCOOL',
-            'Codigo_Alarma': '2001',
-            'Descripcion_Corta': 'S1AP Connection Lost',
-            'Descripcion_Larga': 'Pérdida de conexión S1AP',
-            'Detalles_Adicionales': 'Interfaz S1 no disponible',
-            'Nivel': 'CRITICA',
-            'Dominio': 'NETCOOL',
-            'Severidad': 'CRITICA',
-            'Tipo_Aviso': 'CONNECTIVITY',
-            'Grupo_Atencion': 'CORE NETWORK',
-            'Criticidad': 'CRITICA',
-            'Dueño_Plataforma': 'LUIS MARTINEZ',
-            'Panel_Netcool': 'CORE LTE',
-            'Elemento': 'MME Ericsson',
-            'Fecha': datetime.now().strftime('%Y-%m-%d %H:%M'),
-            'Descripcion_Completa': 'S1AP Connection Lost • Pérdida de conexión S1AP • Interfaz S1 no disponible',
-            'Significado': 'Alarma crítica en MME Ericsson - Pérdida de conectividad',
-            'Acciones': '1. Verificar enlaces de red • 2. Revisar configuración S1AP • 3. Coordinar con transporte • 4. Escalar a fabricante'
-        }
-    ]
-
-def cargar_alarmas(force=False):
-    """Cargar alarmas desde Excel o usar datos demo"""
-    global alarmas_cache, ultima_actualizacion
-    try:
-        if not os.path.exists(app.config['EXCEL_ALARMAS']):
-            logger.warning(f"Archivo {app.config['EXCEL_ALARMAS']} no encontrado - Usando datos demo")
-            if not alarmas_cache:
-                alarmas_cache = crear_datos_demo()
-                ultima_actualizacion = datetime.now().timestamp()
-            return alarmas_cache.copy()
-
-        mod_time = os.path.getmtime(app.config['EXCEL_ALARMAS'])
-        if not force and alarmas_cache and mod_time <= ultima_actualizacion:
-            return alarmas_cache.copy()
-
-        try:
-            try:
-                df = pd.read_excel(app.config['EXCEL_ALARMAS'], sheet_name=app.config['SHEET_NAME'])
-            except:
-                df = pd.read_excel(app.config['EXCEL_ALARMAS'], sheet_name=1)
-                
-            if df.empty:
-                raise ValueError("El archivo Excel no contiene datos o la hoja es incorrecta")
-                
-        except Exception as e:
-            logger.error(f"Error leyendo Excel: {str(e)} - Usando datos demo")
-            alarmas_cache = crear_datos_demo()
-            return alarmas_cache.copy()
-
-        # Procesamiento del DataFrame
-        df.columns = df.columns.str.strip()
-        
-        column_mapping = {
-            'Fabricante': 'Fabricante',
-            'SERVICIO Y/O SISTEMA GESTIONADO': 'Servicio_Gestionado',
-            'GESTOR': 'Gestor',
-            'TEXTO 1 DE LA ALARMA': 'Codigo_Alarma',
-            'TEXTO 2 DE LA ALARMA': 'Descripcion_Corta', 
-            'TEXTO 3 DE LA ALARMA': 'Descripcion_Larga',
-            'TEXTO 4 DE LA ALARMA': 'Detalles_Adicionales',
-            'BAJA / ALTA / BLOQUEO': 'Nivel',
-            'DOMINIO': 'Dominio',
-            'SEVERIDAD': 'Severidad',
-            'TIPO DE ALARMA': 'Tipo_Aviso',
-            'GRUPO DE ATENCIÓN': 'Grupo_Atencion',
-            'CRITICIDAD': 'Criticidad',
-            'DUEÑO DE PLATAFORMA': 'Dueño_Plataforma',
-            'PANEL NETCOOL': 'Panel_Netcool'
-        }
-
-        for old_col, new_col in column_mapping.items():
-            if old_col in df.columns:
-                df.rename(columns={old_col: new_col}, inplace=True)
-
-        if 'ID' not in df.columns:
-            df['ID'] = range(1, len(df) + 1)
-
-        if 'Elemento' not in df.columns:
-            df['Elemento'] = df.get('Servicio_Gestionado', 'Sistema Desconocido')
-
-        if 'Fecha' not in df.columns:
-            df['Fecha'] = datetime.now().strftime('%Y-%m-%d %H:%M')
-
-        df = df.fillna('')
-        
-        for col in ['Severidad', 'Nivel']:
-            if col in df.columns:
-                df[col] = df[col].astype(str).str.upper().str.strip()
-                severidad_map = {
-                    'CRITICAL': 'CRITICA',
-                    'HIGH': 'ALTA', 
-                    'MEDIUM': 'MEDIA',
-                    'LOW': 'BAJA',
-                    'INFO': 'INFORMATIVA',
-                    'BLOQUEO': 'BLOQUEO',
-                    'ALTA': 'ALTA',
-                    'BAJA': 'BAJA',
-                    'AFECTACION': 'MEDIA'
-                }
-                df[col] = df[col].replace(severidad_map)
-
-        desc_cols = ['Descripcion_Corta', 'Descripcion_Larga', 'Detalles_Adicionales']
-        existing_cols = [col for col in desc_cols if col in df.columns]
-        df['Descripcion_Completa'] = df[existing_cols].apply(
-            lambda x: ' • '.join([str(val) for val in x if str(val).strip()]), axis=1
-        )
-
-        def generar_significado_acciones(row):
-            severidad = str(row.get('Severidad', '')).upper()
-            nivel = str(row.get('Nivel', '')).upper()
-            nivel_efectivo = nivel if nivel in ['CRITICA', 'ALTA', 'MEDIA', 'BAJA', 'BLOQUEO'] else severidad
-            elemento = row.get('Elemento', 'sistema')
-            
-            if nivel_efectivo == 'CRITICA' or nivel_efectivo == 'BLOQUEO':
-                significado = f"Alarma crítica en {elemento} - Requiere atención inmediata"
-                acciones = "1. Verificar estado del equipo • 2. Revisar conectividad • 3. Contactar NOC • 4. Escalar si es necesario"
-            elif nivel_efectivo == 'ALTA':
-                significado = f"Alarma de alta prioridad en {elemento} - Intervención requerida"
-                acciones = "1. Revisar logs del sistema • 2. Verificar configuración • 3. Monitorear evolución • 4. Documentar solución"
-            elif nivel_efectivo == 'MEDIA':
-                significado = f"Alarma de severidad media en {elemento} - Seguimiento necesario"
-                acciones = "1. Monitorear comportamiento • 2. Revisar tendencias • 3. Programar mantenimiento • 4. Actualizar documentación"
-            else:
-                significado = f"Alarma informativa en {elemento} - Para conocimiento"
-                acciones = "1. Tomar nota del evento • 2. Revisar si es recurrente • 3. Actualizar base de conocimiento"
-            
-            return pd.Series([significado, acciones])
-
-        df[['Significado', 'Acciones']] = df.apply(generar_significado_acciones, axis=1)
-
-        alarmas_cache = df.to_dict(orient='records')
-        ultima_actualizacion = mod_time
-        
-        logger.info(f"Cargadas {len(alarmas_cache)} alarmas del catálogo consolidado")
-        return alarmas_cache.copy()
-
-    except Exception as e:
-        logger.error(f"Error cargando alarmas: {str(e)}\n{traceback.format_exc()}")
-        if not alarmas_cache:
-            alarmas_cache = crear_datos_demo()
-        return alarmas_cache.copy()
-
-def buscar_alarma_por_criterios(criterio, valor):
-    """Función completa de búsqueda"""
-    try:
-        alarmas = cargar_alarmas()
-        if not alarmas:
-            return []
-
-        valor = str(valor).lower().strip()
-        resultados = []
-
-        for alarma in alarmas:
-            match = False
-            
-            if criterio == 'id' and str(alarma.get('ID', '')).lower() == valor:
-                match = True
-            elif criterio == 'elemento' and valor in str(alarma.get('Elemento', '')).lower():
-                match = True
-            elif criterio == 'servicio' and valor in str(alarma.get('Servicio_Gestionado', '')).lower():
-                match = True
-            elif criterio == 'codigo' and valor in str(alarma.get('Codigo_Alarma', '')).lower():
-                match = True
-            elif criterio == 'severidad' and valor in str(alarma.get('Severidad', '')).lower():
-                match = True
-            elif criterio == 'nivel' and valor in str(alarma.get('Nivel', '')).lower():
-                match = True
-            elif criterio == 'descripcion' and valor in str(alarma.get('Descripcion_Completa', '')).lower():
-                match = True
-            elif criterio == 'dominio' and valor in str(alarma.get('Dominio', '')).lower():
-                match = True
-            elif criterio == 'texto' and (
-                valor in str(alarma.get('Descripcion_Completa', '')).lower() or
-                valor in str(alarma.get('Elemento', '')).lower() or
-                valor in str(alarma.get('Servicio_Gestionado', '')).lower() or
-                valor in str(alarma.get('Codigo_Alarma', '')).lower()
-            ):
-                match = True
-                
-            if match:
-                resultados.append(alarma)
-
-        return resultados[:app.config['MAX_ALARMAS']]
-        
-    except Exception as e:
-        logger.error(f"Error buscando alarmas: {str(e)}")
-        return []
-
-def obtener_estadisticas_alarmas():
-    """Obtener estadísticas de las alarmas cargadas"""
-    try:
-        alarmas = cargar_alarmas()
-        if not alarmas:
-            return {'total': 0}
-        
-        stats = {
-            'total': len(alarmas),
-            'por_severidad': {},
-            'por_dominio': {},
-            'por_fabricante': {}
-        }
-        
-        for alarma in alarmas:
-            # Severidad
-            sev = alarma.get('Severidad', 'NO DEFINIDA')
-            stats['por_severidad'][sev] = stats['por_severidad'].get(sev, 0) + 1
-            
-            # Dominio
-            dom = alarma.get('Dominio', 'NO DEFINIDO')
-            stats['por_dominio'][dom] = stats['por_dominio'].get(dom, 0) + 1
-            
-            # Fabricante
-            fab = alarma.get('Fabricante', 'NO DEFINIDO')
-            stats['por_fabricante'][fab] = stats['por_fabricante'].get(fab, 0) + 1
-        
-        return stats
-        
-    except Exception as e:
-        logger.error(f"Error obteniendo estadísticas: {str(e)}")
-        return {'total': 0}
-
-# ENDPOINTS
-
+# Rutas principales
 @app.route('/')
 def home():
-    estadisticas = obtener_estadisticas_alarmas()
-    return render_template('index.html', estadisticas=estadisticas)
+    return redirect(url_for('inicio'))
 
-@app.route('/api/alarmas')
-def alarmas_api():
-    try:
-        filtro = request.args.get('filtro', '')
-        criterio = request.args.get('criterio', 'texto')
+@app.route('/inicio', methods=['GET', 'POST'])
+def inicio():
+    if request.method == 'POST':
+        opcion = request.form.get('opcion')
         
-        if filtro:
-            alarmas = buscar_alarma_por_criterios(criterio, filtro)
-        else:
-            alarmas = cargar_alarmas()[:app.config['MAX_ALARMAS']]
+        if opcion == '1':  # Alarmas de plataformas
+            log_interaction('menu_selection', 'opcion_1')
+            return redirect(url_for('consultar_alarma'))
+        
+        elif opcion == '2':  # Documentación de las plataformas
+            log_interaction('menu_selection', 'opcion_2')
+            return '''
+            <h3>Documentación disponible:</h3>
+            <div style="margin: 20px;">
+                <a href="/descargar/Alarmas vSR.pdf" class="doc-button">PDF - Alarmas vSR</a>
+                <a href="/descargar/vDSR Alarms and KPIs.docx" class="doc-button">Word - vDSR Alarms</a>
+            </div>
+            <a href="/inicio" class="back-button">Volver al inicio</a>
             
-        return jsonify({
-            'alarmas': alarmas,
-            'total': len(alarmas),
-            'criterio': criterio,
-            'filtro': filtro,
-            'estadisticas': obtener_estadisticas_alarmas()
-        })
-    except Exception as e:
-        logger.error(f"Error en alarmas_api: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+            <style>
+                .doc-button {
+                    display: inline-block;
+                    padding: 12px 20px;
+                    margin: 10px;
+                    background-color: #4285F4;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    font-weight: bold;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                    transition: all 0.3s;
+                }
+                .doc-button:hover {
+                    background-color: #3367D6;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                }
+                .back-button {
+                    display: inline-block;
+                    padding: 10px 15px;
+                    background-color: #f44336;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin-top: 20px;
+                }
+            </style>
+            '''
+        
+        # Otras opciones pueden implementarse aquí
+        
+    return '''
+    <div style="max-width: 800px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+        <h2 style="color: #333; border-bottom: 2px solid #4285F4; padding-bottom: 10px;">
+            Buen día, hablemos de nuestras plataformas de Core
+        </h2>
+        
+        <h3 style="color: #555;">¿Qué te gustaría consultar el día de hoy?</h3>
+        
+        <form method="post" style="margin-top: 30px;">
+            <button type="submit" name="opcion" value="1" class="menu-button">
+                1. Alarmas de plataformas
+            </button><br>
+            
+            <button type="submit" name="opcion" value="2" class="menu-button">
+                2. Documentación de las plataformas
+            </button><br>
+            
+            <button type="submit" name="opcion" value="3" class="menu-button">
+                3. Incidentes activos de las plataformas
+            </button><br>
+            
+            <button type="submit" name="opcion" value="4" class="menu-button">
+                4. Estado operativo de las plataformas
+            </button><br>
+            
+            <button type="submit" name="opcion" value="5" class="menu-button">
+                5. Cambios activos en las plataformas
+            </button><br>
+            
+            <button type="submit" name="opcion" value="6" class="menu-button">
+                6. Hablar con el administrador de la plataforma
+            </button>
+        </form>
+        
+        <style>
+            .menu-button {
+                width: 100%;
+                padding: 15px;
+                margin: 8px 0;
+                background-color: #f8f9fa;
+                border: 1px solid #dadce0;
+                border-radius: 4px;
+                color: #202124;
+                font-size: 16px;
+                cursor: pointer;
+                text-align: left;
+                transition: all 0.3s;
+            }
+            .menu-button:hover {
+                background-color: #e8f0fe;
+                border-color: #d2e3fc;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+        </style>
+    </div>
+    '''
 
-@app.route('/api/alarma/<int:id>')
-def alarma_detalle(id):
-    try:
-        alarmas = cargar_alarmas()
-        alarma = next((a for a in alarmas if a.get('ID') == id), None)
+@app.route('/consultar_alarma', methods=['GET', 'POST'])
+def consultar_alarma():
+    if request.method == 'POST':
+        numero_alarma = request.form.get('numero_alarma', '').strip()
+        session['numero_alarma'] = numero_alarma
         
-        if not alarma:
-            return jsonify({'error': 'Alarma no encontrada'}), 404
+        if not numero_alarma:
+            return '''
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h3 style="color: #d32f2f;">Error: Debes ingresar un número de alarma</h3>
+                <a href="/consultar_alarma" class="back-button">Volver a intentar</a>
+            </div>
+            '''
         
-        # Buscar documentación relacionada
-        terminos_busqueda = [
-            alarma.get('Codigo_Alarma', ''),
-            alarma.get('Descripcion_Corta', ''),
-            alarma.get('Elemento', ''),
-            alarma.get('Servicio_Gestionado', '')
-        ]
+        if numero_alarma not in alarmas_db:
+            log_interaction('alarma_no_encontrada', numero_alarma)
+            return f'''
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h3>Alarma {numero_alarma} no encontrada en el catálogo</h3>
+                <p>Por favor verifica el número e intenta nuevamente.</p>
+                <a href="/consultar_alarma" class="back-button">Volver a intentar</a>
+                <a href="/inicio" class="back-button" style="background-color: #757575;">Volver al inicio</a>
+            </div>
+            '''
         
-        documentacion = []
-        for termino in terminos_busqueda:
-            if termino and len(termino.strip()) > 2:
-                docs_encontrados = buscar_en_documentos(termino.strip())
-                for doc in docs_encontrados:
-                    # Evitar duplicados
-                    if not any(d['documento'] == doc['documento'] for d in documentacion):
-                        documentacion.append(doc)
+        log_interaction('alarma_encontrada', numero_alarma)
+        return redirect(url_for('verificar_elemento'))
+    
+    return '''
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h3 style="color: #333;">Por favor ingrese el número de alarma que desea consultar:</h3>
         
-        return jsonify({
-            'alarma': alarma,
-            'documentacion': documentacion
-        })
-        
-    except Exception as e:
-        logger.error(f"Error obteniendo detalle de alarma {id}: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        <form action="/consultar_alarma" method="post" style="margin-top: 20px;">
+            <input type="text" name="numero_alarma" required 
+                   style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px;">
+            
+            <button type="submit" style="padding: 10px 20px; background-color: #4285F4; color: white; 
+                    border: none; border-radius: 4px; cursor: pointer;">
+                Continuar
+            </button>
+            
+            <a href="/inicio" style="padding: 10px 20px; background-color: #757575; color: white; 
+               text-decoration: none; border-radius: 4px; margin-left: 10px;">
+                Cancelar
+            </a>
+        </form>
+    </div>
+    '''
 
-@app.route('/api/documentos')
-def listar_documentos():
-    """Listar documentos disponibles de alarmas"""
-    try:
-        cargar_documentos_alarmas()
+@app.route('/verificar_elemento', methods=['GET', 'POST'])
+def verificar_elemento():
+    numero_alarma = session.get('numero_alarma')
+    
+    if not numero_alarma or numero_alarma not in alarmas_db:
+        return redirect(url_for('consultar_alarma'))
+    
+    if request.method == 'POST':
+        elemento = request.form.get('elemento', '').strip()
+        session['elemento'] = elemento
         
-        documentos_info = []
-        for nombre_doc, info in docs_cache.items():
-            documentos_info.append({
-                'nombre': nombre_doc,
-                'ruta': info['ruta'],
-                'fecha_carga': info['fecha_carga'].strftime('%Y-%m-%d %H:%M:%S'),
-                'tamaño_contenido': len(info['contenido'])
-            })
+        if not elemento:
+            return '''
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h3 style="color: #d32f2f;">Error: Debes ingresar un elemento</h3>
+                <a href="/verificar_elemento" class="back-button">Volver a intentar</a>
+            </div>
+            '''
         
-        return jsonify({
-            'documentos': documentos_info,
-            'total': len(documentos_info)
-        })
-    except Exception as e:
-        logger.error(f"Error listando documentos: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        log_interaction('elemento_verificado', {'alarma': numero_alarma, 'elemento': elemento})
+        return redirect(url_for('mostrar_alarma'))
+    
+    return f'''
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h3 style="color: #333;">Por favor ingresa el nombre del elemento que reporta la alarma {numero_alarma}:</h3>
+        
+        <form action="/verificar_elemento" method="post" style="margin-top: 20px;">
+            <input type="text" name="elemento" required 
+                   style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px;">
+            
+            <button type="submit" style="padding: 10px 20px; background-color: #4285F4; color: white; 
+                    border: none; border-radius: 4px; cursor: pointer;">
+                Buscar
+            </button>
+            
+            <a href="/consultar_alarma" style="padding: 10px 20px; background-color: #757575; color: white; 
+               text-decoration: none; border-radius: 4px; margin-left: 10px;">
+                Volver
+            </a>
+        </form>
+    </div>
+    '''
 
-@app.route('/api/buscar_documentos')
-def buscar_documentos_api():
-    """Buscar en documentos de alarmas"""
-    try:
-        termino = request.args.get('termino', '')
-        if not termino or len(termino.strip()) < 2:
-            return jsonify({'error': 'Término de búsqueda debe tener al menos 2 caracteres'}), 400
+@app.route('/mostrar_alarma', methods=['GET'])
+def mostrar_alarma():
+    numero_alarma = session.get('numero_alarma')
+    elemento = session.get('elemento')
+    
+    if not numero_alarma or numero_alarma not in alarmas_db:
+        return redirect(url_for('consultar_alarma'))
+    
+    alarma = alarmas_db[numero_alarma]
+    
+    # Construir botones de documentos
+    documentos_html = ""
+    for doc in alarma.get('documentos', []):
+        if doc in CONFIG['DOCS_ALARMAS']:
+            file_type = doc.split('.')[-1].upper()
+            documentos_html += f'''
+            <div style="margin: 15px 0;">
+                <a href="/descargar/{doc}" class="doc-button">
+                    {file_type} - {doc}
+                </a>
+                <a href="/previsualizar/{doc}" class="preview-button" target="_blank">
+                    Previsualizar
+                </a>
+            </div>
+            '''
+    
+    return f'''
+    <div style="max-width: 800px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+        <h2 style="color: #333; border-bottom: 2px solid #4285F4; padding-bottom: 10px;">
+            Información de la Alarma {numero_alarma}
+        </h2>
         
-        resultados = buscar_en_documentos(termino)
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+            <p><strong>Elemento:</strong> {alarma['elemento']}</p>
+            <p><strong>Descripción:</strong> {alarma['descripcion']}</p>
+            <p><strong>Severidad:</strong> 
+                <span style="color: {get_severity_color(alarma['severidad'])}; font-weight: bold;">
+                    {alarma['severidad']}
+                </span>
+            </p>
+            <p><strong>Acción recomendada:</strong> {alarma['accion']}</p>
+            <p><strong>Contacto:</strong> {alarma['contacto']}</p>
+        </div>
         
-        return jsonify({
-            'termino': termino,
-            'resultados': resultados,
-            'total_documentos': len(resultados)
-        })
-    except Exception as e:
-        logger.error(f"Error buscando en documentos: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        <h3 style="color: #333; margin-top: 30px;">Documentación relacionada:</h3>
+        {documentos_html}
+        
+        <div style="margin-top: 40px;">
+            <a href="/consultar_alarma" class="action-button" style="background-color: #4285F4;">
+                Consultar otra alarma
+            </a>
+            <a href="/inicio" class="action-button" style="background-color: #757575;">
+                Volver al inicio
+            </a>
+        </div>
+    </div>
+    
+    <style>
+        .doc-button {{
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #34a853;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }}
+        .doc-button:hover {{
+            background-color: #2d9249;
+        }}
+        .preview-button {{
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #fbbc05;
+            color: #202124;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }}
+        .preview-button:hover {{
+            background-color: #e8ac04;
+        }}
+        .action-button {{
+            display: inline-block;
+            padding: 12px 20px;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 10px;
+            transition: all 0.3s;
+        }}
+        .action-button:hover {{
+            opacity: 0.9;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }}
+    </style>
+    '''
 
-@app.route('/api/descargar_documento/<nombre_documento>')
+def get_severity_color(severidad):
+    """Devuelve el color correspondiente a la severidad"""
+    colors = {
+        'CRITICA': '#d32f2f',
+        'ALTA': '#f57c00',
+        'MEDIA': '#fbc02d',
+        'BAJA': '#7cb342',
+        'INFORMATIVA': '#4285F4'
+    }
+    return colors.get(severidad, '#757575')
+
+@app.route('/descargar/<nombre_documento>')
 def descargar_documento(nombre_documento):
-    """Descargar documento específico"""
-    try:
-        if nombre_documento not in app.config['DOCS_ALARMAS']:
-            return jsonify({'error': 'Documento no autorizado'}), 403
-        
-        ruta_archivo = os.path.join(app.config['CARPETA_DOCS_ALARMAS'], nombre_documento)
-        
-        if not os.path.exists(ruta_archivo):
-            return jsonify({'error': 'Documento no encontrado'}), 404
-        
-        return send_file(ruta_archivo, as_attachment=True)
-    except Exception as e:
-        logger.error(f"Error descargando documento {nombre_documento}: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+    # Validación de seguridad
+    if not re.match(r'^[\w\s\-\.]+$', nombre_documento) or \
+       nombre_documento not in CONFIG['DOCS_ALARMAS']:
+        return 'Documento no autorizado', 403
+    
+    safe_path = secure_path(os.path.join(CONFIG['CARPETA_DOCS_ALARMAS'], nombre_documento))
+    
+    if not os.path.exists(safe_path):
+        return 'Documento no encontrado', 404
+    
+    log_interaction('documento_descargado', nombre_documento)
+    return send_file(safe_path, as_attachment=True)
 
-@app.route('/api/estadisticas')
-def estadisticas_api():
+@app.route('/previsualizar/<nombre_documento>')
+def previsualizar_documento(nombre_documento):
+    # Validación de seguridad
+    if not re.match(r'^[\w\s\-\.]+$', nombre_documento) or \
+       nombre_documento not in CONFIG['DOCS_ALARMAS']:
+        return 'Documento no autorizado', 403
+    
+    safe_path = secure_path(os.path.join(CONFIG['CARPETA_DOCS_ALARMAS'], nombre_documento))
+    
+    if not os.path.exists(safe_path):
+        return 'Documento no encontrado', 404
+    
+    # Extraer texto para previsualización
     try:
-        return jsonify(obtener_estadisticas_alarmas())
-    except Exception as e:
-        logger.error(f"Error obteniendo estadísticas: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/recargar')
-def recargar_datos():
-    try:
-        # Recargar alarmas
-        global alarmas_cache
-        alarmas_cache = None
-        alarmas = cargar_alarmas(force=True)
+        text = extract_text(safe_path)
+        if not text:
+            text = "No se pudo extraer texto para previsualización."
         
-        # Recargar documentos
-        global docs_cache
-        docs_cache = {}
-        cargar_documentos_alarmas()
-        
-        return jsonify({
-            'mensaje': 'Datos recargados exitosamente',
-            'alarmas_cargadas': len(alarmas),
-            'documentos_cargados': len(docs_cache)
-        })
+        log_interaction('documento_previsualizado', nombre_documento)
+        return f'''
+        <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+            <h3>Previsualización de {nombre_documento}</h3>
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px;
+                        max-height: 500px; overflow-y: auto; white-space: pre-wrap;">
+                {text[:5000]}... [Contenido recortado]
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="/descargar/{nombre_documento}" class="doc-button">Descargar documento completo</a>
+                <a href="/mostrar_alarma" class="back-button" style="margin-left: 10px;">Volver a la alarma</a>
+            </div>
+        </div>
+        '''
     except Exception as e:
-        logger.error(f"Error recargando datos: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error en previsualización: {str(e)}")
+        return 'Error al generar la previsualización', 500
 
 if __name__ == '__main__':
-    # Configuración
-    crear_archivos_iniciales()
-    port = int(os.environ.get('PORT', 5000))
-    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    # Crear carpeta de documentos si no existe
+    os.makedirs(CONFIG['CARPETA_DOCS_ALARMAS'], exist_ok=True)
     
-    logger.info(f"Iniciando aplicación en puerto {port}")
-    logger.info(f"Modo debug: {debug_mode}")
+    # Verificar que los documentos existan
+    for doc in CONFIG['DOCS_ALARMAS']:
+        doc_path = os.path.join(CONFIG['CARPETA_DOCS_ALARMAS'], doc)
+        if not os.path.exists(doc_path):
+            logger.warning(f"Documento faltante: {doc_path}")
     
-    # Cargar datos iniciales
-    alarmas_iniciales = cargar_alarmas()
-    logger.info(f"Cargadas {len(alarmas_iniciales)} alarmas del catálogo")
-    
-    cargar_documentos_alarmas()
-    logger.info(f"Cargados {len(docs_cache)} documentos de alarmas")
-        
-    app.run(host='0.0.0.0', port=port, debug=debug_mode)
+    app.run(debug=True, port=5000)
