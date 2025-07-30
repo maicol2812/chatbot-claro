@@ -11,20 +11,20 @@ import docx
 from pathlib import Path
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # Cambia esto en producción
+app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key_development_only')  # Usa variable de entorno en producción
 CORS(app)
 
 # Configuración
 CONFIG = {
     'EXCEL_ALARMAS': 'CatalogoAlarmas.xlsx',
     'CARPETA_DOCS_ALARMAS': 'documentos_alarmas',
-    'DOCS_ALARMAS': ['Alarmas vSR.pdf', 'vDSR Alarms and KPIs.docx'],
+    'DOCS_ALARMAS': ['Alarmas vSR.pdf', 'vDSR Alarms and KPIs.pdf'],
     'ALLOWED_EXTENSIONS': {'pdf', 'docx'},
     'TIPOS_SEVERIDAD': ['CRITICA', 'ALTA', 'MEDIA', 'BAJA', 'INFORMATIVA'],
     'MAX_ALARMAS': 50
 }
 
-# Base de datos simulada de alarmas (puedes reemplazar con tu carga real)
+# Base de datos simulada de alarmas
 alarmas_db = {
     "1001": {
         "id": "1001",
@@ -32,7 +32,7 @@ alarmas_db = {
         "descripcion": "Fallo en interfaz GigabitEthernet0/0/0/1",
         "severidad": "CRITICA",
         "accion": "Verificar estado físico de la interfaz y revisar logs",
-        "documentos": ["Alarmas vSR.pdf", "vDSR Alarms and KPIs.docx"],
+        "documentos": ["Alarmas vSR.pdf", "vDSR Alarms and KPIs.pdf"],
         "contacto": "soporte_redes@empresa.com"
     },
     "2002": {
@@ -50,7 +50,7 @@ alarmas_db = {
         "descripcion": "Pérdida de paquetes en el enlace troncal",
         "severidad": "MEDIA",
         "accion": "Verificar ancho de banda y configuración de QoS",
-        "documentos": ["vDSR Alarms and KPIs.docx"],
+        "documentos": ["vDSR Alarms and KPIs.pdf"],
         "contacto": "soporte_redes@empresa.com"
     }
 }
@@ -95,27 +95,43 @@ def log_interaction(action, details):
     """Registrar interacciones importantes"""
     logger.info(f"User Interaction - Action: {action}, Details: {details}")
 
+def get_severity_color(severidad):
+    """Devuelve el color correspondiente a la severidad"""
+    colors = {
+        'CRITICA': '#d32f2f',
+        'ALTA': '#f57c00',
+        'MEDIA': '#fbc02d',
+        'BAJA': '#7cb342',
+        'INFORMATIVA': '#4285F4'
+    }
+    return colors.get(severidad, '#757575')
+
 # Rutas principales
 @app.route('/')
 def home():
     return redirect(url_for('inicio'))
+
+@app.route('/health')
+def health_check():
+    """Endpoint para verificación de salud"""
+    return jsonify({"status": "healthy"}), 200
 
 @app.route('/inicio', methods=['GET', 'POST'])
 def inicio():
     if request.method == 'POST':
         opcion = request.form.get('opcion')
         
-        if opcion == '1':  # Alarmas de plataformas
+        if opcion == '1':
             log_interaction('menu_selection', 'opcion_1')
             return redirect(url_for('consultar_alarma'))
         
-        elif opcion == '2':  # Documentación de las plataformas
+        elif opcion == '2':
             log_interaction('menu_selection', 'opcion_2')
             return '''
             <h3>Documentación disponible:</h3>
             <div style="margin: 20px;">
                 <a href="/descargar/Alarmas vSR.pdf" class="doc-button">PDF - Alarmas vSR</a>
-                <a href="/descargar/vDSR Alarms and KPIs.docx" class="doc-button">Word - vDSR Alarms</a>
+                <a href="/descargar/vDSR Alarms and KPIs.pdf" class="doc-button">PDF - vDSR Alarms</a>
             </div>
             <a href="/inicio" class="back-button">Volver al inicio</a>
             
@@ -147,9 +163,7 @@ def inicio():
                 }
             </style>
             '''
-        
-        # Otras opciones pueden implementarse aquí
-        
+    
     return '''
     <div style="max-width: 800px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
         <h2 style="color: #333; border-bottom: 2px solid #4285F4; padding-bottom: 10px;">
@@ -309,7 +323,6 @@ def mostrar_alarma():
     
     alarma = alarmas_db[numero_alarma]
     
-    # Construir botones de documentos
     documentos_html = ""
     for doc in alarma.get('documentos', []):
         if doc in CONFIG['DOCS_ALARMAS']:
@@ -398,20 +411,8 @@ def mostrar_alarma():
     </style>
     '''
 
-def get_severity_color(severidad):
-    """Devuelve el color correspondiente a la severidad"""
-    colors = {
-        'CRITICA': '#d32f2f',
-        'ALTA': '#f57c00',
-        'MEDIA': '#fbc02d',
-        'BAJA': '#7cb342',
-        'INFORMATIVA': '#4285F4'
-    }
-    return colors.get(severidad, '#757575')
-
 @app.route('/descargar/<nombre_documento>')
 def descargar_documento(nombre_documento):
-    # Validación de seguridad
     if not re.match(r'^[\w\s\-\.]+$', nombre_documento) or \
        nombre_documento not in CONFIG['DOCS_ALARMAS']:
         return 'Documento no autorizado', 403
@@ -426,7 +427,6 @@ def descargar_documento(nombre_documento):
 
 @app.route('/previsualizar/<nombre_documento>')
 def previsualizar_documento(nombre_documento):
-    # Validación de seguridad
     if not re.match(r'^[\w\s\-\.]+$', nombre_documento) or \
        nombre_documento not in CONFIG['DOCS_ALARMAS']:
         return 'Documento no autorizado', 403
@@ -436,7 +436,6 @@ def previsualizar_documento(nombre_documento):
     if not os.path.exists(safe_path):
         return 'Documento no encontrado', 404
     
-    # Extraer texto para previsualización
     try:
         text = extract_text(safe_path)
         if not text:
@@ -470,4 +469,6 @@ if __name__ == '__main__':
         if not os.path.exists(doc_path):
             logger.warning(f"Documento faltante: {doc_path}")
     
-    app.run(debug=True, port=5000)
+    # Configuración para Render
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)

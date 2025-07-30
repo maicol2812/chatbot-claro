@@ -1,0 +1,16 @@
+echo "__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.sqlite3
+*.log
+documentos_alarmas/
+.DS_Store
+.idea/
+.vscode/" > .gitignore
