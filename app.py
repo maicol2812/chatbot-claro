@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key_development_only')
 CORS(app)
 
-# Configuración
+# Configuración mejorada
 CONFIG = {
     'EXCEL_ALARMAS': 'CatalogoAlarmas.xlsx',
     'CARPETA_DOCS_ALARMAS': 'documentos_alarmas',
@@ -46,47 +46,7 @@ CONFIG = {
     }
 }
 
-# Cargar alarmas desde Excel
-def cargar_alarmas_desde_excel():
-    try:
-        df = pd.read_excel(CONFIG['EXCEL_ALARMAS'])
-        alarmas = {}
-        
-        for _, row in df.iterrows():
-            # Generar un ID único si no hay columna ID
-            alarma_id = str(uuid.uuid4())[:8]
-            
-            alarmas[alarma_id] = {
-                "id": alarma_id,
-                "fabricante": row[CONFIG['EXCEL_COLUMNAS']['FABRICANTE']],
-                "servicio": row[CONFIG['EXCEL_COLUMNAS']['SERVICIO']],
-                "gestor": row[CONFIG['EXCEL_COLUMNAS']['GESTOR']],
-                "descripcion": f"{row[CONFIG['EXCEL_COLUMNAS']['TEXTO_1']]} | {row[CONFIG['EXCEL_COLUMNAS']['TEXTO_2']]} | {row[CONFIG['EXCEL_COLUMNAS']['TEXTO_3']]} | {row[CONFIG['EXCEL_COLUMNAS']['TEXTO_4']]}",
-                "tipo": row[CONFIG['EXCEL_COLUMNAS']['TIPO']],
-                "dominio": row[CONFIG['EXCEL_COLUMNAS']['DOMINIO']],
-                "severidad": row[CONFIG['EXCEL_COLUMNAS']['SEVERIDAD']],
-                "instructivo": row[CONFIG['EXCEL_COLUMNAS']['INSTRUCTIVO']],
-                "tier_1": row[CONFIG['EXCEL_COLUMNAS']['TIER_1']],
-                "tier_2": row[CONFIG['EXCEL_COLUMNAS']['TIER_2']],
-                "tier_3": row[CONFIG['EXCEL_COLUMNAS']['TIER_3']],
-                "tipo_alarma": row[CONFIG['EXCEL_COLUMNAS']['TIPO_ALARMA']],
-                "grupo_atencion": row[CONFIG['EXCEL_COLUMNAS']['GRUPO_ATENCION']],
-                "criticidad": row[CONFIG['EXCEL_COLUMNAS']['CRITICIDAD']],
-                "dueño": row[CONFIG['EXCEL_COLUMNAS']['DUEÑO']],
-                "panel": row[CONFIG['EXCEL_COLUMNAS']['PANEL']],
-                "documentos": CONFIG['DOCS_ALARMAS'],
-                "contacto": row[CONFIG['EXCEL_COLUMNAS']['GRUPO_ATENCION']] + "@empresa.com"
-            }
-        
-        return alarmas
-    except Exception as e:
-        logging.error(f"Error cargando alarmas desde Excel: {str(e)}")
-        return {}
-
-# Base de datos de alarmas cargada desde Excel
-alarmas_db = cargar_alarmas_desde_excel()
-
-# Configuración de logging
+# Configuración de logging mejorada
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -96,6 +56,100 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Función mejorada para cargar alarmas desde Excel
+def cargar_alarmas_desde_excel():
+    try:
+        # Verificar si el archivo existe
+        if not os.path.exists(CONFIG['EXCEL_ALARMAS']):
+            logger.error(f"Archivo Excel no encontrado: {CONFIG['EXCEL_ALARMAS']}")
+            return {}
+
+        # Leer el archivo Excel
+        df = pd.read_excel(CONFIG['EXCEL_ALARMAS'])
+        logger.info(f"Excel cargado correctamente. Columnas disponibles: {df.columns.tolist()}")
+        
+        # Mapeo flexible de columnas
+        column_mapping = {}
+        missing_columns = []
+        
+        for config_col, expected_name in CONFIG['EXCEL_COLUMNAS'].items():
+            # Buscar coincidencia insensible a mayúsculas y espacios
+            matched_col = next((col for col in df.columns 
+                             if str(col).strip().upper() == str(expected_name).strip().upper()), None)
+            
+            if matched_col:
+                column_mapping[config_col] = matched_col
+            else:
+                logger.warning(f"Columna no encontrada: '{expected_name}'")
+                missing_columns.append(expected_name)
+                column_mapping[config_col] = expected_name  # Usar el nombre esperado para generar el error
+
+        if missing_columns:
+            logger.warning(f"Columnas faltantes en el Excel: {missing_columns}")
+
+        alarmas = {}
+        
+        for index, row in df.iterrows():
+            try:
+                alarma_id = str(uuid.uuid4())[:8]
+                
+                # Construir descripción solo con textos existentes
+                descripcion_parts = []
+                for text_part in ['TEXTO_1', 'TEXTO_2', 'TEXTO_3', 'TEXTO_4']:
+                    if column_mapping[text_part] in df.columns:
+                        text_value = str(row[column_mapping[text_part]])
+                        if text_value and text_value != 'nan':
+                            descripcion_parts.append(text_value)
+                
+                # Crear diccionario de alarma con manejo de errores para cada campo
+                alarma_data = {
+                    "id": alarma_id,
+                    "fabricante": safe_get(row, column_mapping['FABRICANTE']),
+                    "servicio": safe_get(row, column_mapping['SERVICIO']),
+                    "gestor": safe_get(row, column_mapping['GESTOR']),
+                    "descripcion": " | ".join(descripcion_parts) if descripcion_parts else "Sin descripción",
+                    "tipo": safe_get(row, column_mapping['TIPO']),
+                    "dominio": safe_get(row, column_mapping['DOMINIO']),
+                    "severidad": safe_get(row, column_mapping['SEVERIDAD']),
+                    "instructivo": safe_get(row, column_mapping['INSTRUCTIVO']),
+                    "tier_1": safe_get(row, column_mapping['TIER_1']),
+                    "tier_2": safe_get(row, column_mapping['TIER_2']),
+                    "tier_3": safe_get(row, column_mapping['TIER_3']),
+                    "tipo_alarma": safe_get(row, column_mapping['TIPO_ALARMA']),
+                    "grupo_atencion": safe_get(row, column_mapping['GRUPO_ATENCION']),
+                    "criticidad": safe_get(row, column_mapping['CRITICIDAD']),
+                    "dueño": safe_get(row, column_mapping['DUEÑO']),
+                    "panel": safe_get(row, column_mapping['PANEL']),
+                    "documentos": CONFIG['DOCS_ALARMAS'],
+                    "contacto": f"{safe_get(row, column_mapping['GRUPO_ATENCION'], 'soporte')}@empresa.com"
+                }
+                
+                alarmas[alarma_id] = alarma_data
+                
+            except Exception as row_error:
+                logger.error(f"Error procesando fila {index}: {str(row_error)}")
+                continue
+        
+        logger.info(f"Se cargaron {len(alarmas)} alarmas correctamente")
+        return alarmas
+        
+    except Exception as e:
+        logger.error(f"Error crítico cargando alarmas desde Excel: {str(e)}", exc_info=True)
+        return {}
+
+def safe_get(row, column_name, default="No especificado"):
+    """Obtiene un valor de una fila de manera segura"""
+    try:
+        if column_name in row and pd.notna(row[column_name]):
+            return str(row[column_name])
+        return default
+    except Exception as e:
+        logger.warning(f"Error obteniendo columna {column_name}: {str(e)}")
+        return default
+
+# Base de datos de alarmas cargada desde Excel
+alarmas_db = cargar_alarmas_desde_excel()
 
 # Helpers
 def allowed_file(filename):
@@ -146,7 +200,8 @@ def home():
 def health_check():
     """Endpoint para verificación de salud"""
     return jsonify({
-        "status": "healthy",
+        "status": "healthy" if alarmas_db else "warning",
+        "alarmas_cargadas": len(alarmas_db),
         "timestamp": datetime.now().isoformat(),
         "service": "asesor-claro-ia",
         "version": "1.0.0"
@@ -381,6 +436,7 @@ def mostrar_alarma():
         </h2>
         
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+            <p><strong>Elemento reportado:</strong> {elemento}</p>
             <p><strong>Fabricante:</strong> {alarma['fabricante']}</p>
             <p><strong>Servicio/Sistema:</strong> {alarma['servicio']}</p>
             <p><strong>Gestor:</strong> {alarma['gestor']}</p>
@@ -516,6 +572,16 @@ def create_app():
         doc_path = os.path.join(CONFIG['CARPETA_DOCS_ALARMAS'], doc)
         if not os.path.exists(doc_path):
             logger.warning(f"Documento faltante: {doc_path}")
+    
+    # Verificar archivo Excel
+    if not os.path.exists(CONFIG['EXCEL_ALARMAS']):
+        logger.error(f"Archivo Excel no encontrado: {CONFIG['EXCEL_ALARMAS']}")
+    else:
+        try:
+            df = pd.read_excel(CONFIG['EXCEL_ALARMAS'])
+            logger.info(f"Columnas en el archivo Excel: {df.columns.tolist()}")
+        except Exception as e:
+            logger.error(f"Error leyendo archivo Excel: {str(e)}")
     
     return app
 
