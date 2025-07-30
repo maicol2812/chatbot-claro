@@ -1,274 +1,1371 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataformas Core - Claro</title>
-  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataformas Core - Claro</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle fill='%23E60012' cx='50' cy='50' r='50'/><text y='60' x='50' text-anchor='middle' font-size='40' fill='white'>C</text></svg>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --claro-red: #E60012;
+            --claro-dark-red: #C70010;
+            --claro-light-red: #FF1A2E;
+            --claro-gray: #F5F5F5;
+            --claro-dark-gray: #333333;
+            --claro-light-gray: #E0E0E0;
+            --claro-white: #FFFFFF;
+            --claro-blue: #0066CC;
+            --success-green: #28A745;
+            --warning-orange: #FFC107;
+            --danger-red: #DC3545;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f4c75 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 25% 25%, rgba(230, 0, 18, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 75% 75%, rgba(0, 102, 204, 0.1) 0%, transparent 50%);
+            animation: backgroundMove 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes backgroundMove {
+            0%, 100% { opacity: 0.5; transform: translateX(0px) translateY(0px); }
+            50% { opacity: 0.8; transform: translateX(-20px) translateY(-20px); }
+        }
+
+        /* Header */
+        .header-premium {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 3px solid var(--claro-red);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content-premium {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--claro-red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--claro-red);
+        }
+
+        .brand-subtitle {
+            font-size: 0.9rem;
+            color: var(--claro-dark-gray);
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-indicator-premium {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--success-green);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .status-pulse {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--claro-red);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 0.5rem;
+        }
+
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--claro-red);
+            box-shadow: 0 20px 40px rgba(230, 0, 18, 0.2);
+        }
+
+        .service-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .service-icon.alarm { background: linear-gradient(135deg, var(--claro-red), var(--claro-dark-red)); }
+        .service-icon.docs { background: linear-gradient(135deg, var(--claro-blue), #004999); }
+        .service-icon.incidents { background: linear-gradient(135deg, var(--success-green), #1e7e34); }
+
+        .service-card h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--claro-dark-gray);
+            margin-bottom: 1rem;
+        }
+
+        .service-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .service-badges {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: var(--claro-light-gray);
+            color: var(--claro-dark-gray);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Chat Styles */
+        .chat-bubble-premium {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--claro-red), var(--claro-dark-red));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(230, 0, 18, 0.3);
+        }
+
+        .chat-bubble-premium:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(230, 0, 18, 0.4);
+        }
+
+        .bubble-icon {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .bubble-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--warning-orange);
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .chat-window-premium {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+            overflow: hidden;
+            border: 2px solid var(--claro-red);
+        }
+
+        .chat-header-premium {
+            background: linear-gradient(135deg, var(--claro-red), var(--claro-dark-red));
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chat-avatar {
+            position: relative;
+        }
+
+        .avatar-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .avatar-status {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background: var(--success-green);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .chat-title-section {
+            flex: 1;
+        }
+
+        .chat-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .chat-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .chat-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .control-btn {
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 0.8rem 1rem;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid var(--claro-light-gray);
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.user .message-content {
+            background: var(--claro-red);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-options {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-btn {
+            background: var(--claro-gray);
+            border: 1px solid var(--claro-light-gray);
+            border-radius: 10px;
+            padding: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .option-btn:hover {
+            background: var(--claro-red);
+            color: white;
+        }
+
+        .file-options {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .file-btn {
+            flex: 1;
+            padding: 0.7rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .file-btn.pdf {
+            background: #dc3545;
+            color: white;
+        }
+
+        .file-btn.word {
+            background: #0066cc;
+            color: white;
+        }
+
+        .file-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .typing-indicator-premium {
+            padding: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            border-top: 1px solid var(--claro-light-gray);
+        }
+
+        .typing-avatar {
+            width: 30px;
+            height: 30px;
+            background: var(--claro-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .typing-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .typing-animation {
+            display: flex;
+            gap: 0.2rem;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--claro-red);
+            border-radius: 50%;
+            animation: typingDot 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .chat-input-container-premium {
+            border-top: 1px solid var(--claro-light-gray);
+            padding: 1rem;
+            background: white;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--claro-gray);
+            border-radius: 25px;
+            padding: 0.5rem 1rem;
+        }
+
+        .chat-input-premium {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .send-btn-premium {
+            width: 35px;
+            height: 35px;
+            background: var(--claro-red);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn-premium:hover {
+            background: var(--claro-dark-red);
+            transform: scale(1.05);
+        }
+
+        .input-help {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        /* File Modal */
+        .file-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .file-modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .file-modal-header {
+            background: var(--claro-red);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-modal-body {
+            flex: 1;
+            padding: 1rem;
+            overflow: auto;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chat-window-premium {
+                width: calc(100vw - 2rem);
+                height: calc(100vh - 4rem);
+                bottom: 1rem;
+                right: 1rem;
+                left: 1rem;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-stats {
+                gap: 1.5rem;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content-premium {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="bg-video">
-    <video autoplay muted loop>
-      <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
-    </video>
-  </div>
-  <div class="bg-overlay"></div>
+    <!-- Header -->
+    <header class="header-premium">
+        <div class="header-content-premium">
+            <div class="logo-section">
+                <div class="header-logo">C</div>
+                <div class="logo-text">
+                    <span class="brand-name">Plataformas Core</span>
+                    <span class="brand-subtitle">Sistema Empresarial</span>
+                </div>
+            </div>
+            <div class="header-controls">
+                <div class="system-status">
+                    <div class="status-indicator-premium">
+                        <div class="status-pulse"></div>
+                        <span>Sistema Operativo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
 
-  <header class="header-premium">
-    <div class="header-content-premium">
-      <div class="logo-section">
-        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
-        <div class="logo-text">
-          <span class="brand-name">Plataformas Core</span>
-          <span class="brand-subtitle">Sistema Empresarial</span>
-        </div>
-      </div>
-      <div class="header-controls">
-        <div class="system-status">
-          <div class="status-indicator-premium">
-            <div class="status-pulse"></div>
-            <span>Sistema Operativo</span>
-          </div>
-          <div class="system-metrics">
-            <div class="metric">99.9% Disponibilidad</div>
-            <div class="metric">24/7 Monitoreo</div>
-          </div>
-        </div>
-      </div>
+    <!-- Main Content -->
+    <main class="main-content">
+        <section class="hero-section">
+            <h1 class="hero-title">Centro de Operaciones</h1>
+            <p class="hero-description">Plataforma inteligente para gestión empresarial especializada</p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">Monitoreo</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">99.9%</span>
+                    <span class="stat-label">Disponibilidad</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">---</span>
+                    <span class="stat-label">Alarmas</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="services-grid">
+            <div class="service-card" onclick="openChatAndSelectOption('1')">
+                <div class="service-icon alarm">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Gestión de Alarmas</h3>
+                <p>Sistema inteligente para monitoreo y análisis de alarmas críticas.</p>
+                <div class="service-badges">
+                    <span class="badge">Tiempo Real</span>
+                    <span class="badge">Inteligente</span>
+                </div>
+            </div>
+            
+            <div class="service-card" onclick="openChatAndSelectOption('2')">
+                <div class="service-icon docs">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h3>Base de Conocimiento</h3>
+                <p>Documentación técnica centralizada con búsqueda avanzada.</p>
+                <div class="service-badges">
+                    <span class="badge">Centralizado</span>
+                    <span class="badge">Búsqueda</span>
+                </div>
+            </div>
+            
+            <div class="service-card" onclick="openChatAndSelectOption('3')">
+                <div class="service-icon incidents">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Análisis de Incidentes</h3>
+                <p>Monitoreo proactivo con análisis de tendencias para prevenir incidentes.</p>
+                <div class="service-badges">
+                    <span class="badge">Preventivo</span>
+                    <span class="badge">Análisis</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Chat Bubble -->
+    <div class="chat-bubble-premium" id="chatBubble" onclick="toggleChat()">
+        <i class="fas fa-comments bubble-icon"></i>
+        <div class="bubble-notification" id="bubbleNotification">1</div>
     </div>
-  </header>
 
-  <main class="main-content">
-    <section class="hero-section">
-      <div class="hero-background"></div>
-      <div class="hero-content">
-        <h1 class="hero-title">Centro de Operaciones</h1>
-        <p class="hero-description">Plataforma inteligente para gestión empresarial especializada</p>
-        <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-number">{{ estadisticas.total or '---' }}</span>
-            <span class="stat-label">Alarmas</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">99.9%</span>
-            <span class="stat-label">Disponibilidad</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">24/7</span>
-            <span class="stat-label">Monitoreo</span>
-          </div>
+    <!-- Chat Window -->
+    <div class="chat-window-premium" id="chatWindow">
+        <div class="chat-header-premium">
+            <div class="chat-avatar">
+                <div class="avatar-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="avatar-status"></div>
+            </div>
+            <div class="chat-title-section">
+                <h3 class="chat-title">Asistente de Alarmas</h3>
+                <p class="chat-subtitle">Experto en plataformas Core</p>
+            </div>
+            <div class="chat-controls">
+                <button class="control-btn" onclick="minimizeChat()">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button class="control-btn" onclick="closeChat()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
-      </div>
-    </section>
-
-    <section class="services-grid">
-      <div class="service-card" onclick="openChatAndSelectOption('1')">
-        <div class="service-icon alarm">
-          <i class="fas fa-exclamation-triangle"></i>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be inserted here -->
         </div>
-        <h3>Gestión de Alarmas</h3>
-        <p>Sistema inteligente para monitoreo y análisis de alarmas críticas.</p>
-        <div class="service-badges">
-          <span class="badge">Tiempo Real</span>
-          <span class="badge">Inteligente</span>
+        
+        <div class="typing-indicator-premium" id="typingIndicator">
+            <div class="typing-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="typing-content">
+                <span class="typing-text">El asistente está escribiendo...</span>
+                <div class="typing-animation">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
         </div>
-      </div>
-      
-      <div class="service-card" onclick="openChatAndSelectOption('2')">
-        <div class="service-icon docs">
-          <i class="fas fa-book-open"></i>
+        
+        <div class="chat-input-container-premium">
+            <div class="input-wrapper">
+                <input type="text" class="chat-input-premium" id="messageInput" 
+                       placeholder="Escribe tu consulta aquí..." maxlength="500">
+                <button class="send-btn-premium" id="sendBtn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <p class="input-help">Presiona Enter para enviar</p>
         </div>
-        <h3>Base de Conocimiento</h3>
-        <p>Documentación técnica centralizada con búsqueda avanzada.</p>
-        <div class="service-badges">
-          <span class="badge">Centralizado</span>
-          <span class="badge">Búsqueda</span>
-        </div>
-      </div>
-      
-      <div class="service-card" onclick="openChatAndSelectOption('3')">
-        <div class="service-icon incidents">
-          <i class="fas fa-chart-line"></i>
-        </div>
-        <h3>Análisis de Incidentes</h3>
-        <p>Monitoreo proactivo con análisis de tendencias para prevenir incidentes.</p>
-        <div class="service-badges">
-          <span class="badge">Preventivo</span>
-          <span class="badge">Análisis</span>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer-premium">
-    <div class="footer-content">
-      <div class="footer-left">
-        <span>Sistema Core &copy; 2025 Claro Colombia</span>
-        <span class="separator">|</span>
-        <span>Plataforma Empresarial</span>
-      </div>
-      <div class="footer-right">
-        <div class="security-badge">
-          <i class="fas fa-shield-alt"></i>
-          <span>Sistema Seguro</span>
-        </div>
-      </div>
     </div>
-  </footer>
 
-  <!-- Chat bubble -->
-  <div class="chat-bubble-premium" id="chatBubble">
-    <div class="bubble-pulse"></div>
-    <i class="fas fa-comments bubble-icon"></i>
-    <div class="bubble-notification" id="bubbleNotification">1</div>
-  </div>
-
-  <!-- Chat window -->
-  <div class="chat-window-premium" id="chatWindow">
-    <div class="chat-header-premium">
-      <div class="chat-avatar">
-        <div class="avatar-icon">
-          <i class="fas fa-robot"></i>
+    <!-- File Modal -->
+    <div class="file-modal" id="fileModal">
+        <div class="file-modal-content">
+            <div class="file-modal-header">
+                <h3 id="fileModalTitle">Documento</h3>
+                <button class="close-modal" onclick="closeFileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="file-modal-body" id="fileModalBody">
+                <!-- File content will be loaded here -->
+            </div>
         </div>
-        <div class="avatar-status"></div>
-      </div>
-      <div class="chat-title-section">
-        <h3 class="chat-title">Asistente de Alarmas</h3>
-        <p class="chat-subtitle">Experto en plataformas Core</p>
-      </div>
-      <div class="chat-controls">
-        <button class="control-btn" id="minimizeChat">
-          <i class="fas fa-minus"></i>
-        </button>
-        <button class="control-btn" id="maximizeChat">
-          <i class="fas fa-expand"></i>
-        </button>
-        <button class="control-btn" id="closeChat">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
     </div>
-    
-    <div class="chat-messages" id="chatMessages">
-      <!-- Mensajes se insertarán aquí dinámicamente -->
-    </div>
-    
-    <div class="typing-indicator-premium" id="typingIndicator">
-      <div class="typing-avatar">
-        <i class="fas fa-robot"></i>
-      </div>
-      <div class="typing-content">
-        <span class="typing-text">El asistente está escribiendo...</span>
-        <div class="typing-animation">
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="chat-input-container-premium">
-      <div class="input-wrapper">
-        <button class="attachment-btn" id="attachBtn">
-          <i class="fas fa-paperclip"></i>
-        </button>
-        <input type="text" class="chat-input-premium" id="messageInput" placeholder="Escribe tu consulta aquí..." maxlength="500">
-        <button class="send-btn-premium" id="sendBtn">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </div>
-      <div class="input-footer">
-        <p class="input-help">Presiona Enter para enviar</p>
-      </div>
-    </div>
-  </div>
 
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
-  <script>
-    // Función para abrir el chat y seleccionar una opción
-    function openChatAndSelectOption(option) {
-      openChat();
-      setTimeout(() => {
-        selectMainOption(option);
-      }, 500);
-    }
-    
-    // Mostrar mensaje de bienvenida cuando se abre el chat
-    function showWelcomeMessage() {
-      addBotMessage(`🚀 **¡Bienvenido al Sistema de Alarmas Claro!**\n\nSoy tu asistente virtual especializado en plataformas Core. ¿En qué puedo ayudarte hoy?`, {
-        options: [
-          { text: '🔍 Buscar alarma específica', value: '1' },
-          { text: '📋 Ver catálogo completo', value: '2' },
-          { text: '🚨 Mostrar alarmas críticas', value: '3' },
-          { text: '📊 Estadísticas del catálogo', value: '4' },
-          { text: '📚 Documentación técnica', value: '5' }
-        ]
-      });
-      
-      // Ocultar notificación después de mostrar el mensaje
-      document.getElementById('bubbleNotification').style.display = 'none';
-    }
-    
-    // Manejar selección de opción principal
-    function selectMainOption(option) {
-      const optionText = getOptionText(option);
-      addUserMessage(optionText);
-      
-      setTimeout(() => {
-        switch(option) {
-          case '1':
-            handleSearchOption();
-            break;
-          case '2':
-            handleCatalogOption();
-            break;
-          case '3':
-            handleCriticalAlarmsOption();
-            break;
-          case '4':
-            handleStatsOption();
-            break;
-          case '5':
-            handleDocumentationOption();
-            break;
+    <script>
+        // Variables globales
+        let chatOpen = false;
+        let waitingForElement = false;
+        let currentStep = 'initial';
+
+        // Función para alternar el chat
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            const chatBubble = document.getElementById('chatBubble');
+            
+            if (chatOpen) {
+                closeChat();
+            } else {
+                openChat();
+            }
         }
-      }, 500);
-    }
-    
-    // Funciones de manejo de opciones (implementar según necesidad)
-    function handleSearchOption() {
-      showTyping();
-      setTimeout(() => {
-        hideTyping();
-        addBotMessage(`🔍 **Búsqueda de Alarmas**\n\nPor favor, ingresa el **nombre del elemento** que quieres consultar.\n\nEjemplos: ROUTER-CORE-01, SWITCH-ACCESS-15, SERVER-DB-03`);
-      }, 1500);
-    }
-    
-    function handleCatalogOption() {
-      showTyping();
-      setTimeout(() => {
-        hideTyping();
-        addBotMessage(`📋 **Catálogo Completo de Alarmas**\n\nMostrando las alarmas más relevantes del sistema.`, {
-          actions: [
-            { text: '🔍 Ver detalles', action: 'view-catalog', class: 'primary' },
-            { text: '📊 Filtrar por severidad', action: 'filter-severity', class: 'secondary' }
-          ]
+
+        // Función para abrir el chat
+        function openChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            const notification = document.getElementById('bubbleNotification');
+            
+            chatWindow.style.display = 'flex';
+            chatOpen = true;
+            
+            // Ocultar notificación
+            notification.style.display = 'none';
+            
+            // Mostrar mensaje de bienvenida si no hay mensajes
+            const messages = document.getElementById('chatMessages');
+            if (messages.children.length === 0) {
+                showWelcomeMessage();
+            }
+        }
+
+        // Función para cerrar el chat
+        function closeChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.style.display = 'none';
+            chatOpen = false;
+        }
+
+        // Función para minimizar el chat
+        function minimizeChat() {
+            closeChat();
+        }
+
+        // Función para mostrar mensaje de bienvenida
+        function showWelcomeMessage() {
+            setTimeout(() => {
+                addBotMessage("🚀 **¡Bienvenido al Sistema de Alarmas Claro!**\n\nSoy tu asistente virtual especializado en plataformas Core. ¿En qué puedo ayudarte hoy?", {
+                    options: [
+                        { text: '🔍 Buscar alarma específica', value: '1' },
+                        { text: '📋 Ver catálogo completo', value: '2' },
+                        { text: '🚨 Mostrar alarmas críticas', value: '3' },
+                        { text: '📊 Estadísticas del catálogo', value: '4' },
+                        { text: '📚 Documentación técnica', value: '5' }
+                    ]
+                });
+            }, 500);
+        }
+
+        // Función para abrir chat y seleccionar opción
+        function openChatAndSelectOption(option) {
+            openChat();
+            setTimeout(() => {
+                selectMainOption(option);
+            }, 800);
+        }
+
+        // Función para manejar selección de opción principal
+        function selectMainOption(option) {
+            const optionText = getOptionText(option);
+            addUserMessage(optionText);
+            
+            currentStep = 'option_selected';
+            
+            setTimeout(() => {
+                switch(option) {
+                    case '1':
+                        handleSearchOption();
+                        break;
+                    case '2':
+                        handleCatalogOption();
+                        break;
+                    case '3':
+                        handleCriticalAlarmsOption();
+                        break;
+                    case '4':
+                        handleStatsOption();
+                        break;
+                    case '5':
+                        handleDocumentationOption();
+                        break;
+                }
+            }, 1000);
+        }
+
+        // Funciones de manejo de opciones
+        function handleSearchOption() {
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addBotMessage("🔍 **Búsqueda de Alarmas**\n\nPor favor, ingresa el **nombre del elemento** que quieres consultar.\n\n**Ejemplos:**\n• ROUTER-CORE-01\n• SWITCH-ACCESS-15\n• SERVER-DB-03\n• FIREWALL-DMZ-02");
+                waitingForElement = true;
+                currentStep = 'waiting_element';
+            }, 1500);
+        }
+
+        function handleCatalogOption() {
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addBotMessage("📋 **Catálogo Completo de Alarmas**\n\nAccede al catálogo completo de alarmas del sistema Core. Aquí encontrarás toda la información técnica disponible.", {
+                    fileOptions: true,
+                    elementName: "CATALOGO-COMPLETO"
+                });
+            }, 1500);
+        }
+
+        function handleCriticalAlarmsOption() {
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addBotMessage("🚨 **Alarmas Críticas Activas**\n\nConsulta las alarmas críticas que requieren atención inmediata en el sistema.", {
+                    fileOptions: true,
+                    elementName: "ALARMAS-CRITICAS"
+                });
+            }, 1500);
+        }
+
+        function handleStatsOption() {
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addBotMessage("📊 **Estadísticas del Sistema**\n\n**Estado Actual:**\n• ✅ Sistemas operativos: 98.5%\n• ⚠️ Alarmas activas: 12\n• 🔴 Alarmas críticas: 2\n• 📈 Disponibilidad: 99.9%\n\n¿Necesitas información detallada?", {
+                    options: [
+                        { text: '📋 Ver reporte detallado', value: 'detailed_report' },
+                        { text: '🔄 Actualizar estadísticas', value: 'refresh_stats' },
+                        { text: '🏠 Volver al menú principal', value: 'main_menu' }
+                    ]
+                });
+            }, 1500);
+        }
+
+        function handleDocumentationOption() {
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addBotMessage("📚 **Documentación Técnica**\n\nAccede a la documentación técnica completa del sistema de plataformas Core.", {
+                    fileOptions: true,
+                    elementName: "DOCUMENTACION-TECNICA"
+                });
+            }, 1500);
+        }
+
+        // Función para procesar elemento ingresado
+        function processElement(elementName) {
+            if (!elementName || elementName.trim() === '') {
+                addBotMessage("❌ **Error**\n\nPor favor, ingresa un nombre de elemento válido.\n\n**Formato esperado:** EQUIPO-TIPO-NUMERO\n**Ejemplo:** ROUTER-CORE-01");
+                return;
+            }
+
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                
+                // Simular búsqueda y encontrar el elemento
+                const foundElement = simulateElementSearch(elementName.toUpperCase());
+                
+                if (foundElement) {
+                    addBotMessage(`✅ **Elemento Encontrado**\n\n**${foundElement.name}**\n\n**Información:**\n• Tipo: ${foundElement.type}\n• Estado: ${foundElement.status}\n• Ubicación: ${foundElement.location}\n• Última actualización: ${foundElement.lastUpdate}\n\n**Documentación disponible:**`, {
+                        fileOptions: true,
+                        elementName: foundElement.name
+                    });
+                } else {
+                    addBotMessage(`❌ **Elemento No Encontrado**\n\nNo se encontró información para: **${elementName}**\n\n**Sugerencias:**\n• Verifica la escritura del nombre\n• Usa el formato: EQUIPO-TIPO-NUMERO\n• Consulta el catálogo completo\n\n¿Quieres intentar con otro elemento?`, {
+                        options: [
+                            { text: '🔍 Buscar otro elemento', value: 'search_again' },
+                            { text: '📋 Ver catálogo completo', value: '2' },
+                            { text: '🏠 Volver al menú principal', value: 'main_menu' }
+                        ]
+                    });
+                }
+                
+                waitingForElement = false;
+                currentStep = 'element_processed';
+            }, 2000);
+        }
+
+        // Simulador de búsqueda de elementos
+        function simulateElementSearch(elementName) {
+            const elements = {
+                'ROUTER-CORE-01': {
+                    name: 'ROUTER-CORE-01',
+                    type: 'Router Principal',
+                    status: '🟢 Operativo',
+                    location: 'Data Center Principal',
+                    lastUpdate: '30/07/2025 15:30'
+                },
+                'SWITCH-ACCESS-15': {
+                    name: 'SWITCH-ACCESS-15',
+                    type: 'Switch de Acceso',
+                    status: '🟡 Mantenimiento',
+                    location: 'Piso 15 - Torre A',
+                    lastUpdate: '30/07/2025 14:45'
+                },
+                'SERVER-DB-03': {
+                    name: 'SERVER-DB-03',
+                    type: 'Servidor Base de Datos',
+                    status: '🟢 Operativo',
+                    location: 'Data Center Secundario',
+                    lastUpdate: '30/07/2025 16:00'
+                },
+                'FIREWALL-DMZ-02': {
+                    name: 'FIREWALL-DMZ-02',
+                    type: 'Firewall DMZ',
+                    status: '🔴 Alarma Crítica',
+                    location: 'Perímetro de Seguridad',
+                    lastUpdate: '30/07/2025 16:15'
+                }
+            };
+
+            return elements[elementName] || null;
+        }
+
+        // Función para enviar mensaje
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+            
+            addUserMessage(message);
+            input.value = '';
+            
+            // Procesar mensaje según el estado actual
+            if (waitingForElement && currentStep === 'waiting_element') {
+                processElement(message);
+            } else {
+                // Respuesta genérica para otros casos
+                setTimeout(() => {
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        addBotMessage("Gracias por tu mensaje. ¿En qué más puedo ayudarte?", {
+                            options: [
+                                { text: '🔍 Buscar alarma específica', value: '1' },
+                                { text: '📋 Ver catálogo completo', value: '2' },
+                                { text: '🚨 Mostrar alarmas críticas', value: '3' }
+                            ]
+                        });
+                    }, 1000);
+                }, 500);
+            }
+        }
+
+        // Función para manejar opciones
+        function handleOption(value) {
+            if (value === 'main_menu') {
+                showWelcomeMessage();
+                return;
+            }
+            
+            if (value === 'search_again') {
+                handleSearchOption();
+                return;
+            }
+            
+            if (['1', '2', '3', '4', '5'].includes(value)) {
+                selectMainOption(value);
+                return;
+            }
+            
+            // Otras opciones específicas
+            addUserMessage(getOptionText(value));
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                addBotMessage("Procesando tu solicitud...");
+            }, 1000);
+        }
+
+        // Función para abrir archivos
+        function openFile(type, elementName) {
+            const modal = document.getElementById('fileModal');
+            const title = document.getElementById('fileModalTitle');
+            const body = document.getElementById('fileModalBody');
+            
+            // Configurar título
+            const fileType = type === 'pdf' ? 'PDF' : 'Word';
+            title.textContent = `${elementName} - Documento ${fileType}`;
+            
+            // Simular contenido del archivo
+            const content = generateFileContent(type, elementName);
+            body.innerHTML = content;
+            
+            // Mostrar modal
+            modal.style.display = 'flex';
+        }
+
+        // Generar contenido simulado del archivo
+        function generateFileContent(type, elementName) {
+            if (type === 'pdf') {
+                return `
+                    <div style="background: #f8f9fa; padding: 2rem; border-radius: 10px; font-family: monospace;">
+                        <h2 style="color: #E60012; margin-bottom: 1rem;">📄 DOCUMENTO PDF</h2>
+                        <h3>${elementName} - Especificaciones Técnicas</h3>
+                        
+                        <div style="margin: 1.5rem 0; padding: 1rem; background: white; border-left: 4px solid #E60012;">
+                            <h4>📋 INFORMACIÓN GENERAL</h4>
+                            <p><strong>Elemento:</strong> ${elementName}</p>
+                            <p><strong>Fecha de creación:</strong> 30/07/2025</p>
+                            <p><strong>Versión:</strong> 2.1</p>
+                            <p><strong>Estado:</strong> Activo</p>
+                        </div>
+                        
+                        <div style="margin: 1.5rem 0; padding: 1rem; background: white; border-left: 4px solid #0066CC;">
+                            <h4>⚙️ CONFIGURACIÓN TÉCNICA</h4>
+                            <p>• <strong>IP Principal:</strong> 192.168.1.100</p>
+                            <p>• <strong>Puerto de gestión:</strong> 22 (SSH), 80 (HTTP), 443 (HTTPS)</p>
+                            <p>• <strong>VLAN asignada:</strong> 100 (Management)</p>
+                            <p>• <strong>Protocolo de monitoreo:</strong> SNMP v3</p>
+                        </div>
+                        
+                        <div style="margin: 1.5rem 0; padding: 1rem; background: white; border-left: 4px solid #28A745;">
+                            <h4>🚨 ALARMAS CONFIGURADAS</h4>
+                            <p>• <strong>CPU > 80%:</strong> Alarma crítica (Nivel 1)</p>
+                            <p>• <strong>Memoria > 85%:</strong> Alarma mayor (Nivel 2)</p>
+                            <p>• <strong>Interface Down:</strong> Alarma crítica (Nivel 1)</p>
+                            <p>• <strong>Temperatura > 70°C:</strong> Alarma menor (Nivel 3)</p>
+                        </div>
+                        
+                        <div style="margin: 1.5rem 0; padding: 1rem; background: white; border-left: 4px solid #FFC107;">
+                            <h4>📞 CONTACTOS DE SOPORTE</h4>
+                            <p>• <strong>NOC Principal:</strong> +57 1 234 5678</p>
+                            <p>• <strong>Soporte L2:</strong> soporte.l2@claro.com.co</p>
+                            <p>• <strong>Escalamiento:</strong> escalamiento@claro.com.co</p>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 2rem; padding: 1rem; background: #E60012; color: white; border-radius: 5px;">
+                            <p><strong>© 2025 Claro Colombia - Documento Confidencial</strong></p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div style="background: #f8f9fa; padding: 2rem; border-radius: 10px;">
+                        <h2 style="color: #0066CC; margin-bottom: 1rem;">📄 DOCUMENTO WORD</h2>
+                        <h3>${elementName} - Manual de Procedimientos</h3>
+                        
+                        <div style="margin: 1.5rem 0; padding: 1.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h4 style="color: #0066CC;">🔧 PROCEDIMIENTOS DE MANTENIMIENTO</h4>
+                            
+                            <div style="margin: 1rem 0;">
+                                <h5>1. Verificación Diaria</h5>
+                                <ul style="margin-left: 1rem;">
+                                    <li>Revisar estado de interfaces</li>
+                                    <li>Validar métricas de rendimiento</li>
+                                    <li>Verificar logs de sistema</li>
+                                    <li>Confirmar conectividad de gestión</li>
+                                </ul>
+                            </div>
+                            
+                            <div style="margin: 1rem 0;">
+                                <h5>2. Mantenimiento Semanal</h5>
+                                <ul style="margin-left: 1rem;">
+                                    <li>Backup de configuración</li>
+                                    <li>Análisis de tendencias</li>
+                                    <li>Limpieza de logs antiguos</li>
+                                    <li>Verificación de actualizaciones</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 1.5rem 0; padding: 1.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h4 style="color: #E60012;">🚨 PROCEDIMIENTOS DE ALARMAS</h4>
+                            
+                            <div style="margin: 1rem 0;">
+                                <h5>Escalamiento de Alarmas</h5>
+                                <table style="width: 100%; border-collapse: collapse; margin-top: 0.5rem;">
+                                    <tr style="background: #f1f1f1;">
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Nivel</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Tiempo</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Acción</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">Crítica</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">Inmediato</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">Notificación SMS + Email</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">Mayor</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">15 minutos</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">Email + Dashboard</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">Menor</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">1 hora</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">Dashboard</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 1.5rem 0; padding: 1.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h4 style="color: #28A745;">✅ LISTA DE VERIFICACIÓN</h4>
+                            <div style="margin: 1rem 0;">
+                                <p>☐ Configuración respaldada</p>
+                                <p>☐ Monitoreo SNMP activo</p>
+                                <p>☐ Alarmas configuradas</p>
+                                <p>☐ Contactos actualizados</p>
+                                <p>☐ Documentación actualizada</p>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 2rem; padding: 1rem; background: #0066CC; color: white; border-radius: 5px;">
+                            <p><strong>© 2025 Claro Colombia - Uso Interno</strong></p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Función para cerrar modal
+        function closeFileModal() {
+            document.getElementById('fileModal').style.display = 'none';
+        }
+
+        // Funciones auxiliares para el chat
+        function addBotMessage(text, options = {}) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            
+            let optionsHtml = '';
+            
+            if (options.options) {
+                optionsHtml = '<div class="message-options">';
+                options.options.forEach(option => {
+                    optionsHtml += `<button class="option-btn" onclick="handleOption('${option.value}')">${option.text}</button>`;
+                });
+                optionsHtml += '</div>';
+            }
+            
+            if (options.fileOptions) {
+                optionsHtml += `
+                    <div class="file-options">
+                        <button class="file-btn pdf" onclick="openFile('pdf', '${options.elementName}')">
+                            <i class="fas fa-file-pdf"></i> Ver PDF
+                        </button>
+                        <button class="file-btn word" onclick="openFile('word', '${options.elementName}')">
+                            <i class="fas fa-file-word"></i> Ver Word
+                        </button>
+                    </div>
+                `;
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${text.replace(/\n/g, '<br>')}
+                    ${optionsHtml}
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addUserMessage(text) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">${text}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTyping() {
+            document.getElementById('typingIndicator').style.display = 'flex';
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTyping() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        function getOptionText(option) {
+            const options = {
+                '1': '🔍 Buscar alarma específica',
+                '2': '📋 Ver catálogo completo',
+                '3': '🚨 Mostrar alarmas críticas',
+                '4': '📊 Estadísticas del catálogo',
+                '5': '📚 Documentación técnica',
+                'detailed_report': '📋 Ver reporte detallado',
+                'refresh_stats': '🔄 Actualizar estadísticas',
+                'main_menu': '🏠 Volver al menú principal'
+            };
+            return options[option] || option;
+        }
+
+        // Event listeners
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
         });
-      }, 1500);
-    }
-    
-    // Funciones auxiliares
-    function getOptionText(option) {
-      const options = {
-        '1': '🔍 Buscar alarma específica',
-        '2': '📋 Ver catálogo completo',
-        '3': '🚨 Mostrar alarmas críticas',
-        '4': '📊 Estadísticas del catálogo',
-        '5': '📚 Documentación técnica'
-      };
-      return options[option] || option;
-    }
-  </script>
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('fileModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFileModal();
+            }
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Sistema de Chat Claro inicializado correctamente');
+        });
+    </script>
 </body>
 </html>
