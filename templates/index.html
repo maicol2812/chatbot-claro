@@ -4,992 +4,216 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plataformas Core - Claro</title>
+  <link rel="icon" href="{{ url_for('static', filename='claro-logo.png') }}">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --claro-red: #d41528;
-      --claro-dark: #1a1a1a;
-      --claro-blue: #005baa;
-      --claro-light: #f8f9fa;
-      --claro-gray: #e9ecef;
-    }
-    
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: var(--claro-light);
-      color: #333;
-    }
-    
-    header {
-      background-color: white;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    
-    .logo-text h1 {
-      color: var(--claro-red);
-      margin: 0;
-      font-size: 1.5rem;
-    }
-    
-    .logo-text p {
-      margin: 0;
-      color: var(--claro-dark);
-      font-size: 0.9rem;
-    }
-    
-    .status {
-      background-color: #28a745;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      background-color: white;
-      border-radius: 50%;
-      animation: pulse 1.5s infinite;
-    }
-    
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
-    
-    main {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-    
-    .hero {
-      text-align: center;
-      padding: 3rem 0;
-      background: linear-gradient(135deg, var(--claro-blue), var(--claro-red));
-      color: white;
-      border-radius: 10px;
-      margin-bottom: 2rem;
-    }
-    
-    .hero h2 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-    
-    .hero p {
-      font-size: 1.2rem;
-      max-width: 700px;
-      margin: 0 auto 2rem;
-    }
-    
-    .stats {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      flex-wrap: wrap;
-    }
-    
-    .stat {
-      background-color: rgba(255,255,255,0.2);
-      padding: 1.5rem;
-      border-radius: 10px;
-      min-width: 150px;
-      text-align: center;
-    }
-    
-    .stat-number {
-      font-size: 2rem;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-    }
-    
-    .services {
-      background-color: white;
-      border-radius: 10px;
-      padding: 2rem;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-    }
-    
-    .services h3 {
-      text-align: center;
-      font-size: 2rem;
-      color: var(--claro-dark);
-      margin-bottom: 2rem;
-    }
-    
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-    
-    .service-card {
-      background-color: var(--claro-light);
-      border-radius: 8px;
-      padding: 1.5rem;
-      transition: transform 0.3s, box-shadow 0.3s;
-      border-top: 4px solid var(--claro-red);
-      cursor: pointer;
-    }
-    
-    .service-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    
-    .service-icon {
-      background-color: var(--claro-red);
-      color: white;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 1rem;
-      font-size: 1.5rem;
-    }
-    
-    .service-card h4 {
-      text-align: center;
-      color: var(--claro-dark);
-      margin-bottom: 1rem;
-    }
-    
-    .service-card p {
-      text-align: center;
-      color: #666;
-      margin-bottom: 1.5rem;
-    }
-    
-    .badges {
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    
-    .badge {
-      background-color: var(--claro-blue);
-      color: white;
-      padding: 0.3rem 0.8rem;
-      border-radius: 20px;
-      font-size: 0.8rem;
-    }
-    
-    footer {
-      background-color: var(--claro-dark);
-      color: white;
-      text-align: center;
-      padding: 1.5rem;
-      margin-top: 3rem;
-    }
-    
-    /* Chat bubble */
-    .chat-bubble {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      width: 60px;
-      height: 60px;
-      background-color: var(--claro-red);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1.5rem;
-      cursor: pointer;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-      z-index: 1000;
-      transition: transform 0.3s ease;
-    }
-    
-    .chat-bubble:hover {
-      transform: scale(1.1);
-    }
-    
-    .bubble-notification {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background-color: #ff4444;
-      color: white;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: bold;
-    }
-    
-    /* Chat container */
-    .chat-container {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      width: 450px;
-      height: 600px;
-      background-color: white;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      z-index: 1000;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    
-    .chat-header {
-      background: linear-gradient(135deg, var(--claro-red), var(--claro-blue));
-      color: white;
-      padding: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .chat-header h4 {
-      margin: 0;
-      font-size: 1.1rem;
-    }
-    
-    .chat-controls {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .chat-controls button {
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
-      padding: 5px 8px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.3s;
-    }
-    
-    .chat-controls button:hover {
-      background: rgba(255,255,255,0.3);
-    }
-    
-    .chat-box {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-      background-color: #f8f9fa;
-    }
-    
-    .user-msg, .bot-msg {
-      margin-bottom: 1rem;
-      max-width: 85%;
-      padding: 0.8rem 1rem;
-      border-radius: 18px;
-      word-wrap: break-word;
-      animation: fadeInUp 0.3s ease;
-    }
-    
-    .user-msg {
-      background: linear-gradient(135deg, var(--claro-blue), var(--claro-red));
-      color: white;
-      margin-left: auto;
-      text-align: right;
-    }
-    
-    .bot-msg {
-      background-color: white;
-      color: #333;
-      border: 1px solid #e9ecef;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .typing-indicator {
-      display: none;
-      align-items: center;
-      gap: 8px;
-      padding: 1rem;
-      color: #666;
-      font-style: italic;
-    }
-    
-    .typing-dots {
-      display: flex;
-      gap: 4px;
-    }
-    
-    .typing-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: var(--claro-red);
-      animation: typing 1.4s infinite ease-in-out;
-    }
-    
-    .typing-dot:nth-child(1) { animation-delay: 0s; }
-    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-    
-    @keyframes typing {
-      0%, 80%, 100% {
-        transform: scale(0.8);
-        opacity: 0.5;
-      }
-      40% {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-    
-    .chat-input {
-      display: flex;
-      padding: 1rem;
-      gap: 10px;
-      background-color: white;
-      border-top: 1px solid #e9ecef;
-    }
-    
-    .chat-input input {
-      flex: 1;
-      padding: 0.8rem;
-      border: 1px solid #ddd;
-      border-radius: 25px;
-      outline: none;
-      font-size: 14px;
-    }
-    
-    .chat-input input:focus {
-      border-color: var(--claro-blue);
-      box-shadow: 0 0 0 2px rgba(0,91,170,0.2);
-    }
-    
-    .send-btn {
-      background: linear-gradient(135deg, var(--claro-red), var(--claro-blue));
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 45px;
-      height: 45px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      transition: transform 0.2s;
-    }
-    
-    .send-btn:hover {
-      transform: scale(1.05);
-    }
-    
-    .send-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    /* Opciones clickeables */
-    .option-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    
-    .option-btn {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border: none;
-      padding: 12px 16px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      text-align: left;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .option-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-    
-    .action-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 10px;
-    }
-    
-    .action-btn {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 15px;
-      cursor: pointer;
-      font-size: 11px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-    
-    .action-btn:hover {
-      transform: scale(1.05);
-    }
-    
-    .primary-action {
-      background: #10b981;
-      color: white;
-    }
-    
-    .secondary-action {
-      background: #3b82f6;
-      color: white;
-    }
-    
-    .tertiary-action {
-      background: #8b5cf6;
-      color: white;
-    }
-    
-    /* Document Viewer */
-    .document-viewer {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80vw;
-      height: 80vh;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-      z-index: 2000;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    
-    .document-header {
-      background: linear-gradient(135deg, var(--claro-dark), var(--claro-blue));
-      color: white;
-      padding: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .document-content {
-      flex: 1;
-      padding: 2rem;
-      overflow-y: auto;
-      background: #f8f9fa;
-    }
-    
-    .close-document {
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.3s;
-    }
-    
-    .close-document:hover {
-      background: rgba(255,255,255,0.3);
-    }
-    
-    .document-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1999;
-      display: none;
-    }
-    
-    /* Alarm Card Styles */
-    .alarm-card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin: 1rem 0;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      border-left: 5px solid var(--claro-red);
-    }
-    
-    .alarm-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-    
-    .alarm-id {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: var(--claro-red);
-    }
-    
-    .severity-badge {
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-    
-    .severity-critica { background: #fee2e2; color: #dc2626; }
-    .severity-alta { background: #fef3c7; color: #d97706; }
-    .severity-media { background: #dbeafe; color: #2563eb; }
-    .severity-baja { background: #dcfce7; color: #16a34a; }
-    
-    .alarm-description {
-      margin: 1rem 0;
-      color: #374151;
-      line-height: 1.5;
-    }
-    
-    .format-selector {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
-    
-    .format-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 15px;
-      border: 2px solid #e9ecef;
-      background: white;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 14px;
-      font-weight: 500;
-    }
-    
-    .format-btn:hover {
-      border-color: var(--claro-blue);
-      background: #f0f9ff;
-      transform: translateY(-2px);
-    }
-    
-    .format-btn.pdf {
-      color: #dc2626;
-    }
-    
-    .format-btn.word {
-      color: #2563eb;
-    }
-    
-    @media (max-width: 768px) {
-      .chat-container {
-        width: calc(100vw - 20px);
-        right: 10px;
-        left: 10px;
-      }
-      
-      .document-viewer {
-        width: 95vw;
-        height: 90vh;
-      }
-      
-      .hero h2 {
-        font-size: 2rem;
-      }
-      
-      .stats {
-        flex-direction: column;
-        align-items: center;
-      }
-    }
-  </style>
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <div class="logo">
-      <div style="width: 50px; height: 50px; background: var(--claro-red); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">C</div>
-      <div class="logo-text">
-        <h1>Plataformas Core</h1>
-        <p>Sistema Empresarial</p>
+  <div id="bg-video">
+    <video autoplay muted loop>
+      <source src="{{ url_for('static', filename='ruta-al-video.mp4') }}" type="video/mp4">
+    </video>
+  </div>
+  <div class="bg-overlay"></div>
+
+  <header class="header-premium">
+    <div class="header-content-premium">
+      <div class="logo-section">
+        <img src="{{ url_for('static', filename='claro-logo.png') }}" alt="Claro" class="header-logo">
+        <div class="logo-text">
+          <span class="brand-name">Plataformas Core</span>
+          <span class="brand-subtitle">Sistema Empresarial</span>
+        </div>
+      </div>
+      <div class="header-controls">
+        <div class="system-status">
+          <div class="status-indicator-premium">
+            <div class="status-pulse"></div>
+            <span>Sistema Operativo</span>
+          </div>
+          <div class="system-metrics">
+            <div class="metric">99.9% Disponibilidad</div>
+            <div class="metric">24/7 Monitoreo</div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="status">
-      <div class="status-dot"></div>
-      <span>Sistema Operativo</span>
-    </div>
   </header>
-  
-  <main>
-    <section class="hero">
-      <h2>Centro de Operaciones</h2>
-      <p>Plataforma inteligente para gestión empresarial especializada</p>
-      
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-number">99.9%</div>
-          <div>Disponibilidad</div>
-        </div>
-        <div class="stat">
-          <div class="stat-number">24/7</div>
-          <div>Monitoreo</div>
-        </div>
-        <div class="stat">
-          <div class="stat-number">1,247</div>
-          <div>Alarmas</div>
+
+  <main class="main-content">
+    <section class="hero-section">
+      <div class="hero-background"></div>
+      <div class="hero-content">
+        <h1 class="hero-title">Centro de Operaciones</h1>
+        <p class="hero-description">Plataforma inteligente para gestión empresarial especializada</p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ estadisticas.total or '---' }}</span>
+            <span class="stat-label">Alarmas</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">99.9%</span>
+            <span class="stat-label">Disponibilidad</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">24/7</span>
+            <span class="stat-label">Monitoreo</span>
+          </div>
         </div>
       </div>
     </section>
-    
-    <section class="services">
-      <h3>Servicios Principales</h3>
+
+    <section class="services-grid">
+      <div class="service-card" onclick="openChatAndSelectOption('1')">
+        <div class="service-icon alarm">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3>Gestión de Alarmas</h3>
+        <p>Sistema inteligente para monitoreo y análisis de alarmas críticas.</p>
+        <div class="service-badges">
+          <span class="badge">Tiempo Real</span>
+          <span class="badge">Inteligente</span>
+        </div>
+      </div>
       
-      <div class="services-grid">
-        <div class="service-card" data-option="1">
-          <div class="service-icon">
-            <i class="fas fa-exclamation-triangle"></i>
-          </div>
-          <h4>Gestión de Alarmas</h4>
-          <p>Sistema inteligente para monitoreo y análisis de alarmas críticas.</p>
-          <div class="badges">
-            <span class="badge">Tiempo Real</span>
-            <span class="badge">Inteligente</span>
-          </div>
+      <div class="service-card" onclick="openChatAndSelectOption('2')">
+        <div class="service-icon docs">
+          <i class="fas fa-book-open"></i>
         </div>
-        
-        <div class="service-card" data-option="2">
-          <div class="service-icon">
-            <i class="fas fa-book-open"></i>
-          </div>
-          <h4>Base de Conocimiento</h4>
-          <p>Documentación técnica centralizada con búsqueda avanzada.</p>
-          <div class="badges">
-            <span class="badge">Centralizado</span>
-            <span class="badge">Búsqueda</span>
-          </div>
+        <h3>Base de Conocimiento</h3>
+        <p>Documentación técnica centralizada con búsqueda avanzada.</p>
+        <div class="service-badges">
+          <span class="badge">Centralizado</span>
+          <span class="badge">Búsqueda</span>
         </div>
-        
-        <div class="service-card" data-option="3">
-          <div class="service-icon">
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <h4>Análisis de Incidentes</h4>
-          <p>Monitoreo proactivo con análisis de tendencias para prevenir incidentes.</p>
-          <div class="badges">
-            <span class="badge">Preventivo</span>
-            <span class="badge">Análisis</span>
-          </div>
+      </div>
+      
+      <div class="service-card" onclick="openChatAndSelectOption('3')">
+        <div class="service-icon incidents">
+          <i class="fas fa-chart-line"></i>
         </div>
-        
-        <div class="service-card" data-option="4">
-          <div class="service-icon">
-            <i class="fas fa-chart-bar"></i>
-          </div>
-          <h4>Estadísticas</h4>
-          <p>Reportes detallados y métricas del sistema en tiempo real.</p>
-          <div class="badges">
-            <span class="badge">Reportes</span>
-            <span class="badge">Métricas</span>
-          </div>
-        </div>
-        
-        <div class="service-card" data-option="5">
-          <div class="service-icon">
-            <i class="fas fa-file-alt"></i>
-          </div>
-          <h4>Documentación</h4>
-          <p>Acceso rápido a manuales técnicos y procedimientos operativos.</p>
-          <div class="badges">
-            <span class="badge">Manuales</span>
-            <span class="badge">Procedimientos</span>
-          </div>
-        </div>
-        
-        <div class="service-card" data-option="6">
-          <div class="service-icon">
-            <i class="fas fa-headset"></i>
-          </div>
-          <h4>Soporte Técnico</h4>
-          <p>Canal directo con el equipo de operaciones y administradores.</p>
-          <div class="badges">
-            <span class="badge">24/7</span>
-            <span class="badge">Especializado</span>
-          </div>
+        <h3>Análisis de Incidentes</h3>
+        <p>Monitoreo proactivo con análisis de tendencias para prevenir incidentes.</p>
+        <div class="service-badges">
+          <span class="badge">Preventivo</span>
+          <span class="badge">Análisis</span>
         </div>
       </div>
     </section>
   </main>
-  
-  <footer>
-    <p>Sistema Core &copy; 2025 Claro Colombia - Plataforma Empresarial</p>
+
+  <footer class="footer-premium">
+    <div class="footer-content">
+      <div class="footer-left">
+        <span>Sistema Core &copy; 2025 Claro Colombia</span>
+        <span class="separator">|</span>
+        <span>Plataforma Empresarial</span>
+      </div>
+      <div class="footer-right">
+        <div class="security-badge">
+          <i class="fas fa-shield-alt"></i>
+          <span>Sistema Seguro</span>
+        </div>
+      </div>
+    </div>
   </footer>
-  
+
   <!-- Chat bubble -->
-  <div class="chat-bubble" id="chatBubble">
-    <i class="fas fa-comments"></i>
+  <div class="chat-bubble-premium" id="chatBubble">
+    <div class="bubble-pulse"></div>
+    <i class="fas fa-comments bubble-icon"></i>
     <div class="bubble-notification" id="bubbleNotification">1</div>
   </div>
-  
-  <!-- Chat container -->
-  <div class="chat-container" id="chatContainer">
-    <div class="chat-header">
-      <h4><i class="fas fa-robot"></i> Asistente de Alarmas</h4>
-      <div class="chat-controls">
-        <button id="minimizeChat" title="Minimizar"><i class="fas fa-minus"></i></button>
-        <button id="maximizeChat" title="Maximizar"><i class="fas fa-expand"></i></button>
-        <button id="closeChat" title="Cerrar"><i class="fas fa-times"></i></button>
-      </div>
-    </div>
-    
-    <div class="chat-box" id="chatBox"></div>
-    
-    <div class="typing-indicator" id="typingIndicator">
-      <i class="fas fa-robot"></i>
-      <span>El asistente está escribiendo</span>
-      <div class="typing-dots">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-      </div>
-    </div>
-    
-    <div class="chat-input">
-      <input type="text" id="messageInput" placeholder="Escribe tu consulta aquí..." maxlength="500">
-      <button class="send-btn" id="sendBtn">
-        <i class="fas fa-paper-plane"></i>
-      </button>
-    </div>
-  </div>
-  
-  <!-- Document Viewer -->
-  <div class="document-overlay" id="documentOverlay"></div>
-  <div class="document-viewer" id="documentViewer">
-    <div class="document-header">
-      <h3 id="documentTitle">Documento de Alarma</h3>
-      <button class="close-document" id="closeDocument">
-        <i class="fas fa-times"></i> Cerrar
-      </button>
-    </div>
-    <div class="document-content" id="documentContent">
-      <!-- Contenido del documento se carga aquí -->
-    </div>
-  </div>
-  
-  <script>
-    // Variables globales
-    let chatState = {
-      isOpen: false,
-      currentStep: 'menu',
-      currentElement: '',
-      waitingForElement: false
-    };
-    
-    // Base de datos simulada de alarmas
-    const alarmasDB = {
-      'ROUTER-CORE-01': {
-        id: 'ALM-001',
-        elemento: 'ROUTER-CORE-01',
-        severidad: 'CRITICA',
-        descripcion: 'Falla en el enlace principal del router core. Pérdida de conectividad en el segmento de red crítico.',
-        codigo: 'NET-001',
-        acciones: 'Verificar estado físico del enlace, contactar proveedor de conectividad, activar enlace de respaldo.',
-        dominio: 'Infraestructura de Red'
-      },
-      'SWITCH-ACCESS-15': {
-        id: 'ALM-002',
-        elemento: 'SWITCH-ACCESS-15',
-        severidad: 'ALTA',
-        descripcion: 'Alta utilización de CPU en switch de acceso. Procesamiento de paquetes degradado.',
-        codigo: 'SW-015',
-        acciones: 'Monitorear tráfico, redistribuir carga, considerar upgrade de hardware.',
-        dominio: 'Equipos de Acceso'
-      },
-      'SERVER-DB-03': {
-        id: 'ALM-003',
-        elemento: 'SERVER-DB-03',
-        severidad: 'MEDIA',
-        descripcion: 'Espacio en disco del servidor de base de datos alcanzando límite del 85%.',
-        codigo: 'DB-003',
-        acciones: 'Limpiar logs antiguos, expandir almacenamiento, optimizar base de datos.',
-        dominio: 'Servidores y Aplicaciones'
-      }
-    };
-    
-    // Elementos del DOM
-    const elements = {
-      chatBubble: document.getElementById('chatBubble'),
-      chatContainer: document.getElementById('chatContainer'),
-      chatBox: document.getElementById('chatBox'),
-      messageInput: document.getElementById('messageInput'),
-      sendBtn: document.getElementById('sendBtn'),
-      closeChat: document.getElementById('closeChat'),
-      minimizeChat: document.getElementById('minimizeChat'),
-      maximizeChat: document.getElementById('maximizeChat'),
-      typingIndicator: document.getElementById('typingIndicator'),
-      bubbleNotification: document.getElementById('bubbleNotification'),
-      documentViewer: document.getElementById('documentViewer'),
-      documentOverlay: document.getElementById('documentOverlay'),
-      documentTitle: document.getElementById('documentTitle'),
-      documentContent: document.getElementById('documentContent'),
-      closeDocument: document.getElementById('closeDocument')
-    };
-    
-    // Event listeners
-    document.addEventListener('DOMContentLoaded', function() {
-      setupEventListeners();
-      showWelcomeNotification();
-    });
-    
-    function setupEventListeners() {
-      // Chat controls
-      elements.chatBubble.addEventListener('click', toggleChat);
-      elements.closeChat.addEventListener('click', closeChat);
-      elements.minimizeChat.addEventListener('click', minimizeChat);
-      elements.maximizeChat.addEventListener('click', maximizeChat);
-      elements.sendBtn.addEventListener('click', sendMessage);
-      elements.messageInput.addEventListener('keypress', handleKeyPress);
-      
-      // Document viewer
-      elements.closeDocument.addEventListener('click', closeDocumentViewer);
-      elements.documentOverlay.addEventListener('click', closeDocumentViewer);
-      
-      // Service cards
-      document.querySelectorAll('.service-card').forEach(card => {
-        card.addEventListener('click', function() {
-          const option = this.dataset.option;
-          if (!chatState.isOpen) {
-            openChat();
-          }
-          setTimeout(() => selectMainOption(option), 300);
-        });
-      });
-      
-      // Delegated event handling
-      document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('option-btn')) {
-          handleOptionClick(e.target);
-        }
-        if (e.target.classList.contains('action-btn')) {
-          handleActionClick(e.target);
-        }
-        if (e.target.classList.contains('format-btn')) {
-          handleFormatClick(e.target);
-        }
-      });
-    }
-    
-    function handleKeyPress(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    }
-    
-    // Chat functionality
-    function toggleChat() {
-      chatState.isOpen ? closeChat() : openChat();
-    }
-    
-    function openChat() {
-      chatState.isOpen = true;
-      elements.chatContainer.style.display = 'flex';
-      elements.chatBubble.style.display = 'none';
-      elements.bubbleNotification.style.display = 'none';
-      
-      if (elements.chatBox.children.length === 0) {
-        setTimeout(showWelcomeMessage, 300);
-      }
-      
-      setTimeout(() => elements.messageInput.focus(), 400);
-    }
-    
-    function closeChat() {
-      chatState.isOpen = false;
-      elements.chatContainer.style.display = 'none';
-      elements.chatBubble.style.display = 'flex';
-    }
-    
-    function minimizeChat() {
-      elements.chatContainer.style.height = '60px';
-      elements.chatBox.style.display = 'none';
-      elements.typingIndicator.style.display = 'none';
-      document.querySelector('.chat-input').style.display = 'none';
-    }
-    
-    function maximizeChat() {
-      elements.chatContainer.style.height = '600px';
-      elements.chatBox.style.display = 'block';
-      document.querySelector('.chat-input').style.display = 'flex';
-    }
-    
-    function showWelcomeNotification() {
-      setTimeout(() => {
-        if (!chatState.isOpen) {
-          elements.bubbleNotification.style.display = 'flex';
-          elements.chatBubble.classList.add('pulse');
-        }
-      }, 3000);
-    }
-    
-    function showWelcomeMessage() {
-      addBotMessage('🚀 ¡Bienvenido al Sistema de Alarmas Claro!');
-      
-      setTimeout(() => {
-        addBotMessage(`📊 **Estado actual del catálogo:**
-• Total de alarmas: **1,247**
-• Críticas: **23**
-• Altas: **156**
-• Medias: **468**
 
-¿Qué te gustaría consultar hoy?`, {
-          options: [
-            { text: '🔍 Buscar alarma específica', value: '1' },
-            { text: '📋 Ver catálogo completo', value: '2' },
-            { text: '🚨 Mostrar alarmas críticas', value: '3' },
-            { text: '📊 Estadísticas del catálogo', value: '4' },
-            { text: '📚 Documentación técnica', value: '5' },
-            { text: '👨‍💻 Contactar soporte', value: '6' }
-          ]
-        });
-      }, 1000);
+  <!-- Chat window -->
+  <div class="chat-window-premium" id="chatWindow">
+    <div class="chat-header-premium">
+      <div class="chat-avatar">
+        <div class="avatar-icon">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="avatar-status"></div>
+      </div>
+      <div class="chat-title-section">
+        <h3 class="chat-title">Asistente de Alarmas</h3>
+        <p class="chat-subtitle">Experto en plataformas Core</p>
+      </div>
+      <div class="chat-controls">
+        <button class="control-btn" id="minimizeChat">
+          <i class="fas fa-minus"></i>
+        </button>
+        <button class="control-btn" id="maximizeChat">
+          <i class="fas fa-expand"></i>
+        </button>
+        <button class="control-btn" id="closeChat">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+      <!-- Mensajes se insertarán aquí dinámicamente -->
+    </div>
+    
+    <div class="typing-indicator-premium" id="typingIndicator">
+      <div class="typing-avatar">
+        <i class="fas fa-robot"></i>
+      </div>
+      <div class="typing-content">
+        <span class="typing-text">El asistente está escribiendo...</span>
+        <div class="typing-animation">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chat-input-container-premium">
+      <div class="input-wrapper">
+        <button class="attachment-btn" id="attachBtn">
+          <i class="fas fa-paperclip"></i>
+        </button>
+        <input type="text" class="chat-input-premium" id="messageInput" placeholder="Escribe tu consulta aquí..." maxlength="500">
+        <button class="send-btn-premium" id="sendBtn">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      <div class="input-footer">
+        <p class="input-help">Presiona Enter para enviar</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+  <script>
+    // Función para abrir el chat y seleccionar una opción
+    function openChatAndSelectOption(option) {
+      openChat();
+      setTimeout(() => {
+        selectMainOption(option);
+      }, 500);
     }
     
+    // Mostrar mensaje de bienvenida cuando se abre el chat
+    function showWelcomeMessage() {
+      addBotMessage(`🚀 **¡Bienvenido al Sistema de Alarmas Claro!**\n\nSoy tu asistente virtual especializado en plataformas Core. ¿En qué puedo ayudarte hoy?`, {
+        options: [
+          { text: '🔍 Buscar alarma específica', value: '1' },
+          { text: '📋 Ver catálogo completo', value: '2' },
+          { text: '🚨 Mostrar alarmas críticas', value: '3' },
+          { text: '📊 Estadísticas del catálogo', value: '4' },
+          { text: '📚 Documentación técnica', value: '5' }
+        ]
+      });
+      
+      // Ocultar notificación después de mostrar el mensaje
+      document.getElementById('bubbleNotification').style.display = 'none';
+    }
+    
+    // Manejar selección de opción principal
     function selectMainOption(option) {
-      addUserMessage(getOptionText(option));
+      const optionText = getOptionText(option);
+      addUserMessage(optionText);
       
       setTimeout(() => {
         switch(option) {
@@ -1008,522 +232,42 @@
           case '5':
             handleDocumentationOption();
             break;
-          case '6':
-            handleSupportOption();
-            break;
         }
       }, 500);
     }
     
+    // Funciones de manejo de opciones (implementar según necesidad)
+    function handleSearchOption() {
+      showTyping();
+      setTimeout(() => {
+        hideTyping();
+        addBotMessage(`🔍 **Búsqueda de Alarmas**\n\nPor favor, ingresa el **nombre del elemento** que quieres consultar.\n\nEjemplos: ROUTER-CORE-01, SWITCH-ACCESS-15, SERVER-DB-03`);
+      }, 1500);
+    }
+    
+    function handleCatalogOption() {
+      showTyping();
+      setTimeout(() => {
+        hideTyping();
+        addBotMessage(`📋 **Catálogo Completo de Alarmas**\n\nMostrando las alarmas más relevantes del sistema.`, {
+          actions: [
+            { text: '🔍 Ver detalles', action: 'view-catalog', class: 'primary' },
+            { text: '📊 Filtrar por severidad', action: 'filter-severity', class: 'secondary' }
+          ]
+        });
+      }, 1500);
+    }
+    
+    // Funciones auxiliares
     function getOptionText(option) {
       const options = {
         '1': '🔍 Buscar alarma específica',
         '2': '📋 Ver catálogo completo',
         '3': '🚨 Mostrar alarmas críticas',
         '4': '📊 Estadísticas del catálogo',
-        '5': '📚 Documentación técnica',
-        '6': '👨‍💻 Contactar soporte'
+        '5': '📚 Documentación técnica'
       };
       return options[option] || option;
-    }
-    
-    function handleSearchOption() {
-      chatState.currentStep = 'waiting_element';
-      chatState.waitingForElement = true;
-      
-      addBotMessage(`🔍 **Búsqueda de Alarmas**
-
-Por favor, ingresa el **nombre del elemento** que quieres consultar.
-
-**Ejemplos:** ROUTER-CORE-01, SWITCH-ACCESS-15, SERVER-DB-03
-
-*Escribe el nombre exacto del elemento:*`);
-    }
-    
-    function handleCatalogOption() {
-      showTyping();
-      
-      setTimeout(() => {
-        hideTyping();
-        addBotMessage(`📋 **Catálogo Completo de Alarmas**
-
-Mostrando las alarmas más relevantes del sistema:`, {
-          actions: [
-            { text: '🔍 Ver detalles', action: 'view-catalog', class: 'primary-action' },
-            { text: '📊 Filtrar por severidad', action: 'filter-severity', class: 'secondary-action' },
-            { text: '📄 Exportar reporte', action: 'export-report', class: 'tertiary-action' }
-          ]
-        });
-      }, 1500);
-    }
-    
-    function handleCriticalAlarmsOption() {
-      showTyping();
-      
-      setTimeout(() => {
-        hideTyping();
-        addBotMessage(`🚨 **Alarmas Críticas Activas**
-
-Se encontraron **23 alarmas críticas** que requieren atención inmediata:
-
-🔴 **ROUTER-CORE-01** - Falla en enlace principal
-🔴 **SWITCH-DIST-05** - Pérdida de redundancia
-🔴 **SERVER-APP-02** - Servicio no disponible`, {
-          actions: [
-            { text: '🔍 Ver detalles', action: 'view-critical', class: 'primary-action' },
-            { text: '📞 Escalar incidente', action: 'escalate', class: 'secondary-action' }
-          ]
-        });
-      }, 1500);
-    }
-    
-    function handleStatsOption() {
-      showTyping();
-      
-      setTimeout(() => {
-        hideTyping();
-        addBotMessage(`📊 **Estadísticas del Sistema**
-
-**Resumen general:**
-• Total de alarmas: **1,247**
-• Nuevas (últimas 24h): **45**
-• Resueltas hoy: **62**
-
-**Por severidad:**
-🔴 Críticas: **23** (1.8%)
-🟡 Altas: **156** (12.5%)
-🔵 Medias: **468** (37.5%)
-🟢 Bajas: **600** (48.2%)
-
-**Dominios más afectados:**
-1. Infraestructura de Red: **45%**
-2. Servidores y Aplicaciones: **30%**
-3. Equipos de Acceso: **25%**`, {
-          actions: [
-            { text: '📈 Ver gráficos', action: 'view-charts', class: 'primary-action' },
-            { text: '📄 Generar reporte', action: 'generate-report', class: 'secondary-action' }
-          ]
-        });
-      }, 2000);
-    }
-    
-    function handleDocumentationOption() {
-      addBotMessage(`📚 **Documentación Técnica**
-
-Accede a los manuales y guías operativas:
-
-📄 **Disponibles:**
-• Manual de Alarmas vSR
-• Guía de Procedimientos vDSR
-• Manual de Operaciones Core
-• Documentación de APIs`, {
-        actions: [
-          { text: '📖 Abrir documentos', action: 'open-docs', class: 'primary-action' },
-          { text: '🔍 Buscar en docs', action: 'search-docs', class: 'secondary-action' },
-          { text: '💾 Descargar PDFs', action: 'download-docs', class: 'tertiary-action' }
-        ]
-      });
-    }
-    
-    function handleSupportOption() {
-      addBotMessage(`👨‍💻 **Soporte Técnico**
-
-**Centro de Operaciones NOC:**
-📧 noc.operaciones@claro.com.co
-📞 +57 1 234-5678
-💬 Teams: @equipo_operaciones
-
-**Horarios:**
-🕐 24/7 para emergencias críticas
-🕐 L-V 8:00-20:00 soporte general
-
-Para emergencias, usa el código: 🚨 **CORE-EMERGENCY**`, {
-        actions: [
-          { text: '🚨 Reportar emergencia', action: 'report-emergency', class: 'primary-action' },
-          { text: '📞 Llamar NOC', action: 'call-noc', class: 'secondary-action' },
-          { text: '💬 Chat en Teams', action: 'teams-chat', class: 'tertiary-action' }
-        ]
-      });
-    }
-    
-    function processElementSearch(element) {
-      if (!chatState.waitingForElement) return;
-      
-      chatState.waitingForElement = false;
-      chatState.currentElement = element.toUpperCase();
-      
-      showTyping();
-      
-      setTimeout(() => {
-        hideTyping();
-        
-        const alarm = alarmasDB[chatState.currentElement];
-        
-        if (alarm) {
-          showAlarmDetails(alarm);
-        } else {
-          addBotMessage(`❌ No se encontró ninguna alarma para el elemento: **${chatState.currentElement}**
-
-¿Te gustaría intentar con otro elemento?`, {
-            options: [
-              { text: '🔍 Buscar otro elemento', value: 'search_again' },
-              { text: '📋 Ver catálogo completo', value: '2' },
-              { text: '🏠 Volver al menú', value: 'menu' }
-            ]
-          });
-        }
-      }, 2000);
-    }
-    
-    function showAlarmDetails(alarm) {
-      const severityClass = `severity-${alarm.severidad.toLowerCase()}`;
-      
-      addBotMessage(`✅ **Alarma encontrada para:** ${alarm.elemento}
-
-<div class="alarm-card">
-  <div class="alarm-header">
-    <div class="alarm-id">${alarm.id}</div>
-    <div class="severity-badge ${severityClass}">${alarm.severidad}</div>
-  </div>
-  
-  <div class="alarm-description">
-    <strong>Descripción:</strong><br>
-    ${alarm.descripcion}
-    
-    <br><br><strong>Código:</strong> ${alarm.codigo}
-    <br><strong>Dominio:</strong> ${alarm.dominio}
-    
-    <br><br><strong>Acciones recomendadas:</strong><br>
-    ${alarm.acciones}
-  </div>
-  
-  <div class="format-selector">
-    <div class="format-btn pdf" data-format="pdf" data-element="${alarm.elemento}">
-      <i class="fas fa-file-pdf"></i> Ver en PDF
-    </div>
-    <div class="format-btn word" data-format="word" data-element="${alarm.elemento}">
-      <i class="fas fa-file-word"></i> Ver en Word
-    </div>
-  </div>
-</div>
-
-¿En qué formato te gustaría ver la documentación detallada?`);
-    }
-    
-    function handleFormatClick(button) {
-      const format = button.dataset.format;
-      const element = button.dataset.element;
-      
-      addUserMessage(`Ver documentación en formato ${format.toUpperCase()}`);
-      
-      setTimeout(() => {
-        openDocumentViewer(format, element);
-      }, 500);
-    }
-    
-    function openDocumentViewer(format, element) {
-      const alarm = alarmasDB[element];
-      
-      elements.documentTitle.textContent = `${format.toUpperCase()} - Alarma ${alarm.id} - ${element}`;
-      
-      // Contenido simulado del documento
-      let documentHTML = '';
-      
-      if (format === 'pdf') {
-        documentHTML = `
-          <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-            <div style="text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #e9ecef; padding-bottom: 1rem;">
-              <h1 style="color: var(--claro-red); margin: 0;">MANUAL TÉCNICO DE ALARMAS</h1>
-              <h2 style="color: var(--claro-blue); margin: 0.5rem 0;">Sistema Core Claro</h2>
-              <p style="color: #666; margin: 0;">Documento Técnico - Versión 2.1</p>
-            </div>
-            
-            <div style="margin-bottom: 2rem;">
-              <h3 style="color: var(--claro-dark); border-left: 4px solid var(--claro-red); padding-left: 1rem;">ALARMA: ${alarm.id}</h3>
-              
-              <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
-                <tr style="background: #f8f9fa;">
-                  <td style="padding: 0.8rem; border: 1px solid #dee2e6; font-weight: bold; width: 30%;">ID de Alarma:</td>
-                  <td style="padding: 0.8rem; border: 1px solid #dee2e6;">${alarm.id}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 0.8rem; border: 1px solid #dee2e6; font-weight: bold;">Elemento:</td>
-                  <td style="padding: 0.8rem; border: 1px solid #dee2e6;">${alarm.elemento}</td>
-                </tr>
-                <tr style="background: #f8f9fa;">
-                  <td style="padding: 0.8rem; border: 1px solid #dee2e6; font-weight: bold;">Código:</td>
-                  <td style="padding: 0.8rem; border: 1px solid #dee2e6;">${alarm.codigo}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 0.8rem; border: 1px solid #dee2e6; font-weight: bold;">Severidad:</td>
-                  <td style="padding: 0.8rem; border: 1px solid #dee2e6;"><span class="severity-badge ${`severity-${alarm.severidad.toLowerCase()}`}">${alarm.severidad}</span></td>
-                </tr>
-                <tr style="background: #f8f9fa;">
-                  <td style="padding: 0.8rem; border: 1px solid #dee2e6; font-weight: bold;">Dominio:</td>
-                  <td style="padding: 0.8rem; border: 1px solid #dee2e6;">${alarm.dominio}</td>
-                </tr>
-              </table>
-            </div>
-            
-            <div style="margin-bottom: 2rem;">
-              <h3 style="color: var(--claro-dark); border-left: 4px solid var(--claro-red); padding-left: 1rem;">DESCRIPCIÓN TÉCNICA</h3>
-              <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--claro-blue);">
-                <p style="margin: 0; line-height: 1.6;">${alarm.descripcion}</p>
-              </div>
-            </div>
-            
-            <div style="margin-bottom: 2rem;">
-              <h3 style="color: var(--claro-dark); border-left: 4px solid var(--claro-red); padding-left: 1rem;">PROCEDIMIENTOS DE RESOLUCIÓN</h3>
-              <div style="background: #fff8e1; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ff9800;">
-                <p style="margin: 0; line-height: 1.6;"><strong>Acciones recomendadas:</strong></p>
-                <p style="margin: 0.5rem 0; line-height: 1.6;">${alarm.acciones}</p>
-              </div>
-            </div>
-            
-            <div style="background: #e8f5e8; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #4caf50;">
-              <h4 style="color: var(--claro-dark); margin: 0 0 1rem 0;">📋 INFORMACIÓN ADICIONAL</h4>
-              <ul style="margin: 0; padding-left: 1.5rem;">
-                <li><strong>Tiempo de respuesta objetivo:</strong> 15 minutos</li>
-                <li><strong>Escalamiento automático:</strong> Después de 30 minutos sin resolución</li>
-                <li><strong>Impacto en servicios:</strong> ${alarm.severidad === 'CRITICA' ? 'Alto - Afecta servicios críticos' : 'Medio - Monitoreo continuo'}</li>
-                <li><strong>Documentos relacionados:</strong> Manual vSR, Procedimientos NOC</li>
-              </ul>
-            </div>
-          </div>
-        `;
-      } else {
-        documentHTML = `
-          <div style="background: white; padding: 2rem; border-radius: 8px; font-family: 'Calibri', sans-serif;">
-            <div style="text-align: center; margin-bottom: 2rem; border-bottom: 3px solid var(--claro-blue); padding-bottom: 1rem;">
-              <h1 style="color: var(--claro-red); font-size: 24px; margin: 0;">DOCUMENTO DE ALARMA</h1>
-              <h2 style="color: var(--claro-blue); font-size: 18px; margin: 0.5rem 0;">${alarm.elemento}</h2>
-              <p style="color: #666; margin: 0; font-style: italic;">Generado automáticamente - ${new Date().toLocaleDateString()}</p>
-            </div>
-            
-            <div style="margin-bottom: 1.5rem;">
-              <h2 style="color: var(--claro-dark); font-size: 16px; background: #f0f9ff; padding: 0.8rem; border-radius: 4px;">1. IDENTIFICACIÓN DE LA ALARMA</h2>
-              <div style="padding: 1rem; background: #fafafa; border-radius: 4px; margin-top: 0.5rem;">
-                <p><strong>ID:</strong> ${alarm.id}</p>
-                <p><strong>Código:</strong> ${alarm.codigo}</p>
-                <p><strong>Elemento afectado:</strong> ${alarm.elemento}</p>
-                <p><strong>Nivel de severidad:</strong> <span style="color: ${alarm.severidad === 'CRITICA' ? '#dc2626' : '#2563eb'}; font-weight: bold;">${alarm.severidad}</span></p>
-                <p><strong>Dominio:</strong> ${alarm.dominio}</p>
-              </div>
-            </div>
-            
-            <div style="margin-bottom: 1.5rem;">
-              <h2 style="color: var(--claro-dark); font-size: 16px; background: #f0f9ff; padding: 0.8rem; border-radius: 4px;">2. DESCRIPCIÓN DEL PROBLEMA</h2>
-              <div style="padding: 1rem; background: #fafafa; border-radius: 4px; margin-top: 0.5rem; line-height: 1.6;">
-                ${alarm.descripcion}
-              </div>
-            </div>
-            
-            <div style="margin-bottom: 1.5rem;">
-              <h2 style="color: var(--claro-dark); font-size: 16px; background: #f0f9ff; padding: 0.8rem; border-radius: 4px;">3. PLAN DE ACCIÓN</h2>
-              <div style="padding: 1rem; background: #fff8e1; border-radius: 4px; margin-top: 0.5rem; border-left: 4px solid #ff9800;">
-                <p style="margin: 0; line-height: 1.6;"><strong>Procedimiento recomendado:</strong></p>
-                <div style="margin-top: 0.8rem; line-height: 1.8;">${alarm.acciones}</div>
-              </div>
-            </div>
-            
-            <div style="background: #e8f5e8; padding: 1rem; border-radius: 4px; border-left: 4px solid #4caf50;">
-              <h3 style="color: var(--claro-dark); font-size: 14px; margin: 0 0 0.8rem 0;">📞 CONTACTOS DE ESCALAMIENTO</h3>
-              <div style="font-size: 13px; line-height: 1.5;">
-                <p><strong>NOC Level 1:</strong> ext. 2345 | noc-l1@claro.com.co</p>
-                <p><strong>NOC Level 2:</strong> ext. 2346 | noc-l2@claro.com.co</p>
-                <p><strong>Ingeniero de Guardia:</strong> +57 300 123 4567</p>
-              </div>
-            </div>
-            
-            <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; text-align: center; font-size: 12px; color: #666;">
-              <p style="margin: 0;">Documento generado por Sistema Core Claro v2.1</p>
-              <p style="margin: 0;">Para más información consulte el manual técnico completo</p>
-            </div>
-          </div>
-        `;
-      }
-      
-      elements.documentContent.innerHTML = documentHTML;
-      elements.documentViewer.style.display = 'flex';
-      elements.documentOverlay.style.display = 'block';
-      
-      // Animar la entrada
-      setTimeout(() => {
-        elements.documentViewer.style.opacity = '1';
-        elements.documentViewer.style.transform = 'translate(-50%, -50%) scale(1)';
-      }, 10);
-    }
-    
-    function closeDocumentViewer() {
-      elements.documentViewer.style.opacity = '0';
-      elements.documentViewer.style.transform = 'translate(-50%, -50%) scale(0.95)';
-      
-      setTimeout(() => {
-        elements.documentViewer.style.display = 'none';
-        elements.documentOverlay.style.display = 'none';
-      }, 300);
-      
-      // Mensaje de seguimiento en el chat
-      setTimeout(() => {
-        addBotMessage('✅ Documento cerrado. ¿Necesitas consultar algo más?', {
-          options: [
-            { text: '🔍 Buscar otra alarma', value: '1' },
-            { text: '📋 Ver catálogo', value: '2' },
-            { text: '🏠 Volver al menú', value: 'menu' }
-          ]
-        });
-      }, 500);
-    }
-    
-    function handleOptionClick(button) {
-      const value = button.dataset.value || button.textContent;
-      addUserMessage(button.textContent);
-      
-      setTimeout(() => {
-        if (value === 'search_again' || value === '1') {
-          handleSearchOption();
-        } else if (value === 'menu') {
-          showWelcomeMessage();
-        } else {
-          selectMainOption(value);
-        }
-      }, 300);
-    }
-    
-    function handleActionClick(button) {
-      const action = button.dataset.action;
-      addUserMessage(button.textContent);
-      
-      showTyping();
-      setTimeout(() => {
-        hideTyping();
-        
-        switch(action) {
-          case 'view-catalog':
-            addBotMessage('📋 Abriendo vista detallada del catálogo completo...');
-            break;
-          case 'filter-severity':
-            addBotMessage('📊 ¿Qué nivel de severidad te interesa?', {
-              options: [
-                { text: '🔴 Críticas', value: 'critica' },
-                { text: '🟡 Altas', value: 'alta' },
-                { text: '🔵 Medias', value: 'media' },
-                { text: '🟢 Bajas', value: 'baja' }
-              ]
-            });
-            break;
-          case 'export-report':
-            addBotMessage('📄 Generando reporte en formato Excel... ✅ Descarga iniciada.');
-            break;
-          case 'open-docs':
-            addBotMessage('📖 Abriendo biblioteca de documentos técnicos...');
-            break;
-          case 'report-emergency':
-            addBotMessage('🚨 **PROTOCOLO DE EMERGENCIA ACTIVADO**\n\nIncidente reportado al NOC.\nTicket: EMG-2025-001\nTiempo de respuesta: < 5 minutos');
-            break;
-          default:
-            addBotMessage('⚡ Procesando solicitud...');
-        }
-      }, 1000);
-    }
-    
-    function sendMessage() {
-      const message = elements.messageInput.value.trim();
-      if (!message) return;
-      
-      addUserMessage(message);
-      elements.messageInput.value = '';
-      
-      // Procesar mensaje según el estado actual
-      setTimeout(() => {
-        if (chatState.waitingForElement) {
-          processElementSearch(message);
-        } else {
-          // Respuesta genérica
-          showTyping();
-          setTimeout(() => {
-            hideTyping();
-            addBotMessage('🤖 Entiendo tu consulta. ¿Te gustaría que te ayude con alguna opción específica?', {
-              options: [
-                { text: '🔍 Buscar alarma', value: '1' },
-                { text: '📊 Ver estadísticas', value: '4' },
-                { text: '🏠 Menú principal', value: 'menu' }
-              ]
-            });
-          }, 1500);
-        }
-      }, 300);
-    }
-    
-    function addUserMessage(text) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = 'user-msg';
-      messageDiv.innerHTML = text;
-      elements.chatBox.appendChild(messageDiv);
-      scrollToBottom();
-    }
-    
-    function addBotMessage(text, options = {}) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = 'bot-msg';
-      
-      // Convertir markdown básico
-      let htmlText = text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\n/g, '<br>');
-      
-      messageDiv.innerHTML = htmlText;
-      
-      // Agregar opciones
-      if (options.options && options.options.length > 0) {
-        const optionsDiv = document.createElement('div');
-        optionsDiv.className = 'option-buttons';
-        
-        options.options.forEach(option => {
-          const btn = document.createElement('button');
-          btn.className = 'option-btn';
-          btn.innerHTML = `${option.text}`;
-          btn.dataset.value = option.value;
-          optionsDiv.appendChild(btn);
-        });
-        
-        messageDiv.appendChild(optionsDiv);
-      }
-      
-      // Agregar acciones
-      if (options.actions && options.actions.length > 0) {
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'action-buttons';
-        
-        options.actions.forEach(action => {
-          const btn = document.createElement('button');
-          btn.className = `action-btn ${action.class}`;
-          btn.textContent = action.text;
-          btn.dataset.action = action.action;
-          actionsDiv.appendChild(btn);
-        });
-        
-        messageDiv.appendChild(actionsDiv);
-      }
-      
-      elements.chatBox.appendChild(messageDiv);
-      scrollToBottom();
-    }
-    
-    function showTyping() {
-      elements.typingIndicator.style.display = 'flex';
-      scrollToBottom();
-    }
-    
-    function hideTyping() {
-      elements.typingIndicator.style.display = 'none';
-    }
-    
-    function scrollToBottom() {
-      setTimeout(() => {
-        elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
-      }, 100);
     }
   </script>
 </body>
