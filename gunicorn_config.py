@@ -16,3 +16,7 @@ loglevel = 'info'
 
 # Bind
 bind = '0.0.0.0:$PORT'
+
+# Max requests
+max_requests = 1000
+max_requests_jitter = 50
