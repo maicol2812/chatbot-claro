@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Core - Claro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .menu-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: left;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .menu-button:hover {
+            background: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <h2>Buen día, hablemos de nuestras plataformas de Core</h2>
+    <h3>¿Qué te gustaría consultar el día de hoy?</h3>
+    
+    <form action="/buscar_alarma" method="get">
+        <button type="submit" class="menu-button">1. Alarmas de plataformas</button>
+    </form>
+    
+    <button class="menu-button">2. Documentación de las plataformas</button>
+    <button class="menu-button">3. Incidentes activos de las plataformas</button>
+    <button class="menu-button">4. Estado operativo de las plataformas</button>
+    <button class="menu-button">5. Cambios activos en las plataformas</button>
+    <button class="menu-button">6. Hablar con el administrador de la plataforma</button>
+</body>
+</html>

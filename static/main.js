@@ -434,3 +434,154 @@ function openChatAndSelectOption(option) {
 
 // Inicializar el chatbot cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', initChatbot);
+
+// Funciones de manejo de opciones del menú y catálogo:
+function handleSearchOption() {
+  chatState.currentStep = 'searching';
+  chatState.waitingForElement = true;
+  
+  addBotMessage(`🔍 **Búsqueda de Alarmas**
+
+Por favor, ingresa el nombre del elemento que deseas consultar.
+
+**Ejemplos disponibles:**
+• ROUTER-CORE-01
+• SWITCH-ACCESS-15
+• SERVER-DB-03`, {
+    options: [
+      { text: '📋 Ver catálogo completo', value: '2' },
+      { text: '🏠 Volver al menú', value: 'menu' }
+    ]
+  });
+}
+
+function handleCatalogOption() {
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    addBotMessage(`📋 **Catálogo de Alarmas**
+
+**Elementos disponibles:**
+• ROUTER-CORE-01 (🔴 Crítica)
+• SWITCH-ACCESS-15 (🟠 Alta)
+• SERVER-DB-03 (🟡 Media)
+
+¿Qué elemento deseas consultar?`, {
+      options: [
+        { text: 'ROUTER-CORE-01', value: 'ROUTER-CORE-01' },
+        { text: 'SWITCH-ACCESS-15', value: 'SWITCH-ACCESS-15' },
+        { text: 'SERVER-DB-03', value: 'SERVER-DB-03' },
+        { text: '🏠 Volver al menú', value: 'menu' }
+      ]
+    });
+  }, 1000);
+}
+
+function handleCriticalAlarms() {
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    const criticalAlarms = Object.values(alarmasDB)
+      .filter(a => a.severidad.toUpperCase() === 'CRITICA');
+    
+    if (criticalAlarms.length === 0) {
+      addBotMessage(`✅ **¡Sistema Estable!**
+
+No hay alarmas críticas activas en este momento.`, {
+        options: [
+          { text: '🔍 Buscar alarma', value: '1' },
+          { text: '📋 Ver catálogo', value: '2' },
+          { text: '🏠 Volver al menú', value: 'menu' }
+        ]
+      });
+      return;
+    }
+
+    let message = `🚨 **Alarmas Críticas Activas**\n\n`;
+    criticalAlarms.forEach(alarma => {
+      message += `• **${alarma.elemento}**: ${alarma.descripcion}\n`;
+    });
+
+    addBotMessage(message, {
+      options: criticalAlarms.map(a => ({
+        text: a.elemento,
+        value: a.elemento
+      })).concat({ text: '🏠 Volver al menú', value: 'menu' })
+    });
+  }, 1500);
+}
+
+function handleStatsOption() {
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    const stats = {
+      total: Object.keys(alarmasDB).length,
+      criticas: Object.values(alarmasDB).filter(a => a.severidad === 'CRITICA').length,
+      altas: Object.values(alarmasDB).filter(a => a.severidad === 'ALTA').length
+    };
+
+    addBotMessage(`📊 **Estadísticas del Sistema**
+
+**Estado Actual:**
+• Total de alarmas: ${stats.total}
+• Alarmas críticas: ${stats.criticas}
+• Alarmas altas: ${stats.altas}
+• Disponibilidad: 99.9%
+
+**Elementos más frecuentes:**
+1. ROUTER-CORE (${stats.criticas} alarmas)
+2. SWITCH-ACCESS (${stats.altas} alarmas)`, {
+      options: [
+        { text: '🚨 Ver críticas', value: '3' },
+        { text: '🔍 Buscar alarma', value: '1' },
+        { text: '🏠 Volver al menú', value: 'menu' }
+      ]
+    });
+  }, 1000);
+}
+
+function handleDocsOption() {
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    addBotMessage(`📚 **Documentación Técnica**
+
+**Documentos disponibles:**
+• Manual de Alarmas Core
+• Procedimientos de Escalamiento
+• Guía de Troubleshooting
+
+Selecciona un documento para visualizar:`, {
+      options: [
+        { text: '📄 Manual de Alarmas', value: 'doc_manual' },
+        { text: '📄 Procedimientos', value: 'doc_proc' },
+        { text: '📄 Guía Troubleshooting', value: 'doc_guide' },
+        { text: '🏠 Volver al menú', value: 'menu' }
+      ]
+    });
+  }, 1000);
+}
+
+function handleGenericResponse(message) {
+  const lowerMsg = message.toLowerCase();
+  
+  if (lowerMsg.includes('ayuda') || lowerMsg.includes('help')) {
+    showWelcomeMessage();
+  } else if (lowerMsg.includes('crítica') || lowerMsg.includes('critica')) {
+    handleCriticalAlarms();
+  } else if (lowerMsg.includes('documento') || lowerMsg.includes('manual')) {
+    handleDocsOption();
+  } else {
+    addBotMessage(`No he podido entender tu consulta. ¿Puedes ser más específico?
+
+¿Qué deseas hacer?`, {
+      options: [
+        { text: '🔍 Buscar alarma', value: '1' },
+        { text: '📋 Ver catálogo', value: '2' },
+        { text: '🚨 Ver críticas', value: '3' },
+        { text: '🏠 Volver al menú', value: 'menu' }
+      ]
+    });
+  }
+}

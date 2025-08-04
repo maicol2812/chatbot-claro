@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados - Claro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-info {
+            margin-bottom: 20px;
+            color: #666;
+        }
+        .error-message {
+            color: #e60012;
+            padding: 20px;
+            background: #fff3f3;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #666;
+        }
+        .new-search {
+            display: inline-block;
+            margin: 20px 10px;
+            padding: 10px 20px;
+            background: #e60012;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .new-search:hover {
+            background: #cc0010;
+        }
+    </style>
+</head>
+<body>
+    <h2>Resultados de la búsqueda</h2>
+    
+    <div class="search-info">
+        <p>Búsqueda para: Alarma <strong>{{ numero }}</strong>, Elemento <strong>{{ elemento }}</strong></p>
+    </div>
+    
+    {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+    {% endif %}
+    
+    {% if alarmas %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Elemento</th>
+                    <th>Plataforma</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alarma in alarmas %}
+                <tr>
+                    <td>{{ alarma.NUMERO_ALARMA }}</td>
+                    <td>{{ alarma.ELEMENTO }}</td>
+                    <td>{{ alarma.PLATAFORMA }}</td>
+                    <td>{{ alarma.DESCRIPCION }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+    
+    <a href="/buscar_alarma" class="new-search">Nueva búsqueda</a>
+    <a href="/" class="back-link">← Volver al inicio</a>
+</body>
+</html>

@@ -1,309 +1,191 @@
-from flask import Flask, render_template, jsonify, request, session, send_file, redirect, url_for
+from flask import Flask, render_template, jsonify, request, send_file
 import pandas as pd
 import os
-from datetime import datetime
 import logging
-import re
-from werkzeug.utils import secure_filename
-from flask_cors import CORS
-import PyPDF2
-import docx
 from pathlib import Path
-import uuid
 
-app = Flask(__name__, 
-    static_url_path='/static',
-    template_folder='templates',
-    static_folder='static'
-)
-app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key_development_only')
-CORS(app)
-
-# Configuración mejorada
-CONFIG = {
-    'EXCEL_ALARMAS': 'CatalogoAlarmas.xlsx',
-    'CARPETA_DOCS_ALARMAS': 'documentos_alarmas',
-    'DOCS_ALARMAS': ['Alarmas vSR.pdf', 'vDSR Alarms and KPIs.pdf'],
-    'ALLOWED_EXTENSIONS': {'pdf', 'docx'},
-    'TIPOS_SEVERIDAD': ['CRITICA', 'ALTA', 'MEDIA', 'BAJA', 'INFORMATIVA'],
-    'MAX_ALARMAS': 50,
-    'EXCEL_COLUMNAS': {
-        'FABRICANTE': 'Fabricante',
-        'SERVICIO': 'SERVICIO Y/O SISTEMA GESTIONADO',
-        'GESTOR': 'GESTOR',
-        'TEXTO_1': 'TEXTO 1 DE LA ALARMA',
-        'TEXTO_2': 'TEXTO 2 DE LA ALARMA', 
-        'TEXTO_3': 'TEXTO 3 DE LA ALARMA',
-        'TEXTO_4': 'TEXTO 4 DE LA ALARMA',
-        'TIPO': 'BAJA / ALTA / BLOQUEO',
-        'DOMINIO': 'DOMINIO',
-        'SEVERIDAD': 'SEVERIDAD',
-        'INSTRUCTIVO': 'KM (TITULO DEL INSTRUCTIVO)',
-        'TIER_1': 'TIER 1',
-        'TIER_2': 'TIER 2',
-        'TIER_3': 'TIER 3',
-        'TIPO_ALARMA': 'TIPO DE ALARMA',
-        'GRUPO_ATENCION': 'GRUPO DE ATENCIÓN',
-        'CRITICIDAD': 'CRITICIDAD',
-        'DUEÑO': 'DUEÑO DE PLATAFORMA',
-        'PANEL': 'PANEL NETCOOL'
-    }
-}
-
-# Configuración de logging
+# Configuración básica de logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('alarmas.log'),
-        logging.StreamHandler()
-    ]
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-def cargar_alarmas_desde_excel():
+app = Flask(__name__)
+
+# Configuración
+EXCEL_PATH = 'CatalogoAlarmas.csv'
+REQUIRED_COLUMNS = {
+    'NUMERO_ALARMA': ['NUMERO_ALARMA', 'NUMERO ALARMA', 'ALARMA', 'ID_ALARMA'],
+    'ELEMENTO': ['ELEMENTO', 'DISPOSITIVO', 'EQUIPO'],
+    'DESCRIPCION': ['DESCRIPCION', 'DESCRIPCIÓN', 'DESC'],
+    'PLATAFORMA': ['PLATAFORMA', 'SISTEMA', 'PLAT']
+}
+CATALOGO_CSV = 'CatalogoAlarmas.csv'
+INSTRUCTIVOS_DIR = 'instructivos'
+
+def load_excel():
+    """Carga y normaliza el Excel de alarmas"""
     try:
-        # Verificar si el archivo existe
-        if not os.path.exists(CONFIG['EXCEL_ALARMAS']):
-            logger.error(f"Archivo Excel no encontrado: {CONFIG['EXCEL_ALARMAS']}")
-            return {}
+        if not os.path.exists(EXCEL_PATH):
+            logger.error(f"Excel no encontrado: {EXCEL_PATH}")
+            return None
 
-        # Leer el archivo Excel
-        df = pd.read_excel(CONFIG['EXCEL_ALARMAS'])
-        logger.info(f"Excel cargado. Columnas encontradas: {list(df.columns)}")
+        # Leer Excel en chunks para optimizar memoria
+        df_chunks = pd.read_excel(
+            EXCEL_PATH,
+            engine='openpyxl',
+            chunksize=5000  # Procesar en grupos de 5000 filas
+        )
         
-        # Verificar columnas mínimas requeridas
-        required_cols = ['Fabricante', 'SERVICIO Y/O SISTEMA GESTIONADO', 'GESTOR']
-        for col in required_cols:
-            if col not in df.columns:
-                logger.error(f"Columna requerida faltante: {col}")
-                return {}
+        dfs = []
+        for chunk in df_chunks:
+            # Normalizar nombres de columnas
+            chunk.columns = [str(col).strip().upper().replace(' ', '_') for col in chunk.columns]
+            dfs.append(chunk)
+        
+        df = pd.concat(dfs, ignore_index=True)
+        
+        # Verificar y mapear columnas requeridas
+        column_mapping = {}
+        missing_columns = []
+        
+        for required, alternates in REQUIRED_COLUMNS.items():
+            found = False
+            for alt in alternates:
+                if alt.upper().replace(' ', '_') in df.columns:
+                    column_mapping[required] = alt.upper().replace(' ', '_')
+                    found = True
+                    break
+            if not found:
+                missing_columns.append(required)
+                # Crear columna vacía si falta
+                df[required] = "NO_ESPECIFICADO"
+                logger.warning(f"Columna {required} no encontrada - creando columna vacía")
 
-        alarmas = {}
+        if missing_columns:
+            logger.warning(f"Columnas faltantes: {missing_columns}")
         
-        for index, row in df.iterrows():
-            try:
-                alarma_id = str(uuid.uuid4())[:8]
-                
-                # Obtener valores con manejo de errores
-                def get_value(col_name, default=""):
-                    try:
-                        val = str(row[col_name]) if col_name in df.columns and pd.notna(row[col_name]) else default
-                        return val.strip()
-                    except:
-                        return default
-                
-                # Construir descripción
-                desc_parts = [
-                    get_value('TEXTO 1 DE LA ALARMA'),
-                    get_value('TEXTO 2 DE LA ALARMA'),
-                    get_value('TEXTO 3 DE LA ALARMA'),
-                    get_value('TEXTO 4 DE LA ALARMA')
-                ]
-                descripcion = " | ".join(filter(None, desc_parts)) or "Sin descripción"
-                
-                alarmas[alarma_id] = {
-                    "id": alarma_id,
-                    "fabricante": get_value('Fabricante'),
-                    "servicio": get_value('SERVICIO Y/O SISTEMA GESTIONADO'),
-                    "gestor": get_value('GESTOR'),
-                    "descripcion": descripcion,
-                    "tipo": get_value('BAJA / ALTA / BLOQUEO'),
-                    "dominio": get_value('DOMINIO'),
-                    "severidad": get_value('SEVERIDAD'),
-                    "instructivo": get_value('KM (TITULO DEL INSTRUCTIVO)'),
-                    "tier_1": get_value('TIER 1'),
-                    "tier_2": get_value('TIER 2'),
-                    "tier_3": get_value('TIER 3'),
-                    "tipo_alarma": get_value('TIPO DE ALARMA'),
-                    "grupo_atencion": get_value('GRUPO DE ATENCIÓN'),
-                    "criticidad": get_value('CRITICIDAD'),
-                    "dueño": get_value('DUEÑO DE PLATAFORMA'),
-                    "panel": get_value('PANEL NETCOOL'),
-                    "documentos": CONFIG['DOCS_ALARMAS'],
-                    "contacto": f"{get_value('GRUPO DE ATENCIÓN', 'soporte')}@empresa.com"
-                }
-                
-            except Exception as row_error:
-                logger.error(f"Error procesando fila {index+2}: {str(row_error)}")
-                continue
-        
-        logger.info(f"Se cargaron {len(alarmas)} alarmas correctamente")
-        return alarmas
+        logger.info(f"Excel cargado exitosamente. Filas: {len(df)}")
+        return df
         
     except Exception as e:
-        logger.error(f"Error crítico al cargar Excel: {str(e)}", exc_info=True)
-        return {}
+        logger.error(f"Error cargando Excel: {str(e)}", exc_info=True)
+        return None
 
-# Cargar alarmas al iniciar
-alarmas_db = cargar_alarmas_desde_excel()
-
-# Helpers
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in CONFIG['ALLOWED_EXTENSIONS']
-
-def secure_path(path):
-    return os.path.abspath(os.path.join(os.getcwd(), path))
-
-def extract_text(filepath):
-    ext = os.path.splitext(filepath)[1].lower()
+def load_catalogo():
     try:
-        if ext == '.pdf':
-            with open(filepath, 'rb') as f:
-                reader = PyPDF2.PdfReader(f)
-                return '\n'.join([page.extract_text() for page in reader.pages])
-        elif ext == '.docx':
-            doc = docx.Document(filepath)
-            return '\n'.join([para.text for para in doc.paragraphs])
-        return ""
+        df = pd.read_csv(CATALOGO_CSV, encoding='utf-8')
+        return df
     except Exception as e:
-        logger.error(f"Error extrayendo texto: {str(e)}")
-        return ""
+        print(f"Error cargando CSV: {e}")
+        return pd.DataFrame()
 
-def get_severity_color(severidad):
-    colors = {
-        'CRITICA': '#d32f2f',
-        'ALTA': '#f57c00',
-        'MEDIA': '#fbc02d',
-        'BAJA': '#7cb342',
-        'INFORMATIVA': '#4285F4'
-    }
-    return colors.get(severidad.upper(), '#757575')
+def buscar_alarma(numero, elemento):
+    df = load_catalogo()
+    if df.empty:
+        return None
+        
+    # Buscar coincidencias en todas las columnas de texto
+    mask = df.apply(lambda x: str(numero).lower() in str(x).lower(), axis=1)
+    matches = df[mask]
+    
+    if not matches.empty:
+        # Filtrar por elemento
+        elemento_matches = matches[
+            matches.apply(lambda x: str(elemento).lower() in str(x).lower(), axis=1)
+        ]
+        if not elemento_matches.empty:
+            return elemento_matches.iloc[0].to_dict()
+    
+    return None
 
-# Rutas
+# Cargar Excel al iniciar
+df_alarmas = load_excel()
+
 @app.route('/')
 def home():
-    return redirect(url_for('inicio'))
+    return render_template('home.html')
 
-@app.route('/health')
-def health_check():
+@app.route('/buscar_alarma', methods=['GET', 'POST'])
+def buscar_alarma():
+    if request.method == 'POST':
+        numero = request.form.get('numero_alarma', '').strip()
+        elemento = request.form.get('elemento', '').strip().upper()
+        
+        if not df_alarmas is None:
+            try:
+                # Filtrar alarmas
+                mask = (
+                    df_alarmas['NUMERO_ALARMA'].astype(str).str.contains(numero, case=False, na=False) &
+                    df_alarmas['ELEMENTO'].astype(str).str.contains(elemento, case=False, na=False)
+                )
+                resultados = df_alarmas[mask].head(50)  # Limitar a 50 resultados
+                
+                if len(resultados) > 0:
+                    return render_template(
+                        'resultados.html',
+                        alarmas=resultados.to_dict('records'),
+                        numero=numero,
+                        elemento=elemento
+                    )
+                
+            except Exception as e:
+                logger.error(f"Error en búsqueda: {str(e)}")
+                
+        return render_template(
+            'resultados.html',
+            alarmas=[],
+            numero=numero,
+            elemento=elemento,
+            error="⚠️ No se encontró la alarma con esos datos"
+        )
+        
+    return render_template('buscar_alarma.html')
+
+@app.route('/api/buscar_alarma', methods=['POST'])
+def api_buscar_alarma():
+    data = request.get_json()
+    numero = data.get('numero', '')
+    elemento = data.get('elemento', '')
+    
+    alarma = buscar_alarma(numero, elemento)
+    
+    if alarma:
+        # Verificar si existe PDF del instructivo
+        km_titulo = str(alarma.get('KM (TITULO DEL INSTRUCTIVO)', ''))
+        pdf_path = Path(INSTRUCTIVOS_DIR) / f"{km_titulo}.pdf"
+        
+        return jsonify({
+            'encontrada': True,
+            'datos': alarma,
+            'tiene_pdf': pdf_path.exists(),
+            'pdf_url': f'/instructivo/{km_titulo}.pdf' if pdf_path.exists() else None
+        })
+    
     return jsonify({
-        "status": "healthy" if alarmas_db else "warning",
-        "alarmas_cargadas": len(alarmas_db),
-        "timestamp": datetime.now().isoformat(),
-        "service": "asesor-claro-ia",
-        "version": "1.0.0"
-    }), 200
+        'encontrada': False,
+        'mensaje': 'No encontré la alarma en el catálogo. Verifica el número o el elemento'
+    })
 
-@app.route('/inicio', methods=['GET', 'POST'])
-def inicio():
-    return render_template('index.html', 
-                         alarmas_totales=len(alarmas_db),
-                         alarmas_criticas=len([a for a in alarmas_db.values() if a['severidad'].upper() == 'CRITICA']))
-
-@app.route('/consultar_alarma', methods=['GET', 'POST'])
-def consultar_alarma():
-    if request.method == 'POST':
-        numero_alarma = request.form.get('numero_alarma', '').strip()
-        if not numero_alarma:
-            return render_template('error.html', mensaje="Debes ingresar un número de alarma")
+@app.route('/instructivo/<filename>')
+def serve_pdf(filename):
+    if not filename.endswith('.pdf'):
+        return "Archivo no autorizado", 403
         
-        if numero_alarma not in alarmas_db:
-            return render_template('error.html', 
-                                 mensaje=f"Alarma {numero_alarma} no encontrada",
-                                 subtitulo="Verifica el número e intenta nuevamente")
-        
-        session['numero_alarma'] = numero_alarma
-        return redirect(url_for('verificar_elemento'))
+    pdf_path = Path(INSTRUCTIVOS_DIR) / filename
+    if pdf_path.exists():
+        return send_file(pdf_path, mimetype='application/pdf')
     
-    return render_template('consultar_alarma.html')
-
-@app.route('/verificar_elemento', methods=['GET', 'POST'])
-def verificar_elemento():
-    numero_alarma = session.get('numero_alarma')
-    if not numero_alarma or numero_alarma not in alarmas_db:
-        return redirect(url_for('consultar_alarma'))
-    
-    if request.method == 'POST':
-        elemento = request.form.get('elemento', '').strip()
-        if not elemento:
-            return render_template('error.html', mensaje="Debes ingresar un elemento")
-        
-        session['elemento'] = elemento
-        return redirect(url_for('mostrar_alarma'))
-    
-    return render_template('verificar_elemento.html', numero_alarma=numero_alarma)
-
-@app.route('/mostrar_alarma')
-def mostrar_alarma():
-    numero_alarma = session.get('numero_alarma')
-    elemento = session.get('elemento')
-    
-    if not numero_alarma or numero_alarma not in alarmas_db:
-        return redirect(url_for('consultar_alarma'))
-    
-    alarma = alarmas_db[numero_alarma]
-    return render_template('mostrar_alarma.html', 
-                         alarma=alarma,
-                         elemento=elemento,
-                         get_severity_color=get_severity_color)
-
-@app.route('/descargar/<nombre_documento>')
-def descargar_documento(nombre_documento):
-    if not re.match(r'^[\w\s\-\.]+$', nombre_documento) or nombre_documento not in CONFIG['DOCS_ALARMAS']:
-        return 'Documento no autorizado', 403
-    
-    safe_path = secure_path(os.path.join(CONFIG['CARPETA_DOCS_ALARMAS'], nombre_documento))
-    if not os.path.exists(safe_path):
-        return 'Documento no encontrado', 404
-    
-    return send_file(safe_path, as_attachment=True)
-
-@app.route('/previsualizar/<nombre_documento>')
-def previsualizar_documento(nombre_documento):
-    if not re.match(r'^[\w\s\-\.]+$', nombre_documento) or nombre_documento not in CONFIG['DOCS_ALARMAS']:
-        return 'Documento no autorizado', 403
-    
-    safe_path = secure_path(os.path.join(CONFIG['CARPETA_DOCS_ALARMAS'], nombre_documento))
-    if not os.path.exists(safe_path):
-        return 'Documento no encontrado', 404
-    
-    text = extract_text(safe_path)
-    if not text:
-        text = "No se pudo extraer texto para previsualización."
-    
-    return render_template('previsualizar.html', 
-                         nombre_documento=nombre_documento,
-                         texto=text[:5000])
-
-@app.route('/api/alarmas', methods=['GET'])
-def get_alarmas():
-    query = request.args.get('query', '').upper()
-    if query:
-        resultados = {
-            id: alarma for id, alarma in alarmas_db.items() 
-            if query in alarma['fabricante'].upper() or 
-               query in alarma['servicio'].upper() or 
-               query in alarma['descripcion'].upper()
-        }
-        return jsonify(resultados)
-    return jsonify(alarmas_db)
-
-@app.route('/api/alarmas/<alarma_id>')
-def get_alarma(alarma_id):
-    if alarma_id in alarmas_db:
-        return jsonify(alarmas_db[alarma_id])
-    return jsonify({'error': 'Alarma no encontrada'}), 404
-
-def create_app():
-    os.makedirs(CONFIG['CARPETA_DOCS_ALARMAS'], exist_ok=True)
-    for doc in CONFIG['DOCS_ALARMAS']:
-        doc_path = os.path.join(CONFIG['CARPETA_DOCS_ALARMAS'], doc)
-        if not os.path.exists(doc_path):
-            logger.warning(f"Documento faltante: {doc_path}")
-    
-    if not os.path.exists(CONFIG['EXCEL_ALARMAS']):
-        logger.error(f"Archivo Excel no encontrado: {CONFIG['EXCEL_ALARMAS']}")
-    else:
-        try:
-            df = pd.read_excel(CONFIG['EXCEL_ALARMAS'])
-            logger.info(f"Columnas en Excel: {df.columns.tolist()}")
-        except Exception as e:
-            logger.error(f"Error leyendo Excel: {str(e)}")
-    
-    return app
+    return "PDF no encontrado", 404
 
 if __name__ == '__main__':
-    app = create_app()
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # Crear directorio de instructivos si no existe
+    os.makedirs(INSTRUCTIVOS_DIR, exist_ok=True)
+    
+    # Puerto dinámico para Render
+    port = int(os.environ.get('PORT', 10000))
+    # Modo debug solo en desarrollo
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    
+    app.run(host='0.0.0.0', port=port, debug=debug)
