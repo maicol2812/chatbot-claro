@@ -8,46 +8,40 @@ const chatState = {
 // Manejador seguro de elementos DOM
 const DOM = {
     elements: {},
-    
     init() {
-        // Obtener elementos de forma segura
         const ids = ['chatMessages', 'messageInput', 'sendButton', 'typingIndicator'];
         ids.forEach(id => {
             this.elements[id] = document.getElementById(id);
         });
-        
         this.setupEventListeners();
         return this;
     },
-    
     get(id) {
         return this.elements[id] || null;
+    },
+    setupEventListeners() {
+        const input = this.get('messageInput');
+        const button = this.get('sendButton');
+        if (button) {
+            button.addEventListener('click', handleSendMessage);
+        }
+        if (input) {
+            input.addEventListener('keypress', e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                }
+            });
+        }
     }
 };
 
-// Event Listeners
-function setupEventListeners() {
-    const input = DOM.get('messageInput');
-    const button = DOM.get('sendButton');
-    
-    if (button) {
-        button.addEventListener('click', handleSendMessage);
-    }
-    
-    if (input) {
-        input.addEventListener('keypress', e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-            }
-        });
-    }
-}
-
-// Inicialización
+// Inicialización segura
 document.addEventListener('DOMContentLoaded', () => {
     DOM.init();
-    showWelcomeMessage();
+    if (DOM.get('chatMessages')) {
+        showWelcomeMessage();
+    }
 });
 
 // Funciones del chat
@@ -67,41 +61,38 @@ function showWelcomeMessage() {
 }
 
 function addBotMessage(text, options = {}) {
+    const chatMessages = DOM.get('chatMessages');
+    if (!chatMessages) return;
     const messageDiv = createMessageElement({
         type: 'bot',
         text: formatMessage(text),
         options: options.options || []
     });
-
-    DOM.get('chatMessages').appendChild(messageDiv);
+    chatMessages.appendChild(messageDiv);
     scrollToBottom();
 }
 
 function addUserMessage(text) {
+    const chatMessages = DOM.get('chatMessages');
+    if (!chatMessages) return;
     const messageDiv = createMessageElement({
         type: 'user',
         text: formatMessage(text)
     });
-
-    DOM.get('chatMessages').appendChild(messageDiv);
+    chatMessages.appendChild(messageDiv);
     scrollToBottom();
 }
 
 function createMessageElement({ type, text, options = [] }) {
     const div = document.createElement('div');
     div.className = `message ${type}`;
-
     const content = document.createElement('div');
     content.className = 'message-content';
     content.innerHTML = text;
-
     div.appendChild(content);
-
-    // Agregar opciones si existen
     if (options.length > 0) {
         const optionsDiv = document.createElement('div');
         optionsDiv.className = 'message-options';
-
         options.forEach(opt => {
             const button = document.createElement('button');
             button.className = 'option-button';
@@ -109,26 +100,18 @@ function createMessageElement({ type, text, options = [] }) {
             button.addEventListener('click', () => handleOptionSelect(opt.value));
             optionsDiv.appendChild(button);
         });
-
         content.appendChild(optionsDiv);
     }
-
     return div;
 }
 
-// Modificar handleSendMessage para ser más robusto
 function handleSendMessage() {
     const input = DOM.get('messageInput');
     if (!input) return;
-    
     const message = input.value.trim();
     if (!message) return;
-    
-    // Enviar mensaje
     addUserMessage(message);
     input.value = '';
-    
-    // Procesar respuesta
     showTypingIndicator();
     setTimeout(() => {
         hideTypingIndicator();
@@ -136,15 +119,11 @@ function handleSendMessage() {
     }, 800);
 }
 
-// Añadir función para procesar input
 function processUserInput(message) {
     if (chatState.currentStep === 'searchingAlarm') {
-        // Búsqueda de alarma
         fetch('/buscar_alarma', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ query: message })
         })
         .then(response => response.json())
@@ -161,11 +140,10 @@ function processUserInput(message) {
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Error en fetch /buscar_alarma:', error);
             addBotMessage('Hubo un error procesando tu búsqueda. Por favor intenta nuevamente.');
         });
     } else {
-        // Respuesta genérica
         addBotMessage('¿En qué más puedo ayudarte?', {
             options: [
                 { text: '🔍 Buscar alarma', value: 'search' },
