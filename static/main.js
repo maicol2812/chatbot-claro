@@ -246,79 +246,100 @@ function handleActionClick(action) {
   setTimeout(() => {
     hideTyping();
     switch(action) {
-      case 'view-docs': showAlarmDocuments(); break;
-      case 'contact-support': contactSupport(); break;
-      default: handleGenericAction(action);
+      case 'view-docs':
+        if (chatState.currentAlarma && chatState.currentAlarma.documentos) {
+          showDocumentOptions(chatState.currentAlarma.documentos);
+        } else {
+          addBotMessage('❌ No hay documentos disponibles para esta alarma.');
+        }
+        break;
+      case 'contact-support':
+        if (chatState.currentAlarma && chatState.currentAlarma.contacto) {
+          window.location.href = `mailto:${chatState.currentAlarma.contacto}`;
+        } else {
+          addBotMessage('❌ No se encuentra información de contacto.');
+        }
+        break;
+      default:
+        handleGenericAction(action);
     }
   }, 1000);
 }
 
-// Funciones de manejo de opciones
-function handleSearchOption() {
-  chatState.currentStep = 'searching';
-  chatState.waitingForElement = true;
-  
-  addBotMessage("🔍 **Búsqueda de Alarmas**\n\nPor favor, ingrese el nombre del elemento que desea consultar.\n\nEjemplos: ROUTER-CORE-01, SWITCH-ACCESS-15");
-}
-
-function processElementSearch(elementName) {
-  chatState.waitingForElement = false;
-  chatState.currentElement = elementName.toUpperCase();
-  
-  showTyping();
-  setTimeout(() => {
-    hideTyping();
+async function processElementSearch(elementName) {
+    chatState.waitingForElement = false;
+    chatState.currentElement = elementName.toUpperCase();
     
-    // Buscar en la base de datos simulada (en producción sería una llamada al backend)
-    const alarma = alarmasDB[chatState.currentElement];
-    
-    if (alarma) {
-      chatState.currentAlarma = alarma;
-      showAlarmDetails(alarma);
-    } else {
-      addBotMessage(`❌ No se encontró ninguna alarma para: **${chatState.currentElement}**\n\n¿Desea intentar con otro elemento?`, {
-        options: [
-          { text: '🔍 Buscar otra alarma', value: '1' },
-          { text: '📋 Ver catálogo', value: '2' },
-          { text: '🏠 Menú principal', value: 'menu' }
-        ]
-      });
+    showTyping();
+    try {
+        const response = await fetch(`/api/alarmas?query=${encodeURIComponent(elementName)}`);
+        const alarmas = await response.json();
+        
+        hideTyping();
+        
+        if (Object.keys(alarmas).length > 0) {
+            const [alarmaId, alarma] = Object.entries(alarmas)[0];
+            chatState.currentAlarma = alarma;
+            showAlarmDetails(alarma);
+        } else {
+            addBotMessage(`❌ No se encontró ninguna alarma para: **${chatState.currentElement}**\n\n¿Desea intentar con otro elemento?`, {
+                options: [
+                    { text: '🔍 Buscar otra alarma', value: '1' },
+                    { text: '📋 Ver catálogo', value: '2' },
+                    { text: '🏠 Menú principal', value: 'menu' }
+                ]
+            });
+        }
+    } catch (error) {
+        console.error('Error buscando alarma:', error);
+        hideTyping();
+        addBotMessage('❌ Error al buscar la alarma. Por favor intente nuevamente.');
     }
-  }, 2000);
 }
 
 function showAlarmDetails(alarma) {
-  const severityClass = `severity-${alarma.severidad.toLowerCase()}`;
-  
-  addBotMessage(`✅ **Alarma encontrada:** ${alarma.elemento}\n\n` +
-    `**ID:** ${alarma.id}\n` +
-    `**Severidad:** <span class="${severityClass}">${alarma.severidad}</span>\n` +
-    `**Descripción:** ${alarma.descripcion}\n\n` +
-    `**Acciones recomendadas:**\n${alarma.acciones}\n\n` +
-    `**Contacto:** ${alarma.contacto}`, {
-      actions: [
-        { text: '📄 Ver documentos', action: 'view-docs', class: 'primary' },
-        { text: '📧 Contactar soporte', action: 'contact-support', class: 'secondary' }
-      ]
+    const severityEmoji = {
+        'CRITICA': '🔴',
+        'ALTA': '🟠',
+        'MEDIA': '🟡',
+        'BAJA': '🟢',
+        'INFORMATIVA': 'ℹ️'
+    };
+
+    addBotMessage(`✅ **Alarma encontrada: ${alarma.id}**
+
+**Elemento:** ${alarma.elemento || alarma.fabricante}
+**Severidad:** ${severityEmoji[alarma.severidad.toUpperCase()] || '⚪'} ${alarma.severidad}
+**Servicio:** ${alarma.servicio}
+
+**📝 Descripción:**
+${alarma.descripcion}
+
+**👥 Grupos de atención:**
+• Tier 1: ${alarma.tier_1}
+• Tier 2: ${alarma.tier_2}
+• Tier 3: ${alarma.tier_3}
+
+**📞 Contacto:** ${alarma.contacto}`, {
+        actions: [
+            { text: '📄 Ver documentos', action: 'view-docs', class: 'primary' },
+            { text: '📧 Contactar soporte', action: 'contact-support', class: 'secondary' }
+        ]
     });
 }
 
-function showAlarmDocuments() {
-  if (!chatState.currentAlarma) return;
-  
-  const documentos = chatState.currentAlarma.documentos || [];
-  
-  if (documentos.length === 0) {
-    addBotMessage("ℹ️ No hay documentos asociados a esta alarma.");
-    return;
-  }
-  
-  let message = "📚 **Documentos disponibles:**\n\n";
-  documentos.forEach(doc => {
-    message += `• <a href="/documentos/${doc}" target="_blank">${doc}</a>\n`;
-  });
-  
-  addBotMessage(message);
+function showDocumentOptions(documentos) {
+    let message = "📚 **Documentos disponibles:**\n\n";
+    documentos.forEach(doc => {
+        message += `• [${doc}](/descargar/${encodeURIComponent(doc)})\n`;
+    });
+    
+    addBotMessage(message, {
+        actions: [
+            { text: '🔍 Buscar otra alarma', action: 'search', class: 'primary' },
+            { text: '🏠 Volver al menú', action: 'menu', class: 'secondary' }
+        ]
+    });
 }
 
 // Funciones de UI

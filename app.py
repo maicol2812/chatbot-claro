@@ -11,7 +11,11 @@ import docx
 from pathlib import Path
 import uuid
 
-app = Flask(__name__)
+app = Flask(__name__, 
+    static_url_path='/static',
+    template_folder='templates',
+    static_folder='static'
+)
 app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key_development_only')
 CORS(app)
 
@@ -183,21 +187,9 @@ def health_check():
 
 @app.route('/inicio', methods=['GET', 'POST'])
 def inicio():
-    if request.method == 'POST':
-        opcion = request.form.get('opcion')
-        if opcion == '1':
-            return redirect(url_for('consultar_alarma'))
-        elif opcion == '2':
-            return '''
-            <h3>Documentación disponible:</h3>
-            <div style="margin: 20px;">
-                <a href="/descargar/Alarmas vSR.pdf" class="doc-button">PDF - Alarmas vSR</a>
-                <a href="/descargar/vDSR Alarms and KPIs.pdf" class="doc-button">PDF - vDSR Alarms</a>
-            </div>
-            <a href="/inicio" class="back-button">Volver al inicio</a>
-            '''
-    
-    return render_template('inicio.html')
+    return render_template('index.html', 
+                         alarmas_totales=len(alarmas_db),
+                         alarmas_criticas=len([a for a in alarmas_db.values() if a['severidad'].upper() == 'CRITICA']))
 
 @app.route('/consultar_alarma', methods=['GET', 'POST'])
 def consultar_alarma():
@@ -273,6 +265,25 @@ def previsualizar_documento(nombre_documento):
     return render_template('previsualizar.html', 
                          nombre_documento=nombre_documento,
                          texto=text[:5000])
+
+@app.route('/api/alarmas', methods=['GET'])
+def get_alarmas():
+    query = request.args.get('query', '').upper()
+    if query:
+        resultados = {
+            id: alarma for id, alarma in alarmas_db.items() 
+            if query in alarma['fabricante'].upper() or 
+               query in alarma['servicio'].upper() or 
+               query in alarma['descripcion'].upper()
+        }
+        return jsonify(resultados)
+    return jsonify(alarmas_db)
+
+@app.route('/api/alarmas/<alarma_id>')
+def get_alarma(alarma_id):
+    if alarma_id in alarmas_db:
+        return jsonify(alarmas_db[alarma_id])
+    return jsonify({'error': 'Alarma no encontrada'}), 404
 
 def create_app():
     os.makedirs(CONFIG['CARPETA_DOCS_ALARMAS'], exist_ok=True)
