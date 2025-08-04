@@ -4,21 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot Claro - Chat</title>
+    
+    <!-- Recursos estáticos -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>             
+</head>
 <body>
     <div class="chat-wrapper">
+        <!-- Header con logo -->
         <div class="chat-header">
             <img src="{{ url_for('static', filename='logo-claro.png') }}" alt="Claro" class="logo">
             <h1>Chat de Alarmas</h1>
         </div>
-        <div id="chatContainer" class="chat-container"> 
+
+        <!-- Contenedor principal del chat -->
+        <div id="chatContainer" class="chat-container">
             <div id="chatMessages" class="chat-messages"></div>
+            
+            <!-- Indicador de escritura -->
             <div id="typingIndicator" class="typing-indicator hidden">
                 <span></span><span></span><span></span>
             </div>
+            
+            <!-- Input y botón -->
             <div class="chat-input-area">
                 <input type="text" id="messageInput" placeholder="Escribe tu mensaje..." autocomplete="off">
                 <button id="sendButton">
@@ -27,20 +36,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Script con defer -->
     <script src="{{ url_for('static', filename='main.js') }}" defer></script>
 </body>
-</html> 
-
-        .message {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        
-        .bot {
-            background: #e3f2fd;
-            margin-right: 20%;
-        }
+</html>
         
         .user {
             background: #f5f5f5;
