@@ -29,14 +29,17 @@ EXPECTED_COLUMNS = {
     'SEVERIDAD': ['SEVERIDAD', 'CRITICIDAD', 'SEVERITY']
 }
 
+# Variable global para el DataFrame
+df_alarmas = None
+
 def normalize_column_name(name):
     """Normaliza nombres de columnas eliminando caracteres especiales"""
     if not isinstance(name, str):
         return str(name)
-    # Eliminar caracteres especiales y normalizar espacios
+    # Limpia espacios, comillas y saltos de línea
     clean_name = re.sub(r'[\n\r\t"]', ' ', name)
     clean_name = re.sub(r'\s+', ' ', clean_name)
-    return clean_name.strip().upper()
+    return clean_name.strip()
 
 def find_matching_column(columns, variants):
     """Busca una columna que coincida con las variantes especificadas"""
@@ -50,77 +53,73 @@ def find_matching_column(columns, variants):
     return None
 
 def load_csv():
-    """Carga el CSV con manejo robusto de errores y normalización de columnas"""
+    """Carga y valida el CSV con manejo robusto de errores"""
     try:
-        if not CSV_PATH.exists():
-            logger.error(f"Archivo CSV no encontrado: {CSV_PATH}")
+        csv_path = Path('CatalogoAlarmas.csv')
+        if not csv_path.exists():
+            logger.error(f"❌ Archivo no encontrado: {csv_path}")
             return None
 
         # Leer CSV en chunks para optimizar memoria
         chunks = []
-        chunk_size = 1000
-        
-        for chunk in pd.read_csv(CSV_PATH, 
+        for chunk in pd.read_csv(csv_path, 
                                encoding='utf-8',
                                sep=';',
-                               chunksize=chunk_size,
-                               low_memory=False,
+                               chunksize=1000,
                                dtype=str):
+            # Normalizar nombres de columnas
+            chunk.columns = [normalize_column_name(col) for col in chunk.columns]
             chunks.append(chunk)
-            
+        
         df = pd.concat(chunks, ignore_index=True)
-        logger.info(f"CSV leído exitosamente. Columnas originales: {df.columns.tolist()}")
-
-        # Mapear columnas encontradas
-        column_mapping = {}
-        missing_columns = []
         
-        for key, variants in EXPECTED_COLUMNS.items():
-            found_col = find_matching_column(df.columns, variants)
-            if found_col:
-                column_mapping[key] = found_col
-                logger.info(f"Columna {key} mapeada a '{found_col}'")
-            else:
-                missing_columns.append(key)
-                logger.warning(f"No se encontró columna para {key}. Variantes buscadas: {variants}")
+        # Verificar columnas requeridas
+        required_columns = [
+            'Fabricante',
+            'SERVICIO Y/O SISTEMA GESTIONADO',
+            'TEXTO 1 DE LA ALARMA',
+            'KM (TITULO DEL INSTRUCTIVO)'
+        ]
         
-        if missing_columns:
-            logger.warning(f"Columnas no encontradas: {missing_columns}")
-            # Agregar columnas faltantes con valores por defecto
-            for col in missing_columns:
+        missing_cols = [col for col in required_columns 
+                       if not any(normalize_column_name(col) == normalize_column_name(df_col) 
+                                for df_col in df.columns)]
+        
+        if missing_cols:
+            logger.warning(f"⚠️ Columnas faltantes: {missing_cols}")
+            # Agregar columnas faltantes con valor por defecto
+            for col in missing_cols:
                 df[col] = "NO ESPECIFICADO"
-
-        # Limpiar y normalizar datos
-        df = df.rename(columns=column_mapping)
+        
+        # Limpiar datos
         df = df.fillna("NO ESPECIFICADO")
         
-        # Normalizar textos
-        for col in df.columns:
-            if df[col].dtype == object:
-                df[col] = df[col].apply(lambda x: normalize_column_name(x))
+        logger.info(f"✅ CSV cargado exitosamente - {len(df)} filas")
+        logger.info(f"📊 Columnas encontradas: {df.columns.tolist()}")
         
-        logger.info(f"CSV procesado exitosamente. Filas: {len(df)}")
         return df
         
     except Exception as e:
-        logger.error(f"Error procesando CSV: {str(e)}", exc_info=True)
+        logger.error(f"❌ Error cargando CSV: {str(e)}", exc_info=True)
         return None
 
-# Cargar CSV al iniciar
-df_alarmas = None
-
-@app.before_first_request
+@app.before_serving
 def init_app():
-    """Inicialización de la aplicación"""
+    """Inicializa la aplicación y carga el CSV"""
     global df_alarmas
+    
+    logger.info("🚀 Iniciando aplicación...")
     
     # Crear directorio de instructivos
     UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+    logger.info(f"📁 Directorio de instructivos creado: {UPLOAD_FOLDER}")
     
     # Cargar CSV
     df_alarmas = load_csv()
     if df_alarmas is None:
-        logger.error("Error crítico: No se pudo cargar el catálogo de alarmas")
+        logger.error("❌ Error crítico: No se pudo cargar el catálogo de alarmas")
+    else:
+        logger.info("✅ Aplicación iniciada correctamente")
 
 # Rutas
 @app.route('/')
@@ -217,6 +216,6 @@ def api_buscar_alarma():
         return jsonify({'error': 'Error procesando la búsqueda'}), 500
 
 if __name__ == '__main__':
-    # Puerto para desarrollo
+    # Puerto dinámico para Render
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port)
