@@ -4,52 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot Claro - Alarmas</title>
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body>
-    <!-- Chat Bubble -->
-    <div id="chatBubble" class="chat-bubble">
-        <i class="fas fa-comments"></i>
-        <div id="bubbleNotification" class="notification">1</div>
-    </div>
-
-    <!-- Chat Window -->
-    <div id="chatWindow" class="chat-window">
+    <div id="chatContainer" class="chat-container">
         <div class="chat-header">
             <img src="{{ url_for('static', filename='logo-claro.png') }}" alt="Claro" class="logo">
             <span>Asistente de Alarmas</span>
-            <div class="controls">
-                <button id="minimizeChat" class="btn-control"><i class="fas fa-minus"></i></button>
-                <button id="closeChat" class="btn-control"><i class="fas fa-times"></i></button>
-            </div>
         </div>
-
-        <div id="chatMessages" class="chat-messages">
-            <!-- Messages will be inserted here -->
-        </div>
-
-        <div id="typingIndicator" class="typing-indicator">
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-        </div>
-
+        
+        <div id="chatMessages" class="chat-messages"></div>
+        
         <div class="chat-input">
-            <textarea id="messageInput" placeholder="Escribe tu mensaje..." rows="1"></textarea>
-            <button id="attachBtn" class="btn-attach">
-                <i class="fas fa-paperclip"></i>
-            </button>
-            <button id="sendBtn" class="btn-send">
+            <input type="text" id="userInput" placeholder="Escribe tu mensaje...">
+            <button id="sendBtn">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>

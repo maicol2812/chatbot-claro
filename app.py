@@ -24,29 +24,27 @@ class Config:
         'TIER 3'
     }
 
+def get_df():
+    """Obtiene el DataFrame de forma lazy"""
+    if 'df' not in g:
+        g.df = load_csv_cached()
+    return g.df
+
 # Cache para lectura lazy del CSV
 @lru_cache(maxsize=1)
 def load_csv_cached():
-    """Carga el CSV de forma lazy y cacheada"""
+    """Carga el CSV solo cuando se necesita"""
     try:
-        if not Config.CSV_PATH.exists():
-            logger.error(f"❌ CSV no encontrado: {Config.CSV_PATH}")
-            return None
-
         logger.info("📊 Iniciando carga lazy del CSV...")
-        
-        # Leer CSV en chunks para optimizar memoria
         chunks = []
         for chunk in pd.read_csv(
-            Config.CSV_PATH,
+            'CatalogoAlarmas.csv',
             encoding='utf-8',
             sep=';',
             dtype=str,
-            chunksize=1000,
-            on_bad_lines='warn'
+            chunksize=1000
         ):
             chunks.append(chunk)
-        
         df = pd.concat(chunks, ignore_index=True)
         
         # Verificar columna crítica
@@ -95,11 +93,11 @@ def home():
 
 @app.route('/buscar_alarma', methods=['POST'])
 def buscar_alarma():
-    """Endpoint de búsqueda"""
-    df = load_csv_cached()  # Carga lazy
+    """Búsqueda de alarmas con carga lazy del CSV"""
+    df = get_df()
     if df is None:
         return jsonify({'error': 'Base de datos no disponible'}), 500
-
+        
     try:
         numero = request.form.get('numero', '').strip()
         elemento = request.form.get('elemento', '').strip()
@@ -120,9 +118,11 @@ def buscar_alarma():
                 'pdf_path': None
             }
             
-            if alarma['KM (TITULO DEL INSTRUCTIVO)'] != 'NO_DISPONIBLE':
+            # Verificar PDF
+            if 'KM (TITULO DEL INSTRUCTIVO)' in alarma:
                 pdf_name = f"{alarma['KM (TITULO DEL INSTRUCTIVO)']}.pdf"
-                if (Config.UPLOAD_FOLDER / pdf_name).exists():
+                pdf_path = Path('static/instructivos') / pdf_name
+                if pdf_path.exists():
                     response['pdf_path'] = f"/static/instructivos/{pdf_name}"
             
             return jsonify(response)
@@ -135,6 +135,10 @@ def buscar_alarma():
     except Exception as e:
         logger.error(f"Error en búsqueda: {str(e)}")
         return jsonify({'error': 'Error procesando búsqueda'}), 500
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('static', 'favicon.ico')
 
 @app.route('/health')
 def health():
