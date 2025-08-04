@@ -8,37 +8,37 @@
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
-            margin: 0 auto;
+            margin: 20px auto;
             padding: 20px;
         }
-        .menu-button {
+        .menu-option {
             display: block;
             width: 100%;
             padding: 15px;
             margin: 10px 0;
-            text-align: left;
             background: #f8f9fa;
             border: 1px solid #ddd;
             border-radius: 4px;
-            cursor: pointer;
+            text-decoration: none;
+            color: #333;
         }
-        .menu-button:hover {
+        .menu-option:hover {
             background: #e9ecef;
         }
     </style>
 </head>
 <body>
     <h2>Buen día, hablemos de nuestras plataformas de Core</h2>
-    <h3>¿Qué te gustaría consultar el día de hoy?</h3>
+    <h3>¿Qué te gustaría consultar hoy?</h3>
     
-    <form action="/buscar_alarma" method="get">
-        <button type="submit" class="menu-button">1. Alarmas de plataformas</button>
-    </form>
+    <a href="{{ url_for('buscar_alarma') }}" class="menu-option">
+        1. Alarmas de plataformas
+    </a>
     
-    <button class="menu-button">2. Documentación de las plataformas</button>
-    <button class="menu-button">3. Incidentes activos de las plataformas</button>
-    <button class="menu-button">4. Estado operativo de las plataformas</button>
-    <button class="menu-button">5. Cambios activos en las plataformas</button>
-    <button class="menu-button">6. Hablar con el administrador de la plataforma</button>
+    <a href="#" class="menu-option">2. Documentación de las plataformas</a>
+    <a href="#" class="menu-option">3. Incidentes activos de las plataformas</a>
+    <a href="#" class="menu-option">4. Estado operativo de las plataformas</a>
+    <a href="#" class="menu-option">5. Cambios activos en las plataformas</a>
+    <a href="#" class="menu-option">6. Hablar con el administrador de la plataforma</a>
 </body>
 </html>

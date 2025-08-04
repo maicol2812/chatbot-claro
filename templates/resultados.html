@@ -7,82 +7,82 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
+            max-width: 800px;
+            margin: 20px auto;
             padding: 20px;
         }
-        .search-info {
-            margin-bottom: 20px;
-            color: #666;
+        .result-box {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
         }
-        .error-message {
+        .error {
             color: #e60012;
-            padding: 20px;
             background: #fff3f3;
+            padding: 15px;
             border-radius: 4px;
             margin: 20px 0;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background: #f8f9fa;
-            font-weight: bold;
-        }
-        tr:hover {
-            background: #f5f5f5;
-        }
-        .back-link {
+        .pdf-link {
             display: inline-block;
-            margin-top: 20px;
-            color: #666;
-        }
-        .new-search {
-            display: inline-block;
-            margin: 20px 10px;
+            margin: 10px 0;
             padding: 10px 20px;
-            background: #e60012;
+            background: #4CAF50;
             color: white;
             text-decoration: none;
             border-radius: 4px;
         }
-        .new-search:hover {
-            background: #cc0010;
+        .pdf-link:hover {
+            background: #45a049;
+        }
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
     <h2>Resultados de la búsqueda</h2>
     
-    <div class="search-info">
-        <p>Búsqueda para: Alarma <strong>{{ numero }}</strong>, Elemento <strong>{{ elemento }}</strong></p>
-    </div>
-    
     {% if error %}
-        <div class="error-message">
+        <div class="error">
             {{ error }}
         </div>
     {% endif %}
     
-    {% if alarmas %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Número</th>
-                    <th>Elemento</th>
-                    <th>Plataforma</th>
-                    <th>Descripción</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for alarma in alarmas %}
+    {% if alarma %}
+        <div class="result-box">
+            <h3>Datos de la alarma</h3>
+            <p><strong>Fabricante:</strong> {{ alarma['Fabricante'] }}</p>
+            <p><strong>Servicio:</strong> {{ alarma['SERVICIO Y/O SISTEMA GESTIONADO'] }}</p>
+            <p><strong>Severidad:</strong> {{ alarma['SEVERIDAD'] }}</p>
+            <p><strong>Descripción:</strong> {{ alarma['TEXTO 1 DE LA ALARMA'] }}</p>
+            
+            <p><strong>Grupo de atención:</strong></p>
+            <ul>
+                <li>Tier 1: {{ alarma['TIER 1'] }}</li>
+                <li>Tier 2: {{ alarma['TIER 2'] }}</li>
+                <li>Tier 3: {{ alarma['TIER 3'] }}</li>
+            </ul>
+            
+            {% if pdf_path %}
+                <a href="{{ url_for('serve_pdf', filename=pdf_path) }}" 
+                   target="_blank" class="pdf-link">
+                    Ver Instructivo PDF
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <a href="{{ url_for('buscar_alarma') }}" class="back">← Nueva búsqueda</a>
+    <br>
+    <a href="{{ url_for('home') }}" class="back">← Volver al menú</a>
+</body>
+</html>
                 <tr>
                     <td>{{ alarma.NUMERO_ALARMA }}</td>
                     <td>{{ alarma.ELEMENTO }}</td>
