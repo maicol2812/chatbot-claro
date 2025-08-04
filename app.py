@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, jsonify
 import pandas as pd
-import logging
 import os
-import re
+import logging
 from pathlib import Path
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -22,116 +21,94 @@ def create_app():
     app = Flask(__name__)
     app.wsgi_app = ProxyFix(app.wsgi_app)
     
-    # Crear directorio de instructivos si no existe
+    # Crear directorio de instructivos
     UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
     
-    # Cargar CSV al iniciar
-    global df_alarmas
-    df_alarmas = load_csv()
+    # Cargar CSV dentro del contexto de la app
+    with app.app_context():
+        global df_alarmas
+        df_alarmas = load_csv()
     
     return app
-
-def normalize_column_name(name):
-    """Normaliza nombres de columnas eliminando caracteres especiales"""
-    if not isinstance(name, str):
-        return str(name)
-    # Limpia espacios, comillas y saltos de línea
-    clean_name = re.sub(r'[\n\r\t"]', ' ', name)
-    clean_name = re.sub(r'\s+', ' ', clean_name)
-    return clean_name.strip()
-
-def find_matching_column(columns, variants):
-    """Busca una columna que coincida con las variantes especificadas"""
-    normalized_columns = {normalize_column_name(col): col for col in columns}
-    
-    for variant in variants:
-        normalized_variant = normalize_column_name(variant)
-        if normalized_variant in normalized_columns:
-            return normalized_columns[normalized_variant]
-            
-    return None
 
 def load_csv():
     """Carga el CSV con manejo robusto de errores"""
     try:
         csv_path = Path('CatalogoAlarmas.csv')
         if not csv_path.exists():
-            logger.error(f"❌ Archivo no encontrado: {csv_path}")
+            logger.error(f"❌ CSV no encontrado: {csv_path}")
             return None
 
         logger.info("📊 Iniciando carga del CSV...")
         
-        # Leer CSV en chunks para optimizar memoria
+        # Leer CSV en chunks
         chunks = []
+        chunk_size = 1000
+        
         for chunk in pd.read_csv(
             csv_path,
             encoding='utf-8',
             sep=';',
             dtype=str,
-            chunksize=1000
+            chunksize=chunk_size,
+            on_bad_lines='warn'
         ):
-            # Normalizar nombres de columnas
-            chunk.columns = [normalize_column_name(col) for col in chunk.columns]
             chunks.append(chunk)
         
         df = pd.concat(chunks, ignore_index=True)
         
         # Verificar columna de instructivo
-        km_variants = [
-            'KM (TITULO DEL INSTRUCTIVO)',
-            'KM(TITULO DEL INSTRUCTIVO)',
-            'KM TITULO DEL INSTRUCTIVO',
-            'INSTRUCTIVO',
-            'KM'
-        ]
-        
+        km_variants = ['KM (TITULO DEL INSTRUCTIVO)', 'KM', 'INSTRUCTIVO']
         km_col = None
-        for variant in km_variants:
-            normalized = variant.strip().replace('\n', ' ').replace('"', '')
-            matching_cols = [col for col in df.columns 
-                           if normalized.lower() in col.lower()]
-            if matching_cols:
-                km_col = matching_cols[0]
+        
+        for col in df.columns:
+            normalized_col = col.strip().upper()
+            if any(variant.upper() in normalized_col for variant in km_variants):
+                km_col = col
                 break
         
         if not km_col:
-            logger.warning("⚠️ Columna de instructivo no encontrada. Usando valor por defecto.")
+            logger.warning("⚠️ Columna de instructivo no encontrada")
             df['KM (TITULO DEL INSTRUCTIVO)'] = 'NO_DISPONIBLE'
-        else:
-            df['KM (TITULO DEL INSTRUCTIVO)'] = df[km_col]
-            
+        
         # Limpiar datos
         df = df.fillna('NO_DISPONIBLE')
         
-        logger.info(f"✅ CSV cargado exitosamente - {len(df)} filas")
-        logger.info(f"📋 Columnas: {', '.join(df.columns)}")
-        
+        logger.info(f"✅ CSV cargado: {len(df)} filas")
         return df
         
     except Exception as e:
-        logger.error(f"❌ Error cargando CSV: {str(e)}", exc_info=True)
+        logger.error(f"❌ Error cargando CSV: {str(e)}")
         return None
 
-# Crear app
+# Crear app usando factory pattern
 app = create_app()
 
 @app.route('/')
 def home():
+    """Ruta principal para verificación de salud"""
     return render_template('home.html')
+
+@app.route('/health')
+def health():
+    """Endpoint de health check"""
+    return jsonify({
+        'status': 'ok',
+        'csv_loaded': df_alarmas is not None
+    })
 
 @app.route('/buscar_alarma', methods=['GET', 'POST'])
 def buscar_alarma():
     if request.method == 'POST':
-        numero = request.form.get('numero', '').strip()
-        elemento = request.form.get('elemento', '').strip()
-        
         if df_alarmas is None:
-            return jsonify({
-                'error': 'Base de datos no disponible'
-            }), 500
-            
+            return render_template('resultados.html', 
+                                error="Base de datos no disponible")
+        
         try:
-            # Búsqueda insensible a mayúsculas/minúsculas
+            numero = request.form.get('numero', '').strip()
+            elemento = request.form.get('elemento', '').strip()
+            
+            # Búsqueda case-insensitive
             mask = (
                 df_alarmas['TEXTO 1 DE LA ALARMA'].str.contains(numero, 
                     case=False, na=False) &
@@ -143,58 +120,41 @@ def buscar_alarma():
             
             if len(resultados) > 0:
                 alarma = resultados.iloc[0]
-                response = {
-                    'encontrada': True,
-                    'datos': {
-                        'fabricante': alarma['FABRICANTE'],
-                        'servicio': alarma['SERVICIO Y/O SISTEMA GESTIONADO'],
-                        'descripcion': alarma['TEXTO 1 DE LA ALARMA'],
-                        'severidad': alarma['SEVERIDAD'],
-                        'instructivo': None
-                    }
-                }
+                pdf_path = None
                 
-                # Verificar PDF
+                # Verificar PDF de forma segura
                 if alarma['KM (TITULO DEL INSTRUCTIVO)'] != 'NO_DISPONIBLE':
-                    pdf_name = f"{alarma['KM (TITULO DEL INSTRUCTIVO)']}.pdf"
-                    pdf_path = UPLOAD_FOLDER / pdf_name
-                    if pdf_path.exists():
-                        response['datos']['instructivo'] = pdf_name
+                    try:
+                        pdf_name = f"{alarma['KM (TITULO DEL INSTRUCTIVO)']}.pdf"
+                        if (UPLOAD_FOLDER / pdf_name).exists():
+                            pdf_path = pdf_name
+                    except Exception as e:
+                        logger.error(f"Error verificando PDF: {str(e)}")
                 
-                return jsonify(response)
+                return render_template('resultados.html',
+                                    alarma=alarma,
+                                    pdf_path=pdf_path)
             
-            return jsonify({
-                'encontrada': False,
-                'mensaje': f'No se encontró la alarma: {numero} - {elemento}'
-            })
+            return render_template('resultados.html',
+                                error=f"No se encontró la alarma")
             
         except Exception as e:
-            logger.error(f"Error en búsqueda: {str(e)}", exc_info=True)
-            return jsonify({
-                'error': 'Error procesando la búsqueda'
-            }), 500
+            logger.error(f"Error en búsqueda: {str(e)}")
+            return render_template('resultados.html',
+                                error="Error procesando la búsqueda")
     
     return render_template('buscar_alarma.html')
 
 @app.route('/static/instructivos/<path:filename>')
 def serve_pdf(filename):
-    """Sirve archivos PDF de forma segura"""
+    """Sirve PDFs de forma segura"""
     try:
         return send_from_directory(UPLOAD_FOLDER, filename)
     except Exception as e:
         logger.error(f"Error sirviendo PDF {filename}: {str(e)}")
         return "PDF no encontrado", 404
 
-# Error handlers
-@app.errorhandler(404)
-def not_found_error(error):
-    return jsonify({'error': 'Recurso no encontrado'}), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    return jsonify({'error': 'Error interno del servidor'}), 500
-
+# Solo ejecutar en desarrollo
 if __name__ == '__main__':
-    # Puerto para desarrollo/producción
     port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)

@@ -3,37 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistente Core - Claro</title>
+    <title>Sistema de Alarmas - Claro</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 20px auto;
             padding: 20px;
+            text-align: center;
         }
-        .menu-option {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        .status {
+            color: #28a745;
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #E60012;
+            color: white;
             text-decoration: none;
-            color: #333;
-        }
-        .menu-option:hover {
-            background: #e9ecef;
+            border-radius: 5px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <h2>Buen día, hablemos de nuestras plataformas de Core</h2>
-    <h3>¿Qué te gustaría consultar hoy?</h3>
-    
-    <a href="{{ url_for('buscar_alarma') }}" class="menu-option">
-        1. Alarmas de plataformas
-    </a>
+    <h1>Sistema de Alarmas Claro</h1>
+    <div class="status">✅ Sistema Operativo</div>
+    <a href="/buscar_alarma" class="btn">Buscar Alarmas</a>
+</body>
+</html>
     
     <a href="#" class="menu-option">2. Documentación de las plataformas</a>
     <a href="#" class="menu-option">3. Incidentes activos de las plataformas</a>
