@@ -1,10 +1,9 @@
-from flask import Flask, render_template, request, send_from_directory, jsonify, g
+from flask import Flask, render_template, request, send_from_directory, jsonify
 import pandas as pd
 import os
 import logging
 import threading
 from pathlib import Path
-from functools import lru_cache
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Configuración de logging
@@ -14,6 +13,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Configuración de la aplicación
 class Config:
     UPLOAD_FOLDER = Path('static/instructivos')
     CSV_PATH = Path('CatalogoAlarmas.csv')
@@ -28,9 +28,9 @@ class Config:
 df_global = None
 
 def load_csv_async():
-    """Carga el CSV en un hilo separado"""
+    """Carga el CSV en un hilo separado para no bloquear el arranque"""
     global df_global
-    
+
     def worker():
         try:
             logger.info("🚀 Iniciando carga asíncrona del CSV...")
@@ -56,9 +56,9 @@ def load_csv_async():
             
             df = pd.concat(chunks, ignore_index=True)
             
-            # Verificar columnas
+            # Verificar columnas requeridas
             if 'KM (TITULO DEL INSTRUCTIVO)' not in df.columns:
-                logger.warning("⚠️ Columna de instructivos no encontrada")
+                logger.warning("⚠️ Columna 'KM (TITULO DEL INSTRUCTIVO)' no encontrada")
                 df['KM (TITULO DEL INSTRUCTIVO)'] = 'NO_DISPONIBLE'
             
             missing_cols = Config.REQUIRED_COLUMNS - set(df.columns)
@@ -74,11 +74,10 @@ def load_csv_async():
             df_global = df
             
             logger.info(f"✅ CSV cargado exitosamente: {len(df)} filas")
-            
         except Exception as e:
             logger.error(f"❌ Error cargando CSV: {str(e)}")
     
-    # Iniciar thread
+    # Iniciar el hilo
     thread = threading.Thread(target=worker)
     thread.daemon = True
     thread.start()
@@ -89,10 +88,10 @@ def create_app():
                 static_folder='static',
                 static_url_path='/static')
     
-    # Configurar proxy
+    # Configurar proxy para Render
     app.wsgi_app = ProxyFix(app.wsgi_app)
     
-    # Crear directorio de instructivos
+    # Crear directorio de instructivos si no existe
     Config.UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
     
     # Iniciar carga asíncrona del CSV
@@ -100,15 +99,17 @@ def create_app():
     
     return app
 
-# Crear app
+# Crear la app
 app = create_app()
 
 @app.route('/')
 def home():
+    """Página principal"""
     return render_template('index.html')
 
 @app.route('/buscar_alarma', methods=['POST'])
 def buscar_alarma():
+    """Endpoint para buscar alarmas"""
     if df_global is None:
         return jsonify({
             'error': 'Base de datos cargando, intenta en unos segundos'
@@ -118,7 +119,7 @@ def buscar_alarma():
         numero = request.form.get('numero', '').strip()
         elemento = request.form.get('elemento', '').strip()
         
-        # Búsqueda
+        # Búsqueda case-insensitive
         mask = (
             df_global['TEXTO 1 DE LA ALARMA'].str.contains(numero, case=False, na=False) &
             df_global['Fabricante'].str.contains(elemento, case=False, na=False)
