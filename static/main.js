@@ -268,32 +268,37 @@ function handleActionClick(action) {
 
 async function processElementSearch(elementName) {
     chatState.waitingForElement = false;
-    chatState.currentElement = elementName.toUpperCase();
     
     showTyping();
     try {
-        const response = await fetch(`/api/alarmas?query=${encodeURIComponent(elementName)}`);
-        const alarmas = await response.json();
+        const response = await fetch('/buscar_alarma', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                numero: chatState.currentAlarma,
+                elemento: elementName
+            })
+        });
         
+        const data = await response.json();
         hideTyping();
         
-        if (Object.keys(alarmas).length > 0) {
-            const [alarmaId, alarma] = Object.entries(alarmas)[0];
-            chatState.currentAlarma = alarma;
-            showAlarmDetails(alarma);
+        if (data.encontrada) {
+            showAlarmDetails(data.datos, data.pdf_path);
         } else {
-            addBotMessage(`❌ No se encontró ninguna alarma para: **${chatState.currentElement}**\n\n¿Desea intentar con otro elemento?`, {
+            addBotMessage(`❌ No se encontró la alarma. ¿Deseas intentar con otro elemento?`, {
                 options: [
-                    { text: '🔍 Buscar otra alarma', value: '1' },
-                    { text: '📋 Ver catálogo', value: '2' },
-                    { text: '🏠 Menú principal', value: 'menu' }
+                    { text: '🔍 Nueva búsqueda', value: '1' },
+                    { text: '🏠 Volver al menú', value: 'menu' }
                 ]
             });
         }
     } catch (error) {
-        console.error('Error buscando alarma:', error);
+        console.error('Error:', error);
         hideTyping();
-        addBotMessage('❌ Error al buscar la alarma. Por favor intente nuevamente.');
+        addBotMessage('❌ Error al buscar la alarma. Por favor intenta nuevamente.');
     }
 }
 
@@ -367,18 +372,22 @@ function showWelcomeNotification() {
   }, 3000);
 }
 
+// Actualizar función showWelcomeMessage para usar el nuevo diseño
 function showWelcomeMessage() {
-  chatState.currentStep = 'menu';
-  
-  addBotMessage(`🚀 **¡Bienvenido al Sistema de Alarmas Claro!**\n\n¿En qué puedo ayudarte hoy?`, {
-    options: [
-      { text: '🔍 Buscar alarma', value: '1' },
-      { text: '📋 Ver catálogo', value: '2' },
-      { text: '🚨 Alarmas críticas', value: '3' },
-      { text: '📊 Estadísticas', value: '4' },
-      { text: '📚 Documentación', value: '5' }
-    ]
-  });
+    chatState.currentStep = 'menu';
+    
+    addBotMessage(`🚀 **¡Buen día, hablemos de nuestras plataformas de Core!**
+    
+¿Qué te gustaría consultar hoy?`, {
+        options: [
+            { text: '1️⃣ Alarmas de plataformas', value: '1' },
+            { text: '2️⃣ Documentación de las plataformas', value: '2' },
+            { text: '3️⃣ Incidentes activos de las plataformas', value: '3' },
+            { text: '4️⃣ Estado operativo de las plataformas', value: '4' },
+            { text: '5️⃣ Cambios activos en las plataformas', value: '5' },
+            { text: '6️⃣ Hablar con el administrador', value: '6' }
+        ]
+    });
 }
 
 // Funciones auxiliares
