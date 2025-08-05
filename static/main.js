@@ -65,11 +65,9 @@ function showWelcomeMessage() {
     setTimeout(() => {
         hideTypingIndicator();
         addBotMessage('👋 ¡Bienvenido al Asistente de Alarmas de Claro!');
-
-        // 🔹 Habilitar input desde el inicio
-        enableInput();
-
-        // Menú principal rápido (2 seg)
+        
+        enableInput(); // 🔹 Habilitar input desde el inicio
+        
         setTimeout(showMainOptions, 2000);
     }, 1200);
 }
@@ -309,7 +307,7 @@ function escapeHtml(text) {
 
 function resetChatState() {
     chatState = { currentStep: 'welcome', selectedOption: null, isTyping: false, alarmData: { numero: null, elemento: null } };
-    enableInput(); // 🔹 Ahora habilita el input
+    enableInput(); // 🔹 habilita input al reset
 }
 
 function showReturnToMenu() {
