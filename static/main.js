@@ -65,7 +65,11 @@ function showWelcomeMessage() {
     setTimeout(() => {
         hideTypingIndicator();
         addBotMessage('👋 ¡Bienvenido al Asistente de Alarmas de Claro!');
-        setTimeout(showMainOptions, 5000);
+        
+        // 🔹 Habilitar input desde el inicio
+        enableInput(); 
+        
+        setTimeout(showMainOptions, 2000); // puedes dejar 2 seg en vez de 5 para agilizar
     }, 1200);
 }
 
@@ -304,8 +308,9 @@ function escapeHtml(text) {
 
 function resetChatState() {
     chatState = { currentStep: 'welcome', selectedOption: null, isTyping: false, alarmData: { numero: null, elemento: null } };
-    disableInput();
+    enableInput(); // <-- Habilita input en vez de deshabilitar
 }
+
 
 function showReturnToMenu() {
     addBotMessage('¿Deseas volver al menú principal?', [{ text: '🏠 Menú principal', value: 'menu' }]);
