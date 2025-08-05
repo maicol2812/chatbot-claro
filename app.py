@@ -6,17 +6,16 @@ import threading
 from pathlib import Path
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Configuración de logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+# ======================
+# CONFIGURACIÓN GLOBAL
+# ======================
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Configuración de la aplicación
 class Config:
     UPLOAD_FOLDER = Path('static/instructivos')
-    CSV_PATH = Path('CatalogoAlarmas.csv')
+    CSV_PATH = Path('data/CatalogoAlarmas.csv')  # Ajusta la ruta de tu CSV
     REQUIRED_COLUMNS = {
         'KM (TITULO DEL INSTRUCTIVO)',
         'Fabricante',
@@ -27,6 +26,10 @@ class Config:
 # Variable global para el DataFrame
 df_global = None
 
+# ======================
+# CARGA ASÍNCRONA DEL CSV
+# ======================
+
 def load_csv_async():
     """Carga el CSV en un hilo separado para no bloquear el arranque"""
     global df_global
@@ -34,73 +37,67 @@ def load_csv_async():
     def worker():
         try:
             logger.info("🚀 Iniciando carga asíncrona del CSV...")
-            
+
             if not Config.CSV_PATH.exists():
                 logger.error(f"❌ CSV no encontrado: {Config.CSV_PATH}")
                 return
-            
-            # Leer CSV en chunks
+
             chunks = []
             total_rows = 0
-            
+
+            # Leer CSV en chunks
             for chunk in pd.read_csv(
                 Config.CSV_PATH,
                 encoding='utf-8',
-                sep=';',
+                sep=';',      # Ajusta si tu CSV usa coma
                 dtype=str,
                 chunksize=1000
             ):
                 chunks.append(chunk)
                 total_rows += len(chunk)
                 logger.info(f"📊 Cargados {total_rows} registros...")
-            
+
             df = pd.concat(chunks, ignore_index=True)
-            
-            # Verificar columnas requeridas
-            if 'KM (TITULO DEL INSTRUCTIVO)' not in df.columns:
-                logger.warning("⚠️ Columna 'KM (TITULO DEL INSTRUCTIVO)' no encontrada")
-                df['KM (TITULO DEL INSTRUCTIVO)'] = 'NO_DISPONIBLE'
-            
+
+            # Validar columnas requeridas
             missing_cols = Config.REQUIRED_COLUMNS - set(df.columns)
-            if missing_cols:
-                logger.warning(f"⚠️ Columnas faltantes: {missing_cols}")
-                for col in missing_cols:
-                    df[col] = 'NO_ESPECIFICADO'
-            
+            for col in missing_cols:
+                logger.warning(f"⚠️ Columna faltante: {col}")
+                df[col] = 'NO_ESPECIFICADO'
+
             df = df.fillna('NO_ESPECIFICADO')
-            
-            # Actualizar variable global
-            global df_global
             df_global = df
-            
+
             logger.info(f"✅ CSV cargado exitosamente: {len(df)} filas")
         except Exception as e:
             logger.error(f"❌ Error cargando CSV: {str(e)}")
-    
-    # Iniciar el hilo
+
     thread = threading.Thread(target=worker)
     thread.daemon = True
     thread.start()
 
+# ======================
+# CREAR APP
+# ======================
+
 def create_app():
-    """Factory pattern para crear la app"""
     app = Flask(__name__,
                 static_folder='static',
                 static_url_path='/static')
-    
-    # Configurar proxy para Render
+
     app.wsgi_app = ProxyFix(app.wsgi_app)
-    
-    # Crear directorio de instructivos si no existe
     Config.UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
-    
-    # Iniciar carga asíncrona del CSV
+
+    # Carga asíncrona de CSV
     load_csv_async()
-    
+
     return app
 
-# Crear la app
 app = create_app()
+
+# ======================
+# RUTAS PRINCIPALES
+# ======================
 
 @app.route('/')
 def home():
@@ -114,44 +111,60 @@ def buscar_alarma():
         return jsonify({
             'error': 'Base de datos cargando, intenta en unos segundos'
         }), 503
-    
+
     try:
-        numero = request.form.get('numero', '').strip()
-        elemento = request.form.get('elemento', '').strip()
-        
+        # Soporta JSON y FormData
+        data = request.get_json(silent=True) or request.form
+        numero = str(data.get('numero', '')).strip()
+        elemento = str(data.get('elemento', '')).strip()
+
+        logger.info(f"🔍 Buscando alarma - Número: {numero}, Elemento: {elemento}")
+
         # Búsqueda case-insensitive
         mask = (
             df_global['TEXTO 1 DE LA ALARMA'].str.contains(numero, case=False, na=False) &
             df_global['Fabricante'].str.contains(elemento, case=False, na=False)
         )
-        
+
         resultados = df_global[mask]
-        
+
         if len(resultados) > 0:
-            alarma = resultados.iloc[0]
-            response = {
+            alarma = resultados.iloc[0].to_dict()
+            pdf_path = None
+
+            # Validar PDF asociado
+            titulo_pdf = alarma.get('KM (TITULO DEL INSTRUCTIVO)', 'NO_DISPONIBLE')
+            if titulo_pdf != 'NO_DISPONIBLE':
+                pdf_name = f"{titulo_pdf}.pdf"
+                pdf_full_path = Config.UPLOAD_FOLDER / pdf_name
+                if pdf_full_path.exists():
+                    pdf_path = f"/static/instructivos/{pdf_name}"
+                else:
+                    create_placeholder_file(pdf_full_path, pdf_name)
+                    pdf_path = f"/static/instructivos/{pdf_name}"
+
+            return jsonify({
                 'encontrada': True,
-                'datos': alarma.to_dict(),
-                'pdf_path': None
-            }
-            
-            # Verificar PDF
-            if alarma['KM (TITULO DEL INSTRUCTIVO)'] != 'NO_DISPONIBLE':
-                pdf_name = f"{alarma['KM (TITULO DEL INSTRUCTIVO)']}.pdf"
-                pdf_path = Config.UPLOAD_FOLDER / pdf_name
-                if pdf_path.exists():
-                    response['pdf_path'] = f"/static/instructivos/{pdf_name}"
-            
-            return jsonify(response)
-        
+                'datos': alarma,
+                'pdf_path': pdf_path
+            })
+
         return jsonify({
             'encontrada': False,
             'mensaje': 'Alarma no encontrada'
         })
-        
+
     except Exception as e:
         logger.error(f"Error en búsqueda: {str(e)}")
         return jsonify({'error': 'Error procesando búsqueda'}), 500
+
+@app.route('/static/instructivos/<filename>')
+def serve_instructivo(filename):
+    """Sirve archivos PDF/Word de instructivos"""
+    file_path = Config.UPLOAD_FOLDER / filename
+    if not file_path.exists():
+        create_placeholder_file(file_path, filename)
+    return send_from_directory(Config.UPLOAD_FOLDER, filename)
 
 @app.route('/health')
 def health():
@@ -161,3 +174,28 @@ def health():
         'csv_loaded': df_global is not None,
         'rows': len(df_global) if df_global is not None else 0
     })
+
+# ======================
+# UTILIDADES
+# ======================
+
+def create_placeholder_file(file_path, filename):
+    """Crear archivo placeholder para demo"""
+    try:
+        if filename.endswith('.pdf'):
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(f"Placeholder PDF para {filename}\n")
+        else:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(f"Placeholder file para {filename}")
+        logger.info(f"📝 Creado archivo placeholder: {filename}")
+    except Exception as e:
+        logger.error(f"❌ Error al crear placeholder: {str(e)}")
+
+# ======================
+# RUN LOCAL
+# ======================
+
+if __name__ == '__main__':
+    logger.info("🚀 Iniciando Chatbot Claro...")
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
