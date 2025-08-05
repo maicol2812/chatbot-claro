@@ -121,10 +121,13 @@ function handleSendMessage() {
 
 function processUserInput(message) {
     if (chatState.currentStep === 'searchingAlarm') {
+        const formData = new FormData();
+        formData.append('numero', message);
+        formData.append('elemento', ''); // Elemento vacío si no aplica
+
         fetch('/buscar_alarma', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: message })
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
@@ -151,6 +154,32 @@ function processUserInput(message) {
                 { text: '🏠 Volver al menú', value: 'menu' }
             ]
         });
+    }
+}
+
+// Nueva función agregada: Maneja los clics de los botones de opciones
+function handleOptionSelect(option) {
+    switch(option) {
+        case '1':
+        case 'search':
+            chatState.currentStep = 'searchingAlarm';
+            addBotMessage('Por favor ingresa el número de la alarma que deseas buscar.');
+            break;
+
+        case '2':
+        case 'docs':
+            chatState.currentStep = 'docs';
+            addBotMessage('Aquí está la documentación disponible: /static/instructivos/');
+            break;
+
+        case 'menu':
+            chatState.currentStep = 'welcome';
+            showWelcomeMessage();
+            break;
+
+        default:
+            addBotMessage('No entendí esa opción. Intenta de nuevo.');
+            break;
     }
 }
 
@@ -189,3 +218,4 @@ window.chatbot = {
     addUserMessage,
     showWelcomeMessage
 };
+// Asegurar que el DOM esté completamente cargado antes de ejecutar el código
