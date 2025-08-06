@@ -432,6 +432,8 @@
             async sendChatMessage(message) {
                 try {
                     const response = await fetch('/chat_message', {
+
+
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -638,5 +640,7 @@
             new ChatBot();
         });
     </script>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+
 </body>
 </html>

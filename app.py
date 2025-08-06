@@ -158,6 +158,61 @@ def buscar_alarma():
         logger.error(f"Error en búsqueda: {str(e)}")
         return jsonify({'error': 'Error procesando búsqueda'}), 500
 
+
+@app.route('/chat_message', methods=['POST'])
+def chat_message():
+    """Endpoint principal del chatbot"""
+    data = request.get_json(silent=True) or {}
+    user_message = data.get('message', '').strip()
+    state = data.get('state', 'menu')
+
+    # Simulación de respuesta del bot
+    if not user_message or state == 'menu':
+        return jsonify({
+            'response': "👋 ¡Hola! Soy el Asistente Virtual Claro.\n\nEscribe un número de alarma o un elemento para comenzar.",
+            'state': 'awaiting_input',
+            'options': []
+        })
+
+    # Ejemplo: búsqueda simple
+    if df_global is not None:
+        mask = df_global['TEXTO 1 DE LA ALARMA'].str.contains(user_message, case=False, na=False)
+        resultados = df_global[mask]
+        if len(resultados) > 0:
+            alarma = resultados.iloc[0].to_dict()
+            pdf_path = None
+
+            titulo_pdf = alarma.get('KM (TITULO DEL INSTRUCTIVO)', 'NO_DISPONIBLE')
+            if titulo_pdf != 'NO_DISPONIBLE':
+                pdf_name = f"{titulo_pdf}.pdf"
+                pdf_full_path = Config.UPLOAD_FOLDER / pdf_name
+                if pdf_full_path.exists():
+                    pdf_path = f"/static/instructivos/{pdf_name}"
+                else:
+                    create_placeholder_file(pdf_full_path, pdf_name)
+                    pdf_path = f"/static/instructivos/{pdf_name}"
+
+            options = []
+            if pdf_path:
+                options.append({
+                    'text': '📄 Ver instructivo',
+                    'value': 'pdf',
+                    'file_path': pdf_path
+                })
+
+            return jsonify({
+                'response': f"✅ Alarma encontrada: {alarma['TEXTO 1 DE LA ALARMA']}",
+                'state': 'menu',
+                'options': options
+            })
+
+    return jsonify({
+        'response': "❌ No encontré resultados para tu búsqueda. Intenta con otro número de alarma.",
+        'state': 'menu',
+        'options': []
+    })
+
+
 @app.route('/static/instructivos/<filename>')
 def serve_instructivo(filename):
     """Sirve archivos PDF/Word de instructivos"""
