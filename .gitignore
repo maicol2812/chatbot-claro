@@ -14,3 +14,13 @@ documentos_alarmas/
 .DS_Store
 .idea/
 .vscode/" > .gitignore
+__pycache__/
+*.pyc
+instance/
+.env
+*.db
+data/
+static/instructivos/*.pdf
+static/instructivos/*.docx
+static/instructivos/*.xlsx
+static/instructivos/*.pptx
