@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistente de Alarmas - Claro</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
@@ -19,6 +20,7 @@
             --gray-text: #333333;
             --shadow: rgba(0, 0, 0, 0.1);
             --shadow-strong: rgba(0, 0, 0, 0.15);
+            --gradient-bg: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
         }
 
         * {
@@ -29,12 +31,85 @@
 
         body {
             font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: var(--gradient-bg);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Elementos de fondo decorativos */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(230, 0, 0, 0.05) 0%, transparent 70%);
+            z-index: -1;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -50%;
+            left: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(230, 0, 0, 0.03) 0%, transparent 70%);
+            z-index: -1;
+            animation: float 25s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .header-section {
+            text-align: center;
+            color: var(--gray-text);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--claro-red);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-section p {
+            font-size: 1.2rem;
+            font-weight: 300;
+            opacity: 0.8;
+            max-width: 600px;
         }
 
         .chat-container {
@@ -43,11 +118,23 @@
             height: 700px;
             background: var(--white);
             border-radius: 20px;
-            box-shadow: 0 20px 40px var(--shadow-strong);
+            box-shadow: 0 25px 50px var(--shadow-strong);
             display: flex;
             flex-direction: column;
             overflow: hidden;
             position: relative;
+            animation: slideInUp 1s ease-out 0.3s both;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .chat-header {
@@ -75,15 +162,35 @@
             100% { left: 100%; }
         }
 
-        .chat-header h1 {
+        .chat-header h2 {
             font-size: 1.3rem;
             font-weight: 500;
             margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .chat-header .subtitle {
             font-size: 0.9rem;
             opacity: 0.9;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
 
         .chat-messages {
@@ -141,17 +248,19 @@
 
         .message-content {
             max-width: 80%;
-            padding: 12px 16px;
+            padding: 14px 18px;
             border-radius: 18px;
             word-wrap: break-word;
-            line-height: 1.4;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            position: relative;
         }
 
         .message.user .message-content {
             background: linear-gradient(135deg, var(--claro-red) 0%, var(--claro-red-light) 100%);
             color: var(--white);
             border-radius: 18px 18px 5px 18px;
-            box-shadow: 0 2px 8px rgba(230, 0, 0, 0.3);
+            box-shadow: 0 3px 10px rgba(230, 0, 0, 0.3);
         }
 
         .message.bot .message-content {
@@ -159,6 +268,7 @@
             color: var(--gray-text);
             border-radius: 18px 18px 18px 5px;
             box-shadow: 0 2px 8px var(--shadow);
+            border-left: 3px solid var(--claro-red);
         }
 
         .options-container {
@@ -172,7 +282,7 @@
             background: linear-gradient(135deg, var(--claro-red) 0%, var(--claro-red-light) 100%);
             color: var(--white);
             border: none;
-            padding: 12px 20px;
+            padding: 14px 20px;
             border-radius: 25px;
             cursor: pointer;
             font-size: 0.9rem;
@@ -182,12 +292,29 @@
             text-align: left;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .option-button:hover::before {
+            left: 100%;
         }
 
         .option-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(230, 0, 0, 0.4);
+            box-shadow: 0 6px 15px rgba(230, 0, 0, 0.4);
         }
 
         .option-button:active {
@@ -205,7 +332,7 @@
             background: var(--white);
             color: var(--claro-red);
             border: 2px solid var(--claro-red);
-            padding: 8px 16px;
+            padding: 10px 16px;
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.85rem;
@@ -244,13 +371,14 @@
             align-items: center;
             gap: 4px;
             box-shadow: 0 2px 8px var(--shadow);
+            border-left: 3px solid var(--claro-red);
         }
 
         .typing-dots span {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: var(--gray-dark);
+            background: var(--claro-red);
             animation: typing 1.4s infinite ease-in-out;
         }
 
@@ -275,12 +403,12 @@
             border-top: 1px solid var(--gray-medium);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .chat-input {
             flex: 1;
-            border: 1px solid var(--gray-medium);
+            border: 2px solid var(--gray-medium);
             background: var(--gray-light);
             border-radius: 25px;
             padding: 12px 20px;
@@ -294,7 +422,7 @@
         .chat-input:focus {
             background: var(--white);
             border-color: var(--claro-red);
-            box-shadow: 0 0 0 2px rgba(230, 0, 0, 0.1);
+            box-shadow: 0 0 0 3px rgba(230, 0, 0, 0.1);
         }
 
         .chat-input::placeholder {
@@ -302,8 +430,8 @@
         }
 
         .send-button {
-            width: 45px;
-            height: 45px;
+            width: 48px;
+            height: 48px;
             border: none;
             background: linear-gradient(135deg, var(--claro-red) 0%, var(--claro-red-light) 100%);
             color: var(--white);
@@ -313,41 +441,52 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(230, 0, 0, 0.3);
+            box-shadow: 0 3px 10px rgba(230, 0, 0, 0.3);
         }
 
         .send-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(230, 0, 0, 0.4);
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(230, 0, 0, 0.4);
         }
 
         .send-button:active {
             transform: scale(0.95);
         }
 
+        .send-button:disabled {
+            background: var(--gray-medium);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .alarm-details {
             background: var(--white);
-            border: 1px solid var(--gray-medium);
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 10px;
-            box-shadow: 0 2px 8px var(--shadow);
+            border: 2px solid var(--claro-red);
+            border-radius: 15px;
+            padding: 18px;
+            margin-top: 12px;
+            box-shadow: 0 4px 12px var(--shadow);
         }
 
         .alarm-details h4 {
             color: var(--claro-red);
-            margin-bottom: 10px;
-            font-size: 1rem;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .alarm-details p {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-size: 0.9rem;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         .alarm-details strong {
             color: var(--gray-text);
+            font-weight: 600;
         }
 
         /* Modal para archivos */
@@ -359,8 +498,9 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
             animation: modalFadeIn 0.3s ease;
+            backdrop-filter: blur(5px);
         }
 
         .modal.show {
@@ -376,13 +516,14 @@
 
         .modal-content {
             background-color: var(--white);
-            border-radius: 15px;
+            border-radius: 20px;
             width: 90%;
             max-width: 400px;
-            padding: 20px;
+            padding: 25px;
             text-align: center;
-            box-shadow: 0 20px 40px var(--shadow-strong);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
             animation: modalSlideIn 0.3s ease;
+            position: relative;
         }
 
         @keyframes modalSlideIn {
@@ -397,37 +538,42 @@
         }
 
         .modal-header {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .modal-header h3 {
             color: var(--claro-red);
             margin-bottom: 10px;
+            font-size: 1.3rem;
         }
 
         .modal-buttons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .modal-button {
             background: linear-gradient(135deg, var(--claro-red) 0%, var(--claro-red-light) 100%);
             color: var(--white);
             border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 12px 24px;
+            border-radius: 25px;
             cursor: pointer;
             font-size: 0.9rem;
             font-weight: 500;
             transition: all 0.3s ease;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 3px 10px rgba(230, 0, 0, 0.3);
         }
 
         .modal-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(230, 0, 0, 0.4);
+            box-shadow: 0 5px 15px rgba(230, 0, 0, 0.4);
         }
 
         .modal-button.secondary {
@@ -443,23 +589,45 @@
 
         .close-modal {
             position: absolute;
-            top: 10px;
-            right: 15px;
+            top: 15px;
+            right: 20px;
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             color: var(--gray-dark);
             cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--claro-red);
+        }
+
+        /* Footer */
+        .footer-section {
+            text-align: center;
+            color: var(--gray-dark);
+            font-size: 0.9rem;
+            opacity: 0.8;
+            animation: fadeInUp 1s ease-out 0.6s both;
         }
 
         /* Responsive */
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             body {
                 padding: 10px;
             }
+
+            .header-section h1 {
+                font-size: 2rem;
+            }
+
+            .header-section p {
+                font-size: 1rem;
+            }
             
             .chat-container {
-                height: calc(100vh - 20px);
+                height: calc(100vh - 100px);
                 max-width: none;
                 border-radius: 15px;
             }
@@ -468,7 +636,7 @@
                 padding: 15px;
             }
             
-            .chat-header h1 {
+            .chat-header h2 {
                 font-size: 1.1rem;
             }
             
@@ -478,6 +646,8 @@
             
             .message-content {
                 max-width: 85%;
+                font-size: 0.9rem;
+                padding: 12px 16px;
             }
             
             .options-container {
@@ -485,7 +655,7 @@
             }
             
             .option-button {
-                padding: 10px 16px;
+                padding: 12px 16px;
                 font-size: 0.85rem;
             }
             
@@ -495,37 +665,69 @@
             
             .modal-content {
                 width: 95%;
-                padding: 15px;
+                padding: 20px;
+            }
+
+            .modal-buttons {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-section h1 {
+                font-size: 1.7rem;
+            }
+
+            .chat-container {
+                height: calc(100vh - 60px);
+            }
+
+            .main-container {
+                gap: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <!-- Header -->
-        <div class="chat-header">
-            <h1><i class="fas fa-shield-alt"></i> Asistente de Alarmas</h1>
-            <div class="subtitle">Claro - Monitoreo de Plataformas</div>
+    <div class="main-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1><i class="fas fa-shield-alt"></i> Sistema de Monitoreo</h1>
+            <p>Asistente inteligente para consulta de alarmas y gestión de plataformas Claro</p>
         </div>
 
-        <!-- Mensajes -->
-        <div id="chatMessages" class="chat-messages">
-            <!-- Los mensajes se agregan dinámicamente -->
-        </div>
-        
-        <!-- Indicador de escritura -->
-        <div id="typingIndicator" class="typing-indicator">
-            <div class="typing-dots">
-                <span></span><span></span><span></span>
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <!-- Header -->
+            <div class="chat-header">
+                <h2><i class="fas fa-robot"></i> Asistente Virtual<span class="status-indicator"></span></h2>
+                <div class="subtitle">Claro - Monitoreo de Plataformas</div>
+            </div>
+
+            <!-- Mensajes -->
+            <div id="chatMessages" class="chat-messages">
+                <!-- Los mensajes se agregan dinámicamente -->
+            </div>
+            
+            <!-- Indicador de escritura -->
+            <div id="typingIndicator" class="typing-indicator">
+                <div class="typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+            
+            <!-- Área de input -->
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Escribe tu mensaje aquí...">
+                <button id="sendButton" class="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
             </div>
         </div>
-        
-        <!-- Área de input -->
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" class="chat-input" placeholder="Escribe tu mensaje..." disabled>
-            <button id="sendButton" class="send-button" disabled>
-                <i class="fas fa-paper-plane"></i>
-            </button>
+
+        <!-- Footer -->
+        <div class="footer-section">
+            <p><i class="fas fa-copyright"></i> 2024 Claro Telecom - Sistema de Monitoreo de Alarmas</p>
         </div>
     </div>
 
@@ -534,8 +736,8 @@
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal()">&times;</button>
             <div class="modal-header">
-                <h3 id="modalTitle">Abrir Archivo</h3>
-                <p id="modalDescription">¿Cómo deseas abrir el archivo?</p>
+                <h3 id="modalTitle"><i class="fas fa-file-alt"></i> Abrir Documento</h3>
+                <p id="modalDescription">Selecciona cómo deseas acceder al archivo:</p>
             </div>
             <div class="modal-buttons">
                 <a id="modalDownload" href="#" class="modal-button" target="_blank">
@@ -548,6 +750,503 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script>
+        class ChatBot {
+            constructor() {
+                this.chatMessages = document.getElementById('chatMessages');
+                this.chatInput = document.getElementById('chatInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.typingIndicator = document.getElementById('typingIndicator');
+                
+                this.currentFlow = 'welcome';
+                this.alarmNumber = '';
+                this.element = '';
+                
+                this.init();
+            }
+            
+            init() {
+                // Event listeners
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.sendMessage();
+                    }
+                });
+                
+                // Mostrar mensaje de bienvenida
+                setTimeout(() => {
+                    this.showWelcomeMessage();
+                }, 1000);
+                
+                // Auto-focus en el input
+                setTimeout(() => {
+                    this.chatInput.focus();
+                }, 1500);
+            }
+            
+            showTyping() {
+                this.typingIndicator.classList.add('show');
+                this.scrollToBottom();
+            }
+            
+            hideTyping() {
+                this.typingIndicator.classList.remove('show');
+            }
+            
+            scrollToBottom() {
+                setTimeout(() => {
+                    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+                }, 100);
+            }
+            
+            enableInput() {
+                this.chatInput.disabled = false;
+                this.sendButton.disabled = false;
+                this.chatInput.focus();
+            }
+            
+            disableInput() {
+                this.chatInput.disabled = true;
+                this.sendButton.disabled = true;
+            }
+            
+            addMessage(content, isUser = false, showOptions = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                
+                if (typeof content === 'string') {
+                    contentDiv.innerHTML = content;
+                } else {
+                    contentDiv.appendChild(content);
+                }
+                
+                messageDiv.appendChild(contentDiv);
+                this.chatMessages.appendChild(messageDiv);
+                
+                this.scrollToBottom();
+                
+                if (!isUser) {
+                    setTimeout(() => {
+                        this.enableInput();
+                    }, 500);
+                }
+            }
+            
+            sendMessage() {
+                const message = this.chatInput.value.trim();
+                if (!message) return;
+                
+                this.addMessage(message, true);
+                this.chatInput.value = '';
+                this.disableInput();
+                
+                setTimeout(() => {
+                    this.processMessage(message);
+                }, 800);
+            }
+            
+            processMessage(message) {
+                this.showTyping();
+                
+                setTimeout(() => {
+                    this.hideTyping();
+                    
+                    switch (this.currentFlow) {
+                        case 'welcome':
+                            this.handleWelcomeResponse(message);
+                            break;
+                        case 'alarm_number':
+                            this.handleAlarmNumber(message);
+                            break;
+                        case 'element':
+                            this.handleElement(message);
+                            break;
+                        default:
+                            this.addMessage('No entiendo tu solicitud. ¿Puedes ser más específico?');
+                            this.enableInput();
+                    }
+                }, 1500);
+            }
+            
+            showWelcomeMessage() {
+                const welcomeContent = document.createElement('div');
+                welcomeContent.innerHTML = `
+                    <div style="margin-bottom: 15px;">
+                        <i class="fas fa-wave-square" style="color: var(--claro-red); margin-right: 8px;"></i>
+                        ¡Hola! Soy tu asistente virtual de Claro. Te ayudo a consultar información sobre alarmas de nuestras plataformas.
+                    </div>
+                    <div>¿Qué necesitas hacer hoy?</div>
+                `;
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'options-container';
+                
+                const options = [
+                    { text: 'Consultar información de una alarma', icon: 'fas fa-search', action: 'consult_alarm' },
+                    { text: 'Ver ayuda general', icon: 'fas fa-question-circle', action: 'general_help' },
+                    { text: 'Contactar soporte técnico', icon: 'fas fa-headset', action: 'support' }
+                ];
+                
+                options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.className = 'option-button';
+                    button.innerHTML = `<i class="${option.icon}"></i> ${option.text}`;
+                    button.addEventListener('click', () => {
+                        this.handleOptionClick(option.action, option.text);
+                    });
+                    optionsContainer.appendChild(button);
+                });
+                
+                welcomeContent.appendChild(optionsContainer);
+                this.addMessage(welcomeContent);
+            }
+            
+            handleOptionClick(action, text) {
+                this.addMessage(text, true);
+                this.disableInput();
+                
+                this.showTyping();
+                setTimeout(() => {
+                    this.hideTyping();
+                    
+                    switch (action) {
+                        case 'consult_alarm':
+                            this.currentFlow = 'alarm_number';
+                            this.addMessage('Perfecto. Para consultar información de una alarma, necesito que me proporciones el <strong>número de la alarma</strong>.<br><br><i class="fas fa-info-circle" style="color: var(--claro-red);"></i> Ejemplo: 12345');
+                            break;
+                        case 'general_help':
+                            this.showGeneralHelp();
+                            break;
+                        case 'support':
+                            this.showSupportInfo();
+                            break;
+                    }
+                }, 1200);
+            }
+            
+            handleWelcomeResponse(message) {
+                if (message.toLowerCase().includes('alarma') || message.toLowerCase().includes('consulta')) {
+                    this.currentFlow = 'alarm_number';
+                    this.addMessage('Entendido. Para consultar información de una alarma, necesito que me proporciones el <strong>número de la alarma</strong>.<br><br><i class="fas fa-lightbulb" style="color: var(--claro-red);"></i> <em>Ejemplo: 12345</em>');
+                } else {
+                    this.addMessage('Te ayudo con consultas sobre alarmas. ¿Tienes el número de alguna alarma que quieras consultar?');
+                    this.enableInput();
+                }
+            }
+            
+            handleAlarmNumber(message) {
+                const alarmNum = message.replace(/\D/g, ''); // Solo números
+                if (alarmNum && alarmNum.length > 0) {
+                    this.alarmNumber = alarmNum;
+                    this.currentFlow = 'element';
+                    
+                    const elementContent = document.createElement('div');
+                    elementContent.innerHTML = `
+                        <div style="margin-bottom: 15px;">
+                            <i class="fas fa-check-circle" style="color: #28a745; margin-right: 8px;"></i>
+                            Perfecto. Tengo registrado el número de alarma: <strong>${alarmNum}</strong>
+                        </div>
+                        <div>Ahora necesito saber sobre qué elemento específico quieres consultar:</div>
+                    `;
+                    
+                    const optionsContainer = document.createElement('div');
+                    optionsContainer.className = 'options-container';
+                    
+                    const elements = [
+                        { text: 'Información general de la alarma', icon: 'fas fa-info-circle', action: 'general' },
+                        { text: 'Procedimiento de resolución', icon: 'fas fa-tools', action: 'procedure' },
+                        { text: 'Documentación técnica', icon: 'fas fa-file-alt', action: 'documentation' },
+                        { text: 'Histórico y estado', icon: 'fas fa-history', action: 'history' }
+                    ];
+                    
+                    elements.forEach(element => {
+                        const button = document.createElement('button');
+                        button.className = 'option-button';
+                        button.innerHTML = `<i class="${element.icon}"></i> ${element.text}`;
+                        button.addEventListener('click', () => {
+                            this.handleElementClick(element.action, element.text);
+                        });
+                        optionsContainer.appendChild(button);
+                    });
+                    
+                    elementContent.appendChild(optionsContainer);
+                    this.addMessage(elementContent);
+                } else {
+                    this.addMessage('Por favor, ingresa un número de alarma válido. <br><br><i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i> <em>Solo números, ejemplo: 12345</em>');
+                    this.enableInput();
+                }
+            }
+            
+            handleElementClick(action, text) {
+                this.addMessage(text, true);
+                this.element = action;
+                this.disableInput();
+                
+                this.showTyping();
+                setTimeout(() => {
+                    this.searchAlarm();
+                }, 1500);
+            }
+            
+            handleElement(message) {
+                this.element = message.toLowerCase();
+                this.showTyping();
+                setTimeout(() => {
+                    this.searchAlarm();
+                }, 1500);
+            }
+            
+            async searchAlarm() {
+                try {
+                    const response = await fetch('/buscar_alarma', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            numero_alarma: this.alarmNumber,
+                            elemento: this.element
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    this.hideTyping();
+                    
+                    if (data.success) {
+                        this.showAlarmResults(data);
+                    } else {
+                        this.showError(data.message || 'No se pudo encontrar información para esta alarma.');
+                    }
+                } catch (error) {
+                    this.hideTyping();
+                    this.showError('Error de conexión. Por favor, intenta nuevamente.');
+                }
+            }
+            
+            showAlarmResults(data) {
+                const resultsContent = document.createElement('div');
+                resultsContent.innerHTML = `
+                    <div style="margin-bottom: 15px;">
+                        <i class="fas fa-check-circle" style="color: #28a745; margin-right: 8px;"></i>
+                        <strong>Información encontrada para la alarma ${this.alarmNumber}</strong>
+                    </div>
+                `;
+                
+                const alarmDetails = document.createElement('div');
+                alarmDetails.className = 'alarm-details';
+                alarmDetails.innerHTML = `
+                    <h4><i class="fas fa-clipboard-list"></i> Detalles de la Alarma</h4>
+                    <p><strong>Número:</strong> ${data.numero_alarma || this.alarmNumber}</p>
+                    <p><strong>Descripción:</strong> ${data.descripcion || 'No disponible'}</p>
+                    <p><strong>Severidad:</strong> ${data.severidad || 'No especificada'}</p>
+                    <p><strong>Estado:</strong> ${data.estado || 'No especificado'}</p>
+                    <p><strong>Plataforma:</strong> ${data.plataforma || 'No especificada'}</p>
+                    ${data.fecha_creacion ? `<p><strong>Fecha:</strong> ${data.fecha_creacion}</p>` : ''}
+                    ${data.observaciones ? `<p><strong>Observaciones:</strong> ${data.observaciones}</p>` : ''}
+                `;
+                
+                resultsContent.appendChild(alarmDetails);
+                
+                // Botones de acción
+                if (data.archivos && data.archivos.length > 0) {
+                    const actionButtons = document.createElement('div');
+                    actionButtons.className = 'action-buttons';
+                    actionButtons.innerHTML = '<div style="margin: 15px 0 10px; font-weight: 500;"><i class="fas fa-paperclip"></i> Documentos disponibles:</div>';
+                    
+                    data.archivos.forEach(archivo => {
+                        const button = document.createElement('button');
+                        button.className = 'action-button';
+                        button.innerHTML = `<i class="fas fa-file-${archivo.tipo === 'pdf' ? 'pdf' : 'word'}"></i> ${archivo.nombre}`;
+                        button.addEventListener('click', () => {
+                            this.openFileModal(archivo.ruta, archivo.nombre);
+                        });
+                        actionButtons.appendChild(button);
+                    });
+                    
+                    resultsContent.appendChild(actionButtons);
+                }
+                
+                // Botón para nueva consulta
+                const newSearchButton = document.createElement('div');
+                newSearchButton.className = 'action-buttons';
+                newSearchButton.style.marginTop = '20px';
+                newSearchButton.innerHTML = `
+                    <button class="option-button" onclick="chatBot.resetChat()" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-redo"></i> Nueva consulta
+                    </button>
+                `;
+                
+                resultsContent.appendChild(newSearchButton);
+                this.addMessage(resultsContent);
+            }
+            
+            showError(message) {
+                const errorContent = document.createElement('div');
+                errorContent.innerHTML = `
+                    <div style="color: #dc3545; margin-bottom: 15px;">
+                        <i class="fas fa-exclamation-circle"></i> ${message}
+                    </div>
+                    <div>¿Te gustaría intentar con otro número de alarma?</div>
+                `;
+                
+                const retryButton = document.createElement('div');
+                retryButton.className = 'action-buttons';
+                retryButton.style.marginTop = '15px';
+                retryButton.innerHTML = `
+                    <button class="option-button" onclick="chatBot.resetToAlarmNumber()" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-redo"></i> Intentar con otra alarma
+                    </button>
+                    <button class="action-button" onclick="chatBot.resetChat()">
+                        <i class="fas fa-home"></i> Volver al inicio
+                    </button>
+                `;
+                
+                errorContent.appendChild(retryButton);
+                this.addMessage(errorContent);
+            }
+            
+            showGeneralHelp() {
+                const helpContent = document.createElement('div');
+                helpContent.innerHTML = `
+                    <div style="margin-bottom: 15px;">
+                        <i class="fas fa-question-circle" style="color: var(--claro-red); margin-right: 8px;"></i>
+                        <strong>Cómo usar el asistente</strong>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <i class="fas fa-check" style="color: #28a745; margin-right: 8px;"></i>
+                        Proporciona el número de alarma que deseas consultar
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <i class="fas fa-check" style="color: #28a745; margin-right: 8px;"></i>
+                        Selecciona el tipo de información que necesitas
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <i class="fas fa-check" style="color: #28a745; margin-right: 8px;"></i>
+                        Accede a documentación y procedimientos
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <i class="fas fa-check" style="color: #28a745; margin-right: 8px;"></i>
+                        Obtén información detallada sobre el estado de las alarmas
+                    </div>
+                `;
+                
+                const backButton = document.createElement('div');
+                backButton.className = 'action-buttons';
+                backButton.innerHTML = `
+                    <button class="option-button" onclick="chatBot.resetChat()" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-arrow-left"></i> Volver al menú principal
+                    </button>
+                `;
+                
+                helpContent.appendChild(backButton);
+                this.addMessage(helpContent);
+            }
+            
+            showSupportInfo() {
+                const supportContent = document.createElement('div');
+                supportContent.innerHTML = `
+                    <div style="margin-bottom: 15px;">
+                        <i class="fas fa-headset" style="color: var(--claro-red); margin-right: 8px;"></i>
+                        <strong>Información de Contacto</strong>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <i class="fas fa-phone" style="color: var(--claro-red); margin-right: 8px;"></i>
+                        <strong>Mesa de Ayuda:</strong> 123-456-7890
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <i class="fas fa-envelope" style="color: var(--claro-red); margin-right: 8px;"></i>
+                        <strong>Email:</strong> soporte@claro.com
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <i class="fas fa-clock" style="color: var(--claro-red); margin-right: 8px;"></i>
+                        <strong>Horarios:</strong> 24/7 - Atención continua
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <i class="fas fa-globe" style="color: var(--claro-red); margin-right: 8px;"></i>
+                        <strong>Portal:</strong> soporte.claro.com
+                    </div>
+                `;
+                
+                const backButton = document.createElement('div');
+                backButton.className = 'action-buttons';
+                backButton.innerHTML = `
+                    <button class="option-button" onclick="chatBot.resetChat()" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-arrow-left"></i> Volver al menú principal
+                    </button>
+                `;
+                
+                supportContent.appendChild(backButton);
+                this.addMessage(supportContent);
+            }
+            
+            openFileModal(filePath, fileName) {
+                const modal = document.getElementById('fileModal');
+                const modalTitle = document.getElementById('modalTitle');
+                const modalDescription = document.getElementById('modalDescription');
+                const modalDownload = document.getElementById('modalDownload');
+                const modalView = document.getElementById('modalView');
+                
+                modalTitle.innerHTML = `<i class="fas fa-file-alt"></i> ${fileName}`;
+                modalDescription.textContent = 'Selecciona cómo deseas acceder al documento:';
+                
+                modalDownload.href = `/static/instructivos/${filePath}`;
+                modalDownload.download = fileName;
+                
+                modalView.href = `/static/instructivos/${filePath}`;
+                
+                modal.classList.add('show');
+            }
+            
+            resetChat() {
+                this.currentFlow = 'welcome';
+                this.alarmNumber = '';
+                this.element = '';
+                this.chatMessages.innerHTML = '';
+                
+                setTimeout(() => {
+                    this.showWelcomeMessage();
+                }, 500);
+            }
+            
+            resetToAlarmNumber() {
+                this.currentFlow = 'alarm_number';
+                this.alarmNumber = '';
+                this.element = '';
+                
+                this.addMessage('De acuerdo. Por favor, proporciona el nuevo <strong>número de alarma</strong> que deseas consultar.<br><br><i class="fas fa-lightbulb" style="color: var(--claro-red);"></i> <em>Ejemplo: 12345</em>');
+            }
+        }
+        
+        // Funciones globales para el modal
+        function closeModal() {
+            const modal = document.getElementById('fileModal');
+            modal.classList.remove('show');
+        }
+        
+        // Cerrar modal al hacer click fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('fileModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+        
+        // Cerrar modal con tecla Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // Inicializar el chatbot cuando se carga la página
+        let chatBot;
+        document.addEventListener('DOMContentLoaded', function() {
+            chatBot = new ChatBot();
+        });
+    </script>
 </body>
 </html>
