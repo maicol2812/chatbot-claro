@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class Config:
     UPLOAD_FOLDER = Path('static/instructivos')
-    CSV_PATH = Path('data/CatalogoAlarmas.csv')  # Ajusta la ruta de tu CSV
+    CSV_PATH = Path('data/CatalogoAlarmas.csv')  # Ajusta la ruta si tu CSV está en otro lado
     REQUIRED_COLUMNS = {
         'KM (TITULO DEL INSTRUCTIVO)',
         'Fabricante',
@@ -69,6 +69,7 @@ def load_csv_async():
             df_global = df
 
             logger.info(f"✅ CSV cargado exitosamente: {len(df)} filas")
+            logger.info(f"📄 Columnas: {list(df.columns)}")
         except Exception as e:
             logger.error(f"❌ Error cargando CSV: {str(e)}")
 
@@ -118,15 +119,22 @@ def buscar_alarma():
         numero = str(data.get('numero', '')).strip()
         elemento = str(data.get('elemento', '')).strip()
 
-        logger.info(f"🔍 Buscando alarma - Número: {numero}, Elemento: {elemento}")
+        logger.info(f"🔍 Buscando alarma - Numero: '{numero}' | Elemento: '{elemento}'")
 
-        # Búsqueda case-insensitive
-        mask = (
-            df_global['TEXTO 1 DE LA ALARMA'].str.contains(numero, case=False, na=False) &
-            df_global['Fabricante'].str.contains(elemento, case=False, na=False)
-        )
+        # Si ambos vienen vacíos, no buscar nada
+        if not numero and not elemento:
+            return jsonify({
+                'encontrada': False,
+                'mensaje': 'Debes ingresar un número de alarma o un elemento'
+            })
+
+        # Búsqueda flexible (OR lógico)
+        mask_num = df_global['TEXTO 1 DE LA ALARMA'].str.contains(numero, case=False, na=False) if numero else False
+        mask_elem = df_global['Fabricante'].str.contains(elemento, case=False, na=False) if elemento else False
+        mask = mask_num | mask_elem
 
         resultados = df_global[mask]
+        logger.info(f"🔹 Coincidencias encontradas: {len(resultados)}")
 
         if len(resultados) > 0:
             alarma = resultados.iloc[0].to_dict()
@@ -151,13 +159,12 @@ def buscar_alarma():
 
         return jsonify({
             'encontrada': False,
-            'mensaje': 'Alarma no encontrada'
+            'mensaje': 'No encontré resultados para tu búsqueda. Intenta con otro número de alarma.'
         })
 
     except Exception as e:
         logger.error(f"Error en búsqueda: {str(e)}")
         return jsonify({'error': 'Error procesando búsqueda'}), 500
-
 
 @app.route('/chat_message', methods=['POST'])
 def chat_message():
@@ -174,10 +181,12 @@ def chat_message():
             'options': []
         })
 
-    # Ejemplo: búsqueda simple
     if df_global is not None:
-        mask = df_global['TEXTO 1 DE LA ALARMA'].str.contains(user_message, case=False, na=False)
+        # Reutilizamos la búsqueda flexible
+        mask = df_global['TEXTO 1 DE LA ALARMA'].str.contains(user_message, case=False, na=False) | \
+               df_global['Fabricante'].str.contains(user_message, case=False, na=False)
         resultados = df_global[mask]
+
         if len(resultados) > 0:
             alarma = resultados.iloc[0].to_dict()
             pdf_path = None
@@ -211,7 +220,6 @@ def chat_message():
         'state': 'menu',
         'options': []
     })
-
 
 @app.route('/static/instructivos/<filename>')
 def serve_instructivo(filename):

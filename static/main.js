@@ -15,8 +15,8 @@ const DOM = {
     elements: {},
     init() {
         const ids = [
-            'chatMessages', 'messageInput', 'sendButton', 
-            'typingIndicator', 'fileModal', 'modalTitle', 
+            'chatMessages', 'messageInput', 'sendButton',
+            'typingIndicator', 'fileModal', 'modalTitle',
             'modalDescription', 'modalDownload', 'modalView'
         ];
         ids.forEach(id => { this.elements[id] = document.getElementById(id); });
@@ -36,17 +36,22 @@ const DOM = {
                 }
             });
         }
+        // Cerrar modal con click afuera
+        const modal = this.get('fileModal');
+        if (modal) {
+            window.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+        }
     }
 };
 
 // Opciones principales
 const mainOptions = [
-    { id: 1, text: '🚨 Alarmas de plataformas', icon: 'fas fa-exclamation-triangle' },
-    { id: 2, text: '📚 Documentación de las plataformas', icon: 'fas fa-book' },
-    { id: 3, text: '⚠️ Incidentes activos de las plataformas', icon: 'fas fa-warning' },
-    { id: 4, text: '✅ Estado operativo de las plataformas', icon: 'fas fa-check-circle' },
-    { id: 5, text: '🔄 Cambios activos en las plataformas', icon: 'fas fa-sync' },
-    { id: 6, text: '👤 Hablar con el administrador de la plataforma', icon: 'fas fa-user-tie' }
+    { id: 1, text: '🚨 Alarmas de plataformas' },
+    { id: 2, text: '📚 Documentación de las plataformas' },
+    { id: 3, text: '⚠️ Incidentes activos de las plataformas' },
+    { id: 4, text: '✅ Estado operativo de las plataformas' },
+    { id: 5, text: '🔄 Cambios activos en las plataformas' },
+    { id: 6, text: '👤 Hablar con el administrador de la plataforma' }
 ];
 
 // =========================
@@ -65,16 +70,14 @@ function showWelcomeMessage() {
     setTimeout(() => {
         hideTypingIndicator();
         addBotMessage('👋 ¡Bienvenido al Asistente de Alarmas de Claro!');
-        
-        enableInput(); // 🔹 Habilitar input desde el inicio
-        
-        setTimeout(showMainOptions, 2000);
-    }, 1200);
+        enableInput(); // habilitar input
+        setTimeout(showMainOptions, 1500);
+    }, 1000);
 }
 
 function showMainOptions() {
     addBotMessage('¿En qué puedo ayudarte hoy?', mainOptions.map(opt => ({
-        text: `${opt.text}`, value: opt.id
+        text: opt.text, value: opt.id
     })));
     chatState.currentStep = 'waiting_option';
 }
@@ -125,16 +128,16 @@ function addUserMessage(text) {
 // Procesamiento de opciones
 // =========================
 function handleOptionSelect(option) {
-    addUserMessage(mainOptions.find(o => o.id == option)?.text || 'Opción seleccionada');
+    const selected = mainOptions.find(o => o.id == option);
+    addUserMessage(selected?.text || 'Opción seleccionada');
+
     switch(option) {
-        case '1':
-        case 'search':
+        case '1': // Alarmas
             chatState.currentStep = 'waiting_alarm_number';
             addBotMessage('Por favor ingrese el número de alarma que desea consultar:');
             enableInput();
             break;
         case '2':
-        case 'docs':
             addBotMessage('📚 Documentación disponible en /static/instructivos/');
             showReturnToMenu();
             break;
@@ -307,17 +310,12 @@ function escapeHtml(text) {
 
 function resetChatState() {
     chatState = { currentStep: 'welcome', selectedOption: null, isTyping: false, alarmData: { numero: null, elemento: null } };
-    enableInput(); // 🔹 habilita input al reset
+    enableInput();
 }
 
 function showReturnToMenu() {
     addBotMessage('¿Deseas volver al menú principal?', [{ text: '🏠 Menú principal', value: 'menu' }]);
 }
-
-// Cerrar modal con click afuera
-window.addEventListener('click', function(event) {
-    if (event.target === DOM.get('fileModal')) closeModal();
-});
 
 // Exportar API
 window.chatbot = { addBotMessage, addUserMessage, showWelcomeMessage };
