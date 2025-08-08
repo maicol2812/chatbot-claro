@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 class Config:
     BASE_DIR = Path(__file__).resolve().parent
     UPLOAD_FOLDER = BASE_DIR / 'static/instructivos'
-    CSV_PATH = BASE_DIR / 'static/data/CatalogoAlarmas.csv'  # ✅ Ruta lista para Render
+    CSV_PATH = BASE_DIR / 'instructivos' / 'data' / 'CatalogoAlarmas.csv'
+
     REQUIRED_COLUMNS = {
         'KM (TITULO DEL INSTRUCTIVO)',
         'Fabricante',
