@@ -14,8 +14,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class Config:
-    UPLOAD_FOLDER = Path('static/instructivos')
-    CSV_PATH = Path('data/CatalogoAlarmas.csv')  # Ajusta la ruta si tu CSV está en otro lado
+    BASE_DIR = Path(__file__).resolve().parent
+    UPLOAD_FOLDER = BASE_DIR / 'static/instructivos'
+    CSV_PATH = BASE_DIR / 'static/data/CatalogoAlarmas.csv'  # ✅ Ruta lista para Render
     REQUIRED_COLUMNS = {
         'KM (TITULO DEL INSTRUCTIVO)',
         'Fabricante',

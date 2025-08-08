@@ -20,7 +20,9 @@ instance/
 .env
 *.db
 data/
+*.csv
 static/instructivos/*.pdf
 static/instructivos/*.docx
 static/instructivos/*.xlsx
 static/instructivos/*.pptx
+!static/data/CatalogoAlarmas.csv
