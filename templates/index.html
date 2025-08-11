@@ -3,644 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Claro - Asistente Virtual</title>
+    <title>Chatbot Core</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            background-color: #f8f9fa;
         }
-
         .chat-container {
-            width: 100%;
-            max-width: 800px;
-            height: 90vh;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
+            max-width: 600px;
+            margin: auto;
+            margin-top: 40px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
             overflow: hidden;
         }
-
         .chat-header {
-            background: linear-gradient(135deg, #e53e3e 0%, #fd9644 100%);
+            background: #0d6efd;
             color: white;
-            padding: 20px;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
             text-align: center;
-            position: relative;
         }
-
-        .chat-header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .chat-header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
+        .chat-body {
+            padding: 15px;
+            height: 400px;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            background: #f8fafc;
         }
-
-        .message {
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
             max-width: 80%;
-            animation: fadeInUp 0.3s ease;
         }
-
-        .message.bot {
+        .bot-message {
+            background: #e9ecef;
             align-self: flex-start;
         }
-
-        .message.user {
+        .user-message {
+            background: #0d6efd;
+            color: white;
             align-self: flex-end;
+            margin-left: auto;
         }
-
-        .message-bubble {
-            padding: 15px 20px;
-            border-radius: 18px;
-            word-wrap: break-word;
-            position: relative;
+        .chat-footer {
+            padding: 10px;
+            background: #f1f1f1;
         }
-
-        .message.bot .message-bubble {
-            background: white;
-            color: #333;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .message.user .message-bubble {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .options-container {
-            margin-top: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .option-button {
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .option-button:hover {
-            border-color: #667eea;
-            background: #f7fafc;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-        }
-
-        .option-button.file-option {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            color: white;
-            border-color: #38a169;
-        }
-
-        .option-button.file-option:hover {
-            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
-            border-color: #2f855a;
-        }
-
-        .chat-input {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            gap: 10px;
-        }
-
-        .input-field {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 25px;
-            outline: none;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-        }
-
-        .input-field:focus {
-            border-color: #667eea;
-        }
-
-        .send-button {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s ease;
-        }
-
-        .send-button:hover {
-            transform: scale(1.05);
-        }
-
-        .send-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Estilos para el modal de documentos */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .btn-option {
+            margin: 5px 0;
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            width: 90%;
-            max-width: 900px;
-            height: 80%;
-            border-radius: 15px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, #e53e3e 0%, #fd9644 100%);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 15px 15px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .close-button {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            transition: background 0.3s ease;
-        }
-
-        .close-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .modal-body {
-            flex: 1;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        .document-viewer {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .document-content {
-            padding: 30px;
-            height: 100%;
-            overflow-y: auto;
-            font-family: 'Georgia', serif;
-            line-height: 1.6;
-            color: #333;
-        }
-
-        .document-content h1 {
-            color: #e53e3e;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .document-content h2 {
-            color: #667eea;
-            margin-top: 25px;
-            margin-bottom: 15px;
-        }
-
-        .document-content p {
-            margin-bottom: 15px;
-        }
-
-        .document-content ol, .document-content ul {
-            margin: 15px 0;
-            padding-left: 30px;
-        }
-
-        .document-content li {
-            margin-bottom: 8px;
-        }
-
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            font-size: 18px;
-            color: #666;
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .chat-container {
-                height: 100vh;
-                border-radius: 0;
-            }
-
-            .message {
-                max-width: 90%;
-            }
-
-            .modal-content {
-                width: 95%;
-                height: 90%;
-            }
-        }
-
-        /* Markdown styling */
-        .message-bubble strong {
-            font-weight: 700;
-            color: #2d3748;
-        }
-
-        .message-bubble em {
-            font-style: italic;
-            color: #4a5568;
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
+
+    <div class="chat-container d-flex flex-column">
         <div class="chat-header">
-            <h1>🤖 Asistente Virtual Claro</h1>
-            <p>Tu asistente técnico especializado</p>
+            Chatbot - Plataformas Core
         </div>
-
-        <div class="chat-messages" id="chatMessages">
-            <!-- Los mensajes se agregarán aquí dinámicamente -->
-        </div>
-
-        <div class="chat-input">
-            <input type="text" class="input-field" id="messageInput" placeholder="Escribe tu mensaje..." disabled>
-            <button class="send-button" id="sendButton" disabled>Enviar</button>
-        </div>
-    </div>
-
-    <!-- Modal para mostrar documentos -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="modalTitle">Instructivo</div>
-                <button class="close-button" id="closeModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="document-viewer" id="documentViewer">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        Cargando documento...
-                    </div>
+        <div class="chat-body d-flex flex-column" id="chatBody">
+            <div class="chat-message bot-message">
+                Buen día, hablemos de nuestras plataformas de Core.  
+                ¿Qué te gustaría consultar el día de hoy?
+                <div class="mt-2">
+                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('1')">1. Alarmas de plataformas</button>
+                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('2')">2. Documentación de las plataformas</button>
+                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('3')">3. Incidentes activos de las plataformas</button>
+                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('4')">4. Estado operativo de las plataformas</button>
+                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('5')">5. Cambios activos en las plataformas</button>
+                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('6')">6. Hablar con el administrador de la plataforma</button>
                 </div>
             </div>
         </div>
+        <div class="chat-footer d-flex">
+            <input type="text" id="userInput" class="form-control me-2" placeholder="Escribe tu mensaje...">
+            <button class="btn btn-primary" onclick="sendMessage()">Enviar</button>
+        </div>
     </div>
 
-    <script>
-        class ChatBot {
-            constructor() {
-                this.chatMessages = document.getElementById('chatMessages');
-                this.messageInput = document.getElementById('messageInput');
-                this.sendButton = document.getElementById('sendButton');
-                this.modalOverlay = document.getElementById('modalOverlay');
-                this.modalTitle = document.getElementById('modalTitle');
-                this.documentViewer = document.getElementById('documentViewer');
-                this.closeModal = document.getElementById('closeModal');
-                
-                this.currentState = 'menu';
-                this.currentData = {};
-                
-                this.initializeEventListeners();
-                this.startChat();
-            }
-
-            initializeEventListeners() {
-                // Envío de mensajes
-                this.sendButton.addEventListener('click', () => this.sendMessage());
-                this.messageInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.sendMessage();
-                });
-
-                // Modal
-                this.closeModal.addEventListener('click', () => this.closeDocument());
-                this.modalOverlay.addEventListener('click', (e) => {
-                    if (e.target === this.modalOverlay) this.closeDocument();
-                });
-
-                // Escape key para cerrar modal
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') this.closeDocument();
-                });
-            }
-
-            async startChat() {
-                // Mensaje de bienvenida
-                await this.sendChatMessage('menu');
-            }
-
-            async sendMessage() {
-                const message = this.messageInput.value.trim();
-                if (!message) return;
-
-                // Agregar mensaje del usuario
-                this.addMessage(message, 'user');
-                this.messageInput.value = '';
-                this.disableInput();
-
-                // Enviar al servidor
-                await this.sendChatMessage(message);
-            }
-
-            async sendChatMessage(message) {
-                try {
-                    const response = await fetch('/chat_message', {
-
-
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            message: message,
-                            state: this.currentState,
-                            ...this.currentData
-                        })
-                    });
-
-                    const data = await response.json();
-                    
-                    // Actualizar estado
-                    this.currentState = data.state || 'menu';
-                    if (data.alarm_number) this.currentData.alarm_number = data.alarm_number;
-                    if (data.alarm_data) this.currentData.alarm_data = data.alarm_data;
-
-                    // Mostrar respuesta del bot
-                    this.addMessage(data.response, 'bot', data.options || []);
-                    
-                } catch (error) {
-                    console.error('Error:', error);
-                    this.addMessage('❌ Error de conexión. Por favor intenta nuevamente.', 'bot');
-                } finally {
-                    this.enableInput();
-                }
-            }
-
-            addMessage(text, sender, options = []) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${sender}`;
-
-                const bubbleDiv = document.createElement('div');
-                bubbleDiv.className = 'message-bubble';
-                
-                // Formatear texto con markdown básico
-                const formattedText = this.formatText(text);
-                bubbleDiv.innerHTML = formattedText;
-
-                messageDiv.appendChild(bubbleDiv);
-
-                // Agregar opciones si las hay
-                if (options.length > 0) {
-                    const optionsContainer = document.createElement('div');
-                    optionsContainer.className = 'options-container';
-
-                    options.forEach(option => {
-                        const button = document.createElement('button');
-                        button.className = 'option-button';
-                        button.textContent = option.text;
-                        
-                        // Agregar clase especial para opciones de archivo
-                        if (option.value === 'pdf' || option.value === 'word') {
-                            button.classList.add('file-option');
-                        }
-
-                        button.addEventListener('click', () => {
-                            if (option.file_path) {
-                                // Abrir documento en modal
-                                this.openDocument(option.file_path, option.text);
-                            } else {
-                                // Enviar opción como mensaje
-                                this.selectOption(option.value, option.text);
-                            }
-                        });
-
-                        optionsContainer.appendChild(button);
-                    });
-
-                    messageDiv.appendChild(optionsContainer);
-                }
-
-                this.chatMessages.appendChild(messageDiv);
-                this.scrollToBottom();
-            }
-
-            selectOption(value, text) {
-                // Agregar mensaje del usuario con la opción seleccionada
-                this.addMessage(text, 'user');
-                this.disableInput();
-                
-                // Enviar al servidor
-                setTimeout(() => {
-                    this.sendChatMessage(value);
-                }, 300);
-            }
-
-            formatText(text) {
-                // Convertir markdown básico a HTML
-                return text
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/\n/g, '<br>');
-            }
-
-            openDocument(filePath, title) {
-                this.modalTitle.textContent = title;
-                this.modalOverlay.style.display = 'flex';
-                
-                // Resetear el visor
-                this.documentViewer.innerHTML = '<div class="loading"><div class="spinner"></div>Cargando documento...</div>';
-                
-                // Determinar tipo de archivo
-                const fileExtension = filePath.split('.').pop().toLowerCase();
-                
-                if (fileExtension === 'pdf') {
-                    // Para PDFs, usar iframe
-                    setTimeout(() => {
-                        this.documentViewer.innerHTML = `
-                            <iframe src="${filePath}" style="width: 100%; height: 100%; border: none;"></iframe>
-                        `;
-                    }, 500);
-                } else {
-                    // Para otros archivos, cargar el contenido como texto
-                    this.loadDocumentContent(filePath);
-                }
-            }
-
-            async loadDocumentContent(filePath) {
-                try {
-                    const response = await fetch(filePath);
-                    const content = await response.text();
-                    
-                    // Crear contenido HTML formateado
-                    const formattedContent = this.formatDocumentContent(content, filePath);
-                    
-                    this.documentViewer.innerHTML = `
-                        <div class="document-content">
-                            ${formattedContent}
-                        </div>
-                    `;
-                } catch (error) {
-                    console.error('Error loading document:', error);
-                    this.documentViewer.innerHTML = `
-                        <div class="document-content">
-                            <h1>Error al cargar el documento</h1>
-                            <p>No se pudo cargar el contenido del documento. Por favor intenta nuevamente.</p>
-                        </div>
-                    `;
-                }
-            }
-
-            formatDocumentContent(content, filePath) {
-                const fileName = filePath.split('/').pop();
-                const fileType = fileName.includes('.docx') ? 'Word' : fileName.includes('.pdf') ? 'PDF' : 'Documento';
-                
-                // Formatear contenido básico
-                const lines = content.split('\n');
-                let formattedContent = `<h1>📄 ${fileName}</h1>`;
-                
-                lines.forEach(line => {
-                    line = line.trim();
-                    if (line) {
-                        if (line.includes('Instructivo:')) {
-                            formattedContent += `<h2>${line}</h2>`;
-                        } else if (line.includes('DOCUMENTO WORD') || line.includes('PDF')) {
-                            formattedContent += `<h2 style="color: #e53e3e;">${line}</h2>`;
-                        } else if (line.match(/^\d+\./)) {
-                            formattedContent += `<p style="font-weight: 600; margin-top: 15px;">${line}</p>`;
-                        } else {
-                            formattedContent += `<p>${line}</p>`;
-                        }
-                    }
-                });
-
-                // Agregar información adicional si es un placeholder
-                if (content.includes('demostración')) {
-                    formattedContent += `
-                        <div style="background: #f7fafc; border-left: 4px solid #667eea; padding: 15px; margin: 20px 0; border-radius: 5px;">
-                            <p style="margin: 0; color: #667eea; font-weight: 600;">💡 Nota:</p>
-                            <p style="margin: 5px 0 0 0;">Este es un documento de demostración. En un entorno de producción, aquí aparecería el contenido real del instructivo técnico.</p>
-                        </div>
-                    `;
-                }
-
-                return formattedContent;
-            }
-
-            closeDocument() {
-                this.modalOverlay.style.display = 'none';
-            }
-
-            disableInput() {
-                this.messageInput.disabled = true;
-                this.sendButton.disabled = true;
-            }
-
-            enableInput() {
-                this.messageInput.disabled = false;
-                this.sendButton.disabled = false;
-                this.messageInput.focus();
-            }
-
-            scrollToBottom() {
-                setTimeout(() => {
-                    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
-                }, 100);
-            }
-        }
-
-        // Inicializar el chatbot cuando la página esté ready
-        document.addEventListener('DOMContentLoaded', () => {
-            new ChatBot();
-        });
-    </script>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-
+    <script src="main.js"></script>
 </body>
 </html>

@@ -1,321 +1,208 @@
-// =========================
-// Estado global del chat
-// =========================
-let chatState = {
-    currentStep: 'welcome',
-    selectedOption: null,
-    isTyping: false,
-    alarmData: { numero: null, elemento: null }
-};
+// -------------------------
+// Frontend JS - flujo guiado
+// -------------------------
+const chatMessages = document.getElementById('chatMessages');
+const input = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendButton');
+const statusLine = document.getElementById('statusLine');
+const fileModalEl = document.getElementById('fileModal');
+const pdfFrame = document.getElementById('pdfFrame');
+const modalTitle = document.getElementById('modalTitle');
+const modalDownload = document.getElementById('modalDownload');
+const bsFileModal = new bootstrap.Modal(fileModalEl);
 
-// =========================
-// Manejador de DOM seguro
-// =========================
-const DOM = {
-    elements: {},
-    init() {
-        const ids = [
-            'chatMessages', 'messageInput', 'sendButton',
-            'typingIndicator', 'fileModal', 'modalTitle',
-            'modalDescription', 'modalDownload', 'modalView'
-        ];
-        ids.forEach(id => { this.elements[id] = document.getElementById(id); });
-        this.setupEventListeners();
-        return this;
-    },
-    get(id) { return this.elements[id] || null; },
-    setupEventListeners() {
-        const input = this.get('messageInput');
-        const button = this.get('sendButton');
-        if (button) button.addEventListener('click', handleSendMessage);
-        if (input) {
-            input.addEventListener('keypress', e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                }
-            });
-        }
-        // Cerrar modal con click afuera
-        const modal = this.get('fileModal');
-        if (modal) {
-            window.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-        }
-    }
-};
+let state = 'menu'; // menu | waiting_alarm_number | waiting_alarm_element
+let alarmData = { numero: '', elemento: '' };
 
-// Opciones principales
-const mainOptions = [
-    { id: 1, text: '🚨 Alarmas de plataformas' },
-    { id: 2, text: '📚 Documentación de las plataformas' },
-    { id: 3, text: '⚠️ Incidentes activos de las plataformas' },
-    { id: 4, text: '✅ Estado operativo de las plataformas' },
-    { id: 5, text: '🔄 Cambios activos en las plataformas' },
-    { id: 6, text: '👤 Hablar con el administrador de la plataforma' }
-];
+// Helpers
+function addMessage(text, who='bot', options=[]) {
+  const wrapper = document.createElement('div');
+  wrapper.className = `message ${who}`;
+  const bubble = document.createElement('div');
+  bubble.className = `bubble ${who}`;
+  bubble.innerHTML = text;
+  wrapper.appendChild(bubble);
 
-// =========================
-// Inicialización
-// =========================
-document.addEventListener('DOMContentLoaded', () => {
-    DOM.init();
-    if (DOM.get('chatMessages')) showWelcomeMessage();
-});
+  if (options && options.length) {
+    const opts = document.createElement('div');
+    opts.className = 'options-container';
+    options.forEach(opt => {
+      const b = document.createElement('button');
+      b.className = 'btn btn-outline-primary option-btn';
+      if (who === 'user') b.classList.add('btn-sm');
+      b.textContent = opt.text;
+      b.onclick = () => handleOptionClick(opt.value, opt);
+      opts.appendChild(b);
+    });
+    wrapper.appendChild(opts);
+  }
 
-// =========================
-// Flujo del chat
-// =========================
-function showWelcomeMessage() {
-    showTypingIndicator();
-    setTimeout(() => {
-        hideTypingIndicator();
-        addBotMessage('👋 ¡Bienvenido al Asistente de Alarmas de Claro!');
-        enableInput(); // habilitar input
-        setTimeout(showMainOptions, 1500);
-    }, 1000);
-}
-
-function showMainOptions() {
-    addBotMessage('¿En qué puedo ayudarte hoy?', mainOptions.map(opt => ({
-        text: opt.text, value: opt.id
-    })));
-    chatState.currentStep = 'waiting_option';
-}
-
-// =========================
-// Mensajes
-// =========================
-function addBotMessage(text, options = []) {
-    const chatMessages = DOM.get('chatMessages');
-    if (!chatMessages) return;
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message bot';
-
-    let optionsHtml = '';
-    if (options.length > 0) {
-        optionsHtml = '<div class="options-container">';
-        options.forEach(option => {
-            optionsHtml += `
-                <button class="option-button" onclick="handleOptionSelect('${option.value}')">
-                    ${option.text}
-                </button>
-            `;
-        });
-        optionsHtml += '</div>';
-    }
-
-    messageDiv.innerHTML = `
-        <div class="message-content">
-            <p>${text}</p>
-            ${optionsHtml}
-        </div>
-    `;
-    chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+  chatMessages.appendChild(wrapper);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function addUserMessage(text) {
-    const chatMessages = DOM.get('chatMessages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message user';
-    messageDiv.innerHTML = `<div class="message-content"><p>${escapeHtml(text)}</p></div>`;
-    chatMessages.appendChild(messageDiv);
-    scrollToBottom();
+  addMessage(escapeHtml(text), 'user');
 }
 
-// =========================
-// Procesamiento de opciones
-// =========================
-function handleOptionSelect(option) {
-    const selected = mainOptions.find(o => o.id == option);
-    addUserMessage(selected?.text || 'Opción seleccionada');
-
-    switch(option) {
-        case '1': // Alarmas
-            chatState.currentStep = 'waiting_alarm_number';
-            addBotMessage('Por favor ingrese el número de alarma que desea consultar:');
-            enableInput();
-            break;
-        case '2':
-            addBotMessage('📚 Documentación disponible en /static/instructivos/');
-            showReturnToMenu();
-            break;
-        case '3':
-            addBotMessage('⚠️ Incidentes activos - próximamente.');
-            showReturnToMenu();
-            break;
-        case '4':
-            addBotMessage('✅ Estado operativo - próximamente.');
-            showReturnToMenu();
-            break;
-        case '5':
-            addBotMessage('🔄 Cambios activos - próximamente.');
-            showReturnToMenu();
-            break;
-        case '6':
-            addBotMessage('👤 Contactando al administrador - próximamente.');
-            showReturnToMenu();
-            break;
-        case 'menu':
-            resetChatState();
-            showWelcomeMessage();
-            break;
-        default:
-            addBotMessage('No entendí esa opción. Intenta de nuevo.');
-    }
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// =========================
-// Entrada del usuario
-// =========================
-function handleSendMessage() {
-    const input = DOM.get('messageInput');
-    if (!input) return;
-    const message = input.value.trim();
-    if (!message) return;
+function setStatus(text) { statusLine.innerText = text; }
 
-    addUserMessage(message);
-    input.value = '';
-    processUserInput(message);
-}
+function enableInput() { input.disabled=false; sendBtn.disabled=false; input.focus(); }
+function disableInput() { input.disabled=true; sendBtn.disabled=true; }
 
-function processUserInput(message) {
-    switch (chatState.currentStep) {
-        case 'waiting_alarm_number':
-            chatState.alarmData.numero = message;
-            chatState.currentStep = 'waiting_alarm_element';
-            addBotMessage('Por favor ingresa el nombre del elemento que reporta la alarma:');
-            break;
-        case 'waiting_alarm_element':
-            chatState.alarmData.elemento = message;
-            searchAlarm();
-            break;
-        default:
-            addBotMessage('Por favor selecciona una opción del menú.');
-    }
-}
-
-// =========================
-// Buscar alarma en backend
-// =========================
-async function searchAlarm() {
-    disableInput();
-    showTypingIndicator();
-
+// Inicial: comprobar health y saludar
+async function init() {
+  setStatus('Comprobando servidor...');
+  // poll /health a la espera del csv (intenta 6 veces)
+  let tries = 0, ok=false;
+  while (tries < 6) {
     try {
-        const response = await fetch('/buscar_alarma', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(chatState.alarmData)
-        });
-        const data = await response.json();
-
-        hideTypingIndicator();
-
-        if (response.ok && data.success) {
-            displayAlarmData(data.alarma);
-        } else {
-            addBotMessage(`❌ ${data.message || 'No se encontró la alarma especificada.'}`);
-            showReturnToMenu();
-        }
-    } catch (error) {
-        console.error('Error al buscar alarma:', error);
-        hideTypingIndicator();
-        addBotMessage('❌ Error de conexión con el servidor.');
-        showReturnToMenu();
+      const res = await fetch('/health');
+      const js = await res.json();
+      if (js.csv_loaded) {
+        setStatus(`Listo — ${js.rows} filas`);
+        ok = true;
+        break;
+      } else {
+        setStatus('Cargando datos en backend...');
+      }
+    } catch (e) {
+      setStatus('Servidor no disponible — intentando...');
     }
+    tries++;
+    await new Promise(r => setTimeout(r, 800));
+  }
+  if (!ok) setStatus('Advertencia: CSV no cargado — pruebe igual.');
+  enableInput();
+  showMenu();
 }
 
-// Mostrar datos de la alarma y botones de PDF/Word
-function displayAlarmData(alarma) {
-    const details = `
-        <div class="alarm-details">
-            <h4>📊 Detalles de la Alarma</h4>
-            <p><strong>Número:</strong> ${alarma.numero || 'N/A'}</p>
-            <p><strong>Elemento:</strong> ${alarma.elemento || 'N/A'}</p>
-            <p><strong>Descripción:</strong> ${alarma.descripcion || 'N/A'}</p>
-            <p><strong>Severidad:</strong> ${alarma.severidad || 'N/A'}</p>
-            <p><strong>Estado:</strong> ${alarma.estado || 'N/A'}</p>
-        </div>
-        <div class="action-buttons">
-            <button class="action-button" onclick="openFile('pdf', '${alarma.numero}')">📄 Abrir PDF</button>
-            <button class="action-button" onclick="openFile('word', '${alarma.numero}')">📝 Abrir Word</button>
-        </div>
-    `;
-    addBotMessage('✅ Alarma encontrada:' + details);
-    setTimeout(showReturnToMenu, 3000);
-}
-
-// =========================
-// Modal para archivos
-// =========================
-function openFile(type, alarmNumber) {
-    const ext = type === 'pdf' ? 'pdf' : 'docx';
-    const fileName = `alarma_${alarmNumber}.${ext}`;
-    const filePath = `/static/instructivos/${fileName}`;
-
-    const modal = DOM.get('fileModal');
-    DOM.get('modalTitle').textContent = `Abrir ${ext.toUpperCase()}`;
-    DOM.get('modalDescription').textContent = `Archivo: ${fileName}`;
-    DOM.get('modalDownload').href = filePath;
-    DOM.get('modalView').href = filePath;
-    if (modal) modal.classList.add('show');
-}
-
-function closeModal() {
-    const modal = DOM.get('fileModal');
-    if (modal) modal.classList.remove('show');
-}
-
-// =========================
-// Utilidades
-// =========================
-function showTypingIndicator() {
-    const el = DOM.get('typingIndicator');
-    if (el) el.style.display = 'flex';
-    scrollToBottom();
-}
-
-function hideTypingIndicator() {
-    const el = DOM.get('typingIndicator');
-    if (el) el.style.display = 'none';
-}
-
-function scrollToBottom() {
-    const el = DOM.get('chatMessages');
-    if (el) el.scrollTop = el.scrollHeight;
-}
-
-function enableInput() {
-    const input = DOM.get('messageInput');
-    const btn = DOM.get('sendButton');
-    if (input) input.disabled = false;
-    if (btn) btn.disabled = false;
-    input?.focus();
-}
-
-function disableInput() {
-    const input = DOM.get('messageInput');
-    const btn = DOM.get('sendButton');
-    if (input) input.disabled = true;
-    if (btn) btn.disabled = true;
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function resetChatState() {
-    chatState = { currentStep: 'welcome', selectedOption: null, isTyping: false, alarmData: { numero: null, elemento: null } };
+// Mostrar menu inicial (llama al endpoint chat_message para consistencia)
+async function showMenu() {
+  disableInput();
+  try {
+    const res = await fetch('/chat_message', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) });
+    const js = await res.json();
+    addMessage(js.response, 'bot', js.options);
+    state = 'menu';
+  } catch (e) {
+    addMessage('❌ Error al obtener menú del servidor. Usa las opciones locales.', 'bot');
+    // fallback local menu
+    addMessage("Buen día... Elige una opción:\n1. Alarmas\n2. Documentación", 'bot', [
+      {text: '🚨 Alarmas', value:'1'},
+      {text: '📚 Documentación', value:'2'}
+    ]);
+  } finally {
     enableInput();
+  }
 }
 
-function showReturnToMenu() {
-    addBotMessage('¿Deseas volver al menú principal?', [{ text: '🏠 Menú principal', value: 'menu' }]);
+// manejo clicks en botones de opción
+function handleOptionClick(value, opt) {
+  addUserMessage(opt.text || value);
+  if (value === '1') {
+    state = 'waiting_alarm_number';
+    addMessage('Por favor ingresa el número de alarma que deseas consultar:', 'bot');
+    enableInput();
+    input.focus();
+  } else if (value === '2') {
+    addMessage('📚 Documentación disponible en /static/instructivos/', 'bot');
+    addMessage('¿Deseas volver al menú?', 'bot', [{text:'🏠 Menú principal', value:'menu'}]);
+  } else if (value === 'menu') {
+    showMenu();
+  } else if (value === 'open_pdf' && opt.file_path) {
+    openPdf(opt.file_path, opt.text || 'Instructivo');
+  } else {
+    addMessage('Funcionalidad próximamente.', 'bot');
+  }
 }
 
-// Exportar API
-window.chatbot = { addBotMessage, addUserMessage, showWelcomeMessage };
+// Envío desde input
+sendBtn.addEventListener('click', onSend);
+input.addEventListener('keypress', (e)=>{ if (e.key==='Enter') onSend(); });
+
+async function onSend(){
+  const txt = input.value.trim();
+  if (!txt) return;
+  addUserMessage(txt);
+  input.value='';
+  disableInput();
+
+  if (state === 'waiting_alarm_number') {
+    alarmData.numero = txt;
+    state = 'waiting_alarm_element';
+    addMessage('Por favor ingresa el nombre del elemento que reporta la alarma:', 'bot');
+    enableInput();
+    return;
+  } else if (state === 'waiting_alarm_element') {
+    alarmData.elemento = txt;
+    await buscarAlarmaBackend(alarmData);
+    state = 'menu';
+    alarmData = {numero:'', elemento:''};
+    enableInput();
+    return;
+  } else {
+    try {
+      const res = await fetch('/chat_message', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({message: txt})
+      });
+      const js = await res.json();
+      addMessage(js.response, 'bot', js.options || []);
+    } catch (e) {
+      addMessage('❌ Error de conexión al backend.', 'bot');
+    } finally {
+      enableInput();
+    }
+  }
+}
+
+// buscar alarma via /buscar_alarma
+async function buscarAlarmaBackend(data) {
+  addMessage('Buscando alarma...', 'bot');
+  try {
+    const res = await fetch('/buscar_alarma', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    const js = await res.json();
+    if (!res.ok) {
+      addMessage(`❌ Error servidor: ${js.message || res.statusText}`, 'bot');
+      return;
+    }
+    if (js.success && js.encontrada) {
+      const alarma = js.datos;
+      let html = `<div><strong>📊 Detalles</strong></div>
+                  <div><small><strong>Número:</strong> ${escapeHtml(alarma.get('NUMERO', alarma.NUMERO || alarma.get('numero') || 'N/A') || 'N/A')}</small></div>
+                  <div><small><strong>Elemento:</strong> ${escapeHtml(alarma.get('ELEMENTO', alarma.get('elemento') || 'N/A'))}</small></div>
+                  <div><small><strong>Descripción:</strong> ${escapeHtml(alarma.get('TEXTO 1 DE LA ALARMA','N/A'))}</small></div>
+                  <div style="margin-top:8px;"></div>`;
+      const opts = [];
+      if (js.pdf_path) {
+        opts.push({text: '📄 Ver PDF', value: 'open_pdf', file_path: js.pdf_path});
+      }
+      opts.push({text: '🏠 Menú principal', value: 'menu'});
+      addMessage(html, 'bot', opts);
+    } else {
+      addMessage(`❌ ${js.message || 'No se encontró la alarma.'}`, 'bot');
+      addMessage('¿Deseas volver al menú?', 'bot', [{text:'🏠 Menú principal', value:'menu'}]);
+    }
+  } catch (e) {
+    addMessage('❌ Error en la búsqueda (conexión).', 'bot');
+  }
+}
+
+// abrir pdf en modal
+function openPdf(path, title='Instructivo') {
+  modalTitle.textContent = title;
+  pdfFrame.src = path;
+  modalDownload.href = path;
+  bsFileModal.show();
+}
+
+// iniciar
+init();
