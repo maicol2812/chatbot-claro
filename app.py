@@ -12,7 +12,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
-EXCEL_FILE = BASE_DIR / "alarmasCMM.xlsx"  # Nombre correcto del archivo
+DATA_DIR = BASE_DIR / "static" / "data"
+EXCEL_FILE = DATA_DIR / "alarmasCMM.xlsx"
 INSTRUCTIVOS_DIR = BASE_DIR / "instructivos"
 
 # ======================
@@ -27,7 +28,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 if EXCEL_FILE.exists():
     try:
         df = pd.read_excel(EXCEL_FILE, dtype=str).fillna("")
-        logger.info(f"Archivo {EXCEL_FILE.name} cargado con éxito")
+        logger.info(f"Archivo {EXCEL_FILE.name} cargado con éxito ({len(df)} registros)")
     except Exception as e:
         logger.error(f"Error al leer {EXCEL_FILE.name}: {e}")
         df = pd.DataFrame()
