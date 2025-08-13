@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
-CSV_FILE = BASE_DIR / "CatalogoAlarmas.csv"
+EXCEL_FILE = BASE_DIR / "alarmasCMM.xlsx"  # Nombre correcto del archivo
 INSTRUCTIVOS_DIR = BASE_DIR / "instructivos"
 
 # ======================
@@ -24,10 +24,15 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 # ======================
 # CARGA DE DATOS
 # ======================
-if CSV_FILE.exists():
-    df = pd.read_csv(CSV_FILE, dtype=str).fillna("")
+if EXCEL_FILE.exists():
+    try:
+        df = pd.read_excel(EXCEL_FILE, dtype=str).fillna("")
+        logger.info(f"Archivo {EXCEL_FILE.name} cargado con éxito")
+    except Exception as e:
+        logger.error(f"Error al leer {EXCEL_FILE.name}: {e}")
+        df = pd.DataFrame()
 else:
-    logger.error(f"No se encontró el archivo {CSV_FILE}")
+    logger.error(f"No se encontró el archivo {EXCEL_FILE}")
     df = pd.DataFrame()
 
 # ======================
@@ -41,6 +46,9 @@ def home():
 def buscar():
     numero = request.args.get("numero", "").strip()
     elemento = request.args.get("elemento", "").strip()
+
+    if df.empty:
+        return jsonify({"error": "No hay datos cargados"}), 500
 
     resultados = df[
         (df["NUMERO"].str.contains(numero, case=False, na=False)) &
