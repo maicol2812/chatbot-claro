@@ -1,88 +1,133 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Core</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .chat-container {
-            max-width: 600px;
-            margin: auto;
-            margin-top: 40px;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        .chat-header {
-            background: #0d6efd;
-            color: white;
-            padding: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-        }
-        .chat-body {
-            padding: 15px;
-            height: 400px;
-            overflow-y: auto;
-        }
-        .chat-message {
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 8px;
-            max-width: 80%;
-        }
-        .bot-message {
-            background: #e9ecef;
-            align-self: flex-start;
-        }
-        .user-message {
-            background: #0d6efd;
-            color: white;
-            align-self: flex-end;
-            margin-left: auto;
-        }
-        .chat-footer {
-            padding: 10px;
-            background: #f1f1f1;
-        }
-        .btn-option {
-            margin: 5px 0;
-            width: 100%;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatBot Alarmas CMM</title>
+  
+  <!-- Bootstrap CSS -->
+  <link 
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" 
+    rel="stylesheet"
+  >
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+  <!-- Estilos personalizados -->
+  <style>
+    body {
+      background-color: #f5f7fa;
+      font-family: 'Roboto', sans-serif;
+    }
+    .chat-container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 85vh;
+    }
+    .chat-header {
+      background-color: #007bff;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+    #chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: #f9fafc;
+    }
+    .message {
+      max-width: 80%;
+      margin-bottom: 15px;
+      padding: 12px 16px;
+      border-radius: 20px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+    .message.user {
+      background-color: #007bff;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 5px;
+    }
+    .message.bot {
+      background-color: #e9ecef;
+      align-self: flex-start;
+      border-bottom-left-radius: 5px;
+    }
+    .button-container {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .button-container button {
+      flex: 1;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      border-radius: 15px;
+      border: none;
+      background-color: #007bff;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .button-container button:hover {
+      background-color: #0056b3;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+    }
+    .chat-input button {
+      padding: 0 20px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .chat-input button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="chat-container d-flex flex-column">
-        <div class="chat-header">
-            Chatbot - Plataformas Core
-        </div>
-        <div class="chat-body d-flex flex-column" id="chatBody">
-            <div class="chat-message bot-message">
-                Buen día, hablemos de nuestras plataformas de Core.  
-                ¿Qué te gustaría consultar el día de hoy?
-                <div class="mt-2">
-                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('1')">1. Alarmas de plataformas</button>
-                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('2')">2. Documentación de las plataformas</button>
-                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('3')">3. Incidentes activos de las plataformas</button>
-                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('4')">4. Estado operativo de las plataformas</button>
-                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('5')">5. Cambios activos en las plataformas</button>
-                    <button class="btn btn-outline-primary btn-option" onclick="sendOption('6')">6. Hablar con el administrador de la plataforma</button>
-                </div>
-            </div>
-        </div>
-        <div class="chat-footer d-flex">
-            <input type="text" id="userInput" class="form-control me-2" placeholder="Escribe tu mensaje...">
-            <button class="btn btn-primary" onclick="sendMessage()">Enviar</button>
-        </div>
+  <div class="chat-container">
+    <div class="chat-header">
+      🤖 ChatBot Alarmas CMM
     </div>
 
-    <script src="main.js"></script>
+    <div id="chat-box" class="d-flex flex-column"></div>
+
+    <div class="chat-input">
+      <input id="user-input" type="text" placeholder="Escribe tu mensaje aquí...">
+      <button id="send-btn">➤</button>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Script principal -->
+  <script src="main.js"></script>
 </body>
 </html>
