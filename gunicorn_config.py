@@ -1,5 +1,4 @@
 import multiprocessing
-import os
 
 workers = multiprocessing.cpu_count() * 2 + 1
 threads = 2
@@ -12,7 +11,7 @@ accesslog = '-'
 errorlog = '-'
 loglevel = 'info'
 
-bind = f"0.0.0.0:{os.environ.get('PORT', '10000')}"
+bind = '0.0.0.0:' + os.environ.get("PORT", "5000")
 
 max_requests = 1000
 max_requests_jitter = 50

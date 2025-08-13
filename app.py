@@ -1,67 +1,67 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, jsonify
 import pandas as pd
 import os
 import logging
+from pathlib import Path
+from werkzeug.middleware.proxy_fix import ProxyFix
 
-app = Flask(__name__)
-
-# Configuración de logging
+# ======================
+# CONFIGURACIÓN GLOBAL
+# ======================
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Ruta del archivo Excel
-EXCEL_FILE = "alarmasCMM.xlsx"
+BASE_DIR = Path(__file__).resolve().parent
+CSV_FILE = BASE_DIR / "CatalogoAlarmas.csv"
+INSTRUCTIVOS_DIR = BASE_DIR / "instructivos"
 
-# Cargar el Excel en memoria
-def cargar_excel():
-    if os.path.exists(EXCEL_FILE):
-        try:
-            df = pd.read_excel(EXCEL_FILE)
-            logger.info(f"Archivo {EXCEL_FILE} cargado correctamente. Filas: {len(df)}")
-            return df
-        except Exception as e:
-            logger.error(f"Error al leer {EXCEL_FILE}: {e}")
-            return None
-    else:
-        logger.error(f"Archivo {EXCEL_FILE} no encontrado.")
-        return None
+# ======================
+# APP FLASK
+# ======================
+app = Flask(__name__, template_folder="templates", static_folder="static")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
-df_alarmas = cargar_excel()
+# ======================
+# CARGA DE DATOS
+# ======================
+if CSV_FILE.exists():
+    df = pd.read_csv(CSV_FILE, dtype=str).fillna("")
+else:
+    logger.error(f"No se encontró el archivo {CSV_FILE}")
+    df = pd.DataFrame()
 
+# ======================
+# RUTAS
+# ======================
 @app.route("/")
-def index():
+def home():
     return render_template("index.html")
 
-@app.route("/buscar", methods=["POST"])
+@app.route("/buscar", methods=["GET"])
 def buscar():
-    global df_alarmas
-    if df_alarmas is None:
-        return jsonify({"error": "No se pudo cargar el archivo de alarmas."}), 500
+    numero = request.args.get("numero", "").strip()
+    elemento = request.args.get("elemento", "").strip()
 
-    data = request.json
-    numero_alarma = str(data.get("numero", "")).strip()
-    elemento = str(data.get("elemento", "")).strip()
+    resultados = df[
+        (df["NUMERO"].str.contains(numero, case=False, na=False)) &
+        (df["ELEMENTO"].str.contains(elemento, case=False, na=False))
+    ]
 
-    if not numero_alarma and not elemento:
-        return jsonify({"error": "Debes ingresar al menos un criterio de búsqueda."}), 400
+    return jsonify(resultados.to_dict(orient="records"))
 
-    resultados = df_alarmas.copy()
+@app.route("/instructivo/<nombre>")
+def obtener_instructivo(nombre):
+    archivo = f"{nombre}.pdf"
+    ruta = INSTRUCTIVOS_DIR / archivo
 
-    if numero_alarma:
-        resultados = resultados[resultados["NUMERO"].astype(str).str.contains(numero_alarma, case=False, na=False)]
-    if elemento:
-        resultados = resultados[resultados["ELEMENTO"].astype(str).str.contains(elemento, case=False, na=False)]
+    if ruta.exists():
+        return send_from_directory(INSTRUCTIVOS_DIR, archivo)
+    else:
+        return jsonify({"error": "Instructivo no encontrado"}), 404
 
-    if resultados.empty:
-        return jsonify({"resultados": []})
-
-    resultados_json = resultados.to_dict(orient="records")
-    return jsonify({"resultados": resultados_json})
-
-@app.route("/instructivos/<path:nombre>")
-def servir_instructivo(nombre):
-    carpeta_pdf = os.path.join(os.getcwd(), "instructivos")
-    return send_from_directory(carpeta_pdf, nombre)
-
+# ======================
+# MAIN
+# ======================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
