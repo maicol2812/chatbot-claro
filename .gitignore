@@ -1,28 +1,62 @@
-echo "__pycache__/
+# ===========================
+# Archivos compilados de Python
+# ===========================
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
+
+# ===========================
+# Entornos virtuales
+# ===========================
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# ===========================
+# Archivos de bases de datos
+# ===========================
 *.sqlite3
-*.log
-documentos_alarmas/
-.DS_Store
-.idea/
-.vscode/" > .gitignore
-__pycache__/
-*.pyc
-instance/
-.env
 *.db
-data/
-*.csv
+
+# ===========================
+# Logs y temporales
+# ===========================
+*.log
+*.tmp
+
+# ===========================
+# Carpetas ignoradas
+# ===========================
+documentos_alarmas/
+instance/
+
+# ===========================
+# Datos estáticos
+# Ignorar todo en static/data excepto alarmasCMM.xlsx
+# ===========================
+static/data/*
+!static/data/alarmasCMM.xlsx
+
+# ===========================
+# Archivos de instructivos
+# ===========================
 static/instructivos/*.pdf
 static/instructivos/*.docx
 static/instructivos/*.xlsx
 static/instructivos/*.pptx
-!static/data/CatalogoAlarmas.csv
+
+# ===========================
+# Archivos de sistema y configuración de IDE
+# ===========================
+.DS_Store
+.idea/
+.vscode/
+
+# ===========================
+# Variables de entorno
+# ===========================
+.env
