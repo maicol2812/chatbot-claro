@@ -2,10 +2,9 @@ services:
   - type: web
     name: asesor-claro-ia
     env: python
-    buildCommand: |
-      pip install -r requirements.txt
-      python -m spacy download es_core_news_sm
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --factory app:create_app
+    pythonVersion: 3.11.9
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT app:create_app()
     healthCheckPath: /health
     envVars:
       - key: FLASK_ENV
