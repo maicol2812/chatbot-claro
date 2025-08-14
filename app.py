@@ -4,154 +4,86 @@ import os
 import logging
 from pathlib import Path
 from werkzeug.middleware.proxy_fix import ProxyFix
-import PyPDF2
-import pdfkit
-from docx import Document
-from deep_translator import GoogleTranslator
 import spacy
 
 # ======================
 # CONFIGURACIÓN GLOBAL
 # ======================
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
-UPLOAD_FOLDER = BASE_DIR / "uploads"
-PDF_FOLDER = BASE_DIR / "pdfs"
+UPLOAD_FOLDER = BASE_DIR / "instructivos"
+CSV_FILE = BASE_DIR / "CatalogoAlarmas.csv"
 
-app = Flask(__name__, static_folder="static", template_folder="templates")
+# ======================
+# INICIALIZAR FLASK
+# ======================
+app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
 # ======================
-# CARGAR CSV DE ALARMAS
-# ======================
-try:
-    csv_path = BASE_DIR / "CatalogoAlarmas.csv"
-    df_alarmas = pd.read_csv(csv_path, encoding="utf-8")
-    logger.info(f"CSV cargado correctamente con {len(df_alarmas)} registros.")
-except Exception as e:
-    logger.error(f"Error cargando el CSV: {e}")
-    df_alarmas = pd.DataFrame()
-
-# ======================
-# RUTA PRINCIPAL
-# ======================
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-# ======================
-# BUSCAR ALARMA
-# ======================
-@app.route("/buscar", methods=["GET"])
-def buscar():
-    numero_alarma = request.args.get("numero")
-    elemento = request.args.get("elemento")
-    logger.info(f"Buscando alarma: {numero_alarma}, elemento: {elemento}")
-
-    if df_alarmas.empty:
-        return jsonify({"error": "Base de datos no cargada"}), 500
-
-    resultado = df_alarmas[
-        (df_alarmas["NUMERO"] == numero_alarma) &
-        (df_alarmas["ELEMENTO"].str.contains(elemento, case=False, na=False))
-    ]
-
-    if resultado.empty:
-        return jsonify({"mensaje": "No se encontraron coincidencias"}), 404
-
-    datos = resultado.to_dict(orient="records")
-    return jsonify(datos)
-
-# ======================
-# DESCARGAR PDF POR NOMBRE
-# ======================
-@app.route("/pdf/<nombre>")
-def descargar_pdf(nombre):
-    try:
-        return send_from_directory(PDF_FOLDER, f"{nombre}.pdf", as_attachment=True)
-    except Exception as e:
-        logger.error(f"Error descargando PDF {nombre}: {e}")
-        return jsonify({"error": "Archivo no encontrado"}), 404
-
-# ======================
-# TRADUCCIÓN DE TEXTO
-# ======================
-@app.route("/traducir", methods=["POST"])
-def traducir():
-    data = request.get_json()
-    texto = data.get("texto", "")
-    idioma_destino = data.get("idioma", "en")
-
-    if not texto:
-        return jsonify({"error": "Texto vacío"}), 400
-
-    try:
-        traduccion = GoogleTranslator(source="auto", target=idioma_destino).translate(texto)
-        return jsonify({"traduccion": traduccion})
-    except Exception as e:
-        logger.error(f"Error en traducción: {e}")
-        return jsonify({"error": "No se pudo traducir"}), 500
-
-# ======================
-# PROCESAR PDF
-# ======================
-@app.route("/procesar_pdf", methods=["POST"])
-def procesar_pdf():
-    if "file" not in request.files:
-        return jsonify({"error": "No se envió archivo"}), 400
-
-    file = request.files["file"]
-
-    if file.filename == "":
-        return jsonify({"error": "Nombre de archivo vacío"}), 400
-
-    filepath = UPLOAD_FOLDER / file.filename
-    file.save(filepath)
-
-    try:
-        with open(filepath, "rb") as pdf_file:
-            reader = PyPDF2.PdfReader(pdf_file)
-            texto = ""
-            for page in reader.pages:
-                texto += page.extract_text() + "\n"
-        return jsonify({"texto": texto})
-    except Exception as e:
-        logger.error(f"Error procesando PDF: {e}")
-        return jsonify({"error": "No se pudo procesar el PDF"}), 500
-
-# ======================
-# MODELO NLP SPACY
+# CARGAR NLP
 # ======================
 try:
     nlp = spacy.load("es_core_news_sm")
 except OSError:
-    logger.warning("Modelo 'es_core_news_sm' no encontrado. Ejecuta: python -m spacy download es_core_news_sm")
+    logger.warning("Modelo 'es_core_news_sm' no encontrado. Intenta instalarlo con: python -m spacy download es_core_news_sm")
     nlp = None
 
-@app.route("/analizar", methods=["POST"])
-def analizar_texto():
-    if nlp is None:
-        return jsonify({"error": "Modelo NLP no cargado"}), 500
+# ======================
+# RUTAS
+# ======================
 
-    data = request.get_json()
-    texto = data.get("texto", "")
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-    if not texto:
-        return jsonify({"error": "Texto vacío"}), 400
+@app.route("/buscar", methods=["GET"])
+def buscar():
+    """Busca una alarma por número o elemento en el CSV."""
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify({"error": "Parámetro 'q' es requerido"}), 400
 
-    doc = nlp(texto)
-    tokens = [{"texto": token.text, "pos": token.pos_, "lemma": token.lemma_} for token in doc]
+    if not CSV_FILE.exists():
+        return jsonify({"error": f"No se encontró el archivo {CSV_FILE}"}), 404
 
-    return jsonify({"tokens": tokens})
+    try:
+        df = pd.read_csv(CSV_FILE, encoding="utf-8")
+    except UnicodeDecodeError:
+        df = pd.read_csv(CSV_FILE, encoding="latin-1")
+
+    # Normalizar columnas
+    df.columns = [col.strip() for col in df.columns]
+    col_km = "KM (TITULO DEL INSTRUCTIVO)"
+    if col_km not in df.columns:
+        return jsonify({"error": f"No existe la columna '{col_km}' en el CSV"}), 500
+
+    # Filtrar
+    resultados = df[df.apply(lambda row: query.lower() in row.astype(str).str.lower().to_list(), axis=1)]
+    resultados = resultados.to_dict(orient="records")
+
+    return jsonify(resultados)
+
+@app.route("/instructivo/<nombre>")
+def descargar_instructivo(nombre):
+    """Descarga un PDF de instructivo."""
+    file_path = UPLOAD_FOLDER / nombre
+    if not file_path.exists():
+        return jsonify({"error": f"No se encontró el archivo {nombre}"}), 404
+
+    return send_from_directory(app.config["UPLOAD_FOLDER"], nombre)
+
+@app.route("/health")
+def health():
+    """Ruta para que Render detecte que la app está viva."""
+    return jsonify({"status": "ok"}), 200
 
 # ======================
-# EJECUTAR APP
+# MAIN
 # ======================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
