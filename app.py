@@ -25,16 +25,20 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 # ======================
 # CARGA DE DATOS
 # ======================
-if EXCEL_FILE.exists():
+def cargar_excel():
+    if not EXCEL_FILE.exists():
+        logger.error(f"No se encontró el archivo {EXCEL_FILE}")
+        return pd.DataFrame()
     try:
         df = pd.read_excel(EXCEL_FILE, dtype=str).fillna("")
         logger.info(f"Archivo {EXCEL_FILE.name} cargado con éxito ({len(df)} registros)")
+        logger.info(f"Columnas detectadas: {df.columns.tolist()}")
+        return df
     except Exception as e:
         logger.error(f"Error al leer {EXCEL_FILE.name}: {e}")
-        df = pd.DataFrame()
-else:
-    logger.error(f"No se encontró el archivo {EXCEL_FILE}")
-    df = pd.DataFrame()
+        return pd.DataFrame()
+
+df = cargar_excel()
 
 # ======================
 # RUTAS
@@ -51,12 +55,18 @@ def buscar():
     if df.empty:
         return jsonify({"error": "No hay datos cargados"}), 500
 
-    resultados = df[
-        (df["NUMERO"].str.contains(numero, case=False, na=False)) &
-        (df["ELEMENTO"].str.contains(elemento, case=False, na=False))
-    ]
-
-    return jsonify(resultados.to_dict(orient="records"))
+    try:
+        # Busqueda flexible que no depende del nombre exacto de las columnas
+        resultados = df[
+            (df.iloc[:, 0].str.contains(numero, case=False, na=False)) &  # Primera columna (Numero alarma)
+            (df.iloc[:, 1].str.contains(elemento, case=False, na=False))   # Segunda columna (Descripción alarma)
+        ]
+        
+        # Convertimos a diccionario con nombres de columnas originales
+        return jsonify(resultados.to_dict(orient="records"))
+    except Exception as e:
+        logger.error(f"Error en búsqueda: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/instructivo/<nombre>")
 def obtener_instructivo(nombre):
