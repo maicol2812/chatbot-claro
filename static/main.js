@@ -3,20 +3,18 @@ document.addEventListener("DOMContentLoaded", function() {
     const userInput = document.getElementById("user-input");
     const sendBtn = document.getElementById("send-btn");
     let currentStep = 'main_menu';
+    let currentAlarmData = null;
 
-    // Mostrar mensaje de bienvenida
-    addMessage("Buen día, ¿qué deseas consultar hoy?", "bot");
-    showOptions([
-        {text: "Alarmas", value: "1"},
-        {text: "Documentación", value: "2"},
-        {text: "Incidentes", value: "3"},
-        {text: "Estado operativo", value: "4"},
-        {text: "Cambios programados", value: "5"},
-        {text: "Contactar soporte", value: "6"}
-    ]);
+    // Initialize chat
+    showWelcomeMessage();
 
-    // Función para enviar mensajes
-    async function sendMessage() {
+    // Event listeners
+    sendBtn.addEventListener('click', processUserInput);
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') processUserInput();
+    });
+
+    async function processUserInput() {
         const text = userInput.value.trim();
         if (!text) return;
         
@@ -27,31 +25,61 @@ document.addEventListener("DOMContentLoaded", function() {
             const response = await fetch('/api/chatbot', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: text, step: currentStep})
+                body: JSON.stringify({
+                    message: text,
+                    step: currentStep,
+                    alarm_data: currentAlarmData
+                })
             });
 
             const data = await response.json();
-            currentStep = data.step;
-
-            // Mostrar respuesta
-            addMessage(data.message, "bot");
+            handleBotResponse(data);
             
-            // Mostrar alarmas si existen
-            if (data.alarmas && data.alarmas.length > 0) {
-                showAlarms(data.alarmas);
-            }
-            
-            // Mostrar opciones si existen
-            if (data.options && data.options.length > 0) {
-                showOptions(data.options);
-            }
         } catch (error) {
-            addMessage("Error de conexión", "bot");
-            console.error(error);
+            showError("Error de conexión con el servidor");
+            console.error("Chatbot error:", error);
         }
     }
 
-    // Función para mostrar alarmas
+    function handleBotResponse(response) {
+        currentStep = response.step || 'main_menu';
+        
+        // Store alarm data if present
+        if (response.alarm_data) {
+            currentAlarmData = response.alarm_data;
+        }
+
+        // Show main message
+        addMessage(response.message, "bot");
+        
+        // Show alarms if available
+        if (response.alarmas) {
+            showAlarms(response.alarmas);
+        }
+        
+        // Show options if available
+        if (response.options) {
+            showOptions(response.options);
+        }
+        
+        // Show quick actions if available
+        if (response.quick_actions) {
+            showQuickActions(response.quick_actions);
+        }
+    }
+
+    function showWelcomeMessage() {
+        addMessage("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar hoy?", "bot");
+        showOptions([
+            {text: "🛎️ Alarmas", value: "1", type: "alarm"},
+            {text: "📄 Documentación", value: "2", type: "document"},
+            {text: "⚠️ Incidentes", value: "3", type: "incident"},
+            {text: "📊 Estado operativo", value: "4", type: "status"},
+            {text: "🔄 Cambios programados", value: "5", type: "changes"},
+            {text: "👨‍💻 Contactar soporte", value: "6", type: "support"}
+        ]);
+    }
+
     function showAlarms(alarmas) {
         const container = document.createElement('div');
         container.className = 'alarms-container';
@@ -59,30 +87,83 @@ document.addEventListener("DOMContentLoaded", function() {
         alarmas.forEach(alarma => {
             const alarmDiv = document.createElement('div');
             alarmDiv.className = 'alarm-card';
+            
+            // Determine severity color
+            const severity = alarma['Severidad'] ? alarma['Severidad'].toLowerCase() : '';
+            let severityClass = 'severity-medium';
+            if (severity.includes('critic') || severity.includes('alta')) severityClass = 'severity-high';
+            if (severity.includes('baja')) severityClass = 'severity-low';
+            
             alarmDiv.innerHTML = `
-                <h4>Alarma ${alarma['Numero alarma'] || 'N/A'}</h4>
-                <p><strong>Elemento:</strong> ${alarma['Nombre del elemento'] || 'N/A'}</p>
-                <p><strong>Descripción:</strong> ${alarma['Descripción alarma'] || 'N/A'}</p>
-                <p><strong>Severidad:</strong> ${alarma['Severidad'] || 'N/A'}</p>
+                <div class="alarm-header">
+                    <span class="alarm-id">Alarma #${alarma['Numero alarma'] || 'N/A'}</span>
+                    <span class="severity-badge ${severityClass}">${alarma['Severidad'] || 'N/A'}</span>
+                </div>
+                <div class="alarm-details">
+                    <p><strong>Elemento:</strong> ${alarma['Nombre del elemento'] || 'N/A'}</p>
+                    <p><strong>Descripción:</strong> ${alarma['Descripción alarma'] || 'N/A'}</p>
+                    <p><strong>Última actualización:</strong> ${alarma['Fecha'] || 'N/A'}</p>
+                </div>
+                <div class="alarm-actions">
+                    <button class="action-btn" data-action="details" data-alarm="${alarma['Numero alarma']}">Ver detalles</button>
+                    <button class="action-btn" data-action="documentation" data-alarm="${alarma['Numero alarma']}">Documentación</button>
+                </div>
             `;
+            
             container.appendChild(alarmDiv);
         });
         
         chatBox.appendChild(container);
         chatBox.scrollTop = chatBox.scrollHeight;
+        
+        // Add event listeners to action buttons
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = e.target.getAttribute('data-action');
+                const alarmId = e.target.getAttribute('data-alarm');
+                handleAlarmAction(action, alarmId);
+            });
+        });
     }
 
-    // Función para mostrar opciones
+    function handleAlarmAction(action, alarmId) {
+        switch(action) {
+            case 'details':
+                fetchAlarmDetails(alarmId);
+                break;
+            case 'documentation':
+                fetchAlarmDocumentation(alarmId);
+                break;
+            default:
+                addMessage(`Acción "${action}" no reconocida para alarma ${alarmId}`, "bot");
+        }
+    }
+
+    async function fetchAlarmDetails(alarmId) {
+        try {
+            const response = await fetch(`/api/alarmas/${alarmId}/detalles`);
+            const data = await response.json();
+            showAlarmDetails(data);
+        } catch (error) {
+            showError("Error al obtener detalles de la alarma");
+        }
+    }
+
+    function showAlarmDetails(details) {
+        // Implementation for showing detailed alarm information
+    }
+
     function showOptions(options) {
         const container = document.createElement('div');
         container.className = 'options-container';
         
         options.forEach(option => {
             const btn = document.createElement('button');
+            btn.className = `option-btn ${option.type || ''}`;
             btn.textContent = option.text;
             btn.onclick = () => {
                 userInput.value = option.value;
-                sendMessage();
+                processUserInput();
             };
             container.appendChild(btn);
         });
@@ -91,7 +172,14 @@ document.addEventListener("DOMContentLoaded", function() {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Función para agregar mensajes
+    function showQuickActions(actions) {
+        // Implementation for quick action buttons
+    }
+
+    function showError(message) {
+        addMessage(`❌ ${message}`, "bot");
+    }
+
     function addMessage(text, sender) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${sender}-message`;
@@ -99,10 +187,4 @@ document.addEventListener("DOMContentLoaded", function() {
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
-
-    // Event listeners
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
-    });
 });

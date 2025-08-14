@@ -21,7 +21,7 @@ INSTRUCTIVOS_DIR = BASE_DIR / "instructivos"
 # ======================
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
-app.secret_key = 'tu_clave_secreta_aqui'  # Necesaria para usar sesiones
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-key-segura')  # Mejor práctica para clave secreta
 
 # ======================
 # CARGA DE DATOS
@@ -32,8 +32,10 @@ def cargar_excel():
         return pd.DataFrame()
     try:
         df = pd.read_excel(EXCEL_FILE, dtype=str).fillna("")
+        # Normalizar nombres de columnas
+        df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
         logger.info(f"Archivo {EXCEL_FILE.name} cargado con éxito ({len(df)} registros)")
-        logger.info(f"Columnas detectadas: {df.columns.tolist()}")
+        logger.debug(f"Columnas detectadas: {df.columns.tolist()}")
         return df
     except Exception as e:
         logger.error(f"Error al leer {EXCEL_FILE.name}: {e}")
@@ -46,35 +48,50 @@ df = cargar_excel()
 # ======================
 def generar_menu_principal():
     return {
-        "text": "Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?",
+        "text": "Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar hoy?",
         "options": [
-            {"text": "Alarmas de plataformas", "value": "1"},
-            {"text": "Documentación de las plataformas", "value": "2"},
-            {"text": "Incidentes activos de las plataformas", "value": "3"},
-            {"text": "Estado operativo de las plataformas", "value": "4"},
-            {"text": "Cambios activos en las plataformas", "value": "5"},
-            {"text": "Hablar con el administrador de la plataforma", "value": "6"}
+            {"text": "🛎️ Alarmas", "value": "1", "icon": "bi-alarm"},
+            {"text": "📄 Documentación", "value": "2", "icon": "bi-file-earmark-text"},
+            {"text": "⚠️ Incidentes", "value": "3", "icon": "bi-exclamation-triangle"},
+            {"text": "📊 Estado operativo", "value": "4", "icon": "bi-graph-up"},
+            {"text": "🔄 Cambios programados", "value": "5", "icon": "bi-calendar-check"},
+            {"text": "👨‍💻 Contactar soporte", "value": "6", "icon": "bi-headset"}
+        ],
+        "quick_actions": [
+            {"text": "🔍 Buscar alarmas críticas", "value": "criticas"},
+            {"text": "🆘 Soporte urgente", "value": "soporte_urgente"}
         ]
     }
 
-def buscar_alarmas(numero, elemento):
+def buscar_alarmas(numero="", elemento="", severidad=""):
     try:
-        resultados = df[
-            (df.iloc[:, 0].str.contains(numero, case=False, na=False)) &  # Primera columna (Numero alarma)
-            (df.iloc[:, 1].str.contains(elemento, case=False, na=False))   # Segunda columna (Descripción alarma)
-        ]
+        query = []
+        if numero:
+            query.append(f"numero_alarma.str.contains('{numero}', case=False, na=False)")
+        if elemento:
+            query.append(f"nombre_del_elemento.str.contains('{elemento}', case=False, na=False)")
+        if severidad:
+            query.append(f"severidad.str.contains('{severidad}', case=False, na=False)")
         
-        if resultados.empty:
-            return {"error": "No se encontraron alarmas con esos criterios"}
+        if not query:
+            return pd.DataFrame()
+            
+        full_query = " & ".join(query)
+        resultados = df.query(full_query) if query else df
         
-        alarmas = resultados.to_dict(orient='records')
-        return {"alarmas": alarmas}
+        return resultados
     except Exception as e:
         logger.error(f"Error en búsqueda: {e}")
-        return {"error": str(e)}
+        return pd.DataFrame()
+
+def formatear_alarmas(alarmas_df):
+    if alarmas_df.empty:
+        return []
+    
+    return alarmas_df.to_dict('records')
 
 # ======================
-# RUTAS
+# RUTAS MEJORADAS
 # ======================
 @app.route("/")
 def home():
@@ -83,117 +100,233 @@ def home():
 @app.route("/api/chatbot", methods=["POST"])
 def chatbot():
     data = request.json
-    user_input = data.get('message', '').strip()
+    user_input = data.get('message', '').strip().lower()
     current_step = data.get('step', 'main_menu')
+    context = data.get('context', {})
     
-    # Reiniciar conversación si recibe un comando especial
-    if user_input.lower() == 'reiniciar':
-        current_step = 'main_menu'
+    logger.info(f"Paso actual: {current_step}, Input: {user_input}")
     
-    # Menú principal
-    if current_step == 'main_menu':
-        if user_input == '1':
-            response = {"message": "Por favor ingrese el número de alarma que desea consultar:", "step": "get_alarm_number"}
-        else:
-            response = {
-                "message": generar_menu_principal()["text"],
-                "options": generar_menu_principal()["options"],
-                "step": "main_menu"
-            }
-    
-    # Obtener número de alarma
-    elif current_step == 'get_alarm_number':
-        session['alarm_number'] = user_input
-        response = {"message": "Por favor ingresa el nombre del elemento que reporta la alarma:", "step": "get_element_name"}
-    
-    # Obtener elemento y mostrar resultados
-    elif current_step == 'get_element_name':
-        alarm_number = session.get('alarm_number', '')
-        result = buscar_alarmas(alarm_number, user_input)
-        
-        if 'error' in result:
-            response = {
-                "message": result['error'] + "\n\n¿Deseas intentar con otros valores? (Sí/No)",
-                "step": "retry_search"
-            }
-        else:
-            alarmas = result['alarmas']
-            message = f"🔍 Se encontraron {len(alarmas)} alarmas:\n\n"
-            
-            for alarma in alarmas:
-                message += (
-                    f"📌 Alarma: {alarma.get('Numero alarma', 'N/A')}\n"
-                    f"📝 Descripción: {alarma.get('Descripción alarma', 'N/A')}\n"
-                    f"⚠️ Severidad: {alarma.get('Severidad', 'N/A')}\n"
-                    f"🛠 Acciones: {alarma.get('Acciones', 'N/A')}\n\n"
-                )
-            
-            message += "¿Necesitas más información sobre alguna de estas alarmas? (Sí/No)"
-            response = {"message": message, "step": "follow_up"}
-    
-    # Manejar reintento de búsqueda
-    elif current_step == 'retry_search':
-        if user_input.lower() in ['sí', 'si', 'yes']:
-            response = {"message": "Por favor ingrese el número de alarma:", "step": "get_alarm_number"}
-        else:
-            response = {
-                "message": generar_menu_principal()["text"],
-                "options": generar_menu_principal()["options"],
-                "step": "main_menu"
-            }
-    
-    # Seguimiento después de mostrar resultados
-    elif current_step == 'follow_up':
-        if user_input.lower() in ['sí', 'si', 'yes']:
-            response = {
-                "message": "¿Qué información adicional necesitas?\n1. Documentación técnica\n2. Contactar a soporte\n3. Otras alarmas relacionadas",
-                "step": "additional_info"
-            }
-        else:
-            response = {
-                "message": generar_menu_principal()["text"],
-                "options": generar_menu_principal()["options"],
-                "step": "main_menu"
-            }
-    
-    # Información adicional
-    elif current_step == 'additional_info':
-        if user_input == '1':
-            response = {"message": "Por favor ingresa el número de alarma para buscar documentación:", "step": "get_docs"}
-        elif user_input == '2':
-            response = {"message": "Conectándote con soporte técnico...", "step": "main_menu"}
-        elif user_input == '3':
-            response = {"message": "Por favor ingrese el número de alarma relacionada:", "step": "get_alarm_number"}
-        else:
-            response = {"message": "Opción no válida. ¿En qué más puedo ayudarte?", "step": "main_menu"}
-    
-    # Obtener documentación
-    elif current_step == 'get_docs':
-        # Aquí puedes implementar la lógica para buscar documentación
-        response = {
-            "message": f"Documentación para la alarma {user_input}: [Enlace o información]\n\n¿Necesitas algo más?",
+    # Manejo de comandos especiales
+    if user_input in ['reiniciar', 'reset', 'menu']:
+        return jsonify({
+            "message": generar_menu_principal()["text"],
+            "options": generar_menu_principal()["options"],
+            "quick_actions": generar_menu_principal()["quick_actions"],
             "step": "main_menu"
-        }
+        })
+    
+    # Máquina de estados del chatbot
+    response = {
+        "step": current_step,
+        "context": context
+    }
+    
+    if current_step == 'main_menu':
+        handle_main_menu(user_input, response)
+    elif current_step == 'get_alarm_number':
+        handle_get_alarm_number(user_input, response, context)
+    elif current_step == 'get_element_name':
+        handle_get_element_name(user_input, response, context)
+    elif current_step == 'retry_search':
+        handle_retry_search(user_input, response)
+    elif current_step == 'show_results':
+        handle_show_results(user_input, response, context)
+    elif current_step == 'additional_info':
+        handle_additional_info(user_input, response, context)
+    elif current_step == 'get_docs':
+        handle_get_docs(user_input, response, context)
+    else:
+        response.update({
+            "message": "Disculpa, hubo un error en la conversación. Reiniciando...",
+            "step": "main_menu"
+        })
     
     return jsonify(response)
 
-@app.route("/buscar", methods=["GET"])
-def buscar():
+# ======================
+# MANEJADORES DE ESTADOS
+# ======================
+def handle_main_menu(user_input, response):
+    if user_input == '1':
+        response.update({
+            "message": "Por favor ingrese el número de alarma que desea consultar:",
+            "step": "get_alarm_number"
+        })
+    elif user_input == 'criticas':
+        alarmas = buscar_alarmas(severidad="critica|alta")
+        if not alarmas.empty:
+            response.update({
+                "message": f"⚠️ Se encontraron {len(alarmas)} alarmas críticas/altas:",
+                "alarmas": formatear_alarmas(alarmas),
+                "step": "show_results",
+                "context": {"tipo_busqueda": "criticas"}
+            })
+        else:
+            response.update({
+                "message": "No se encontraron alarmas críticas en este momento.",
+                "step": "main_menu"
+            })
+    else:
+        menu = generar_menu_principal()
+        response.update({
+            "message": menu["text"],
+            "options": menu["options"],
+            "quick_actions": menu["quick_actions"],
+            "step": "main_menu"
+        })
+
+def handle_get_alarm_number(user_input, response, context):
+    if not user_input:
+        response.update({
+            "message": "Por favor ingrese un número de alarma válido:",
+            "step": "get_alarm_number"
+        })
+    else:
+        context['alarm_number'] = user_input
+        response.update({
+            "message": "Por favor ingresa el nombre del elemento que reporta la alarma:",
+            "step": "get_element_name",
+            "context": context
+        })
+
+def handle_get_element_name(user_input, response, context):
+    if not user_input:
+        response.update({
+            "message": "Por favor ingrese un nombre de elemento válido:",
+            "step": "get_element_name"
+        })
+    else:
+        alarmas = buscar_alarmas(
+            numero=context.get('alarm_number', ''),
+            elemento=user_input
+        )
+        
+        if alarmas.empty:
+            response.update({
+                "message": "No se encontraron alarmas con esos criterios. ¿Deseas intentar con otros valores? (Sí/No)",
+                "step": "retry_search",
+                "context": context
+            })
+        else:
+            context['alarmas'] = formatear_alarmas(alarmas)
+            response.update({
+                "message": f"🔍 Se encontraron {len(alarmas)} alarmas:",
+                "alarmas": context['alarmas'],
+                "step": "show_results",
+                "context": context,
+                "options": [
+                    {"text": "Ver detalles completos", "value": "detalles"},
+                    {"text": "Documentación relacionada", "value": "documentacion"},
+                    {"text": "Otras alarmas del elemento", "value": "mas_alarmas"}
+                ]
+            })
+
+def handle_retry_search(user_input, response):
+    if user_input in ['sí', 'si', 's', 'yes']:
+        response.update({
+            "message": "Por favor ingrese el número de alarma:",
+            "step": "get_alarm_number"
+        })
+    else:
+        response.update({
+            "message": generar_menu_principal()["text"],
+            "options": generar_menu_principal()["options"],
+            "quick_actions": generar_menu_principal()["quick_actions"],
+            "step": "main_menu"
+        })
+
+def handle_show_results(user_input, response, context):
+    if user_input == 'detalles':
+        response.update({
+            "message": "Detalles completos de las alarmas:",
+            "alarmas": context.get('alarmas', []),
+            "step": "show_detailed_results",
+            "context": context
+        })
+    elif user_input == 'documentacion':
+        response.update({
+            "message": "Por favor ingresa el número de alarma para buscar documentación:",
+            "step": "get_docs",
+            "context": context
+        })
+    else:
+        response.update({
+            "message": "¿Necesitas algo más sobre estas alarmas?",
+            "step": "follow_up",
+            "context": context,
+            "options": [
+                {"text": "Sí, más información", "value": "si"},
+                {"text": "No, volver al menú", "value": "no"}
+            ]
+        })
+
+def handle_additional_info(user_input, response, context):
+    if user_input in ['1', 'documentacion']:
+        response.update({
+            "message": "Por favor ingresa el número de alarma para buscar documentación:",
+            "step": "get_docs",
+            "context": context
+        })
+    elif user_input in ['2', 'soporte']:
+        response.update({
+            "message": "Conectándote con soporte técnico... Un especialista se comunicará contigo pronto.",
+            "step": "main_menu"
+        })
+    else:
+        response.update({
+            "message": "Opción no válida. ¿En qué más puedo ayudarte?",
+            "step": "main_menu"
+        })
+
+def handle_get_docs(user_input, response, context):
+    # Aquí iría la lógica para buscar documentación
+    # Por ahora simulamos la respuesta
+    response.update({
+        "message": f"📄 Documentación técnica para la alarma {user_input}:\n\n"
+                   f"1. Manual de procedimientos: [link]\n"
+                   f"2. Diagrama de flujo: [link]\n"
+                   f"3. Histórico de incidentes: [link]\n\n"
+                   f"¿Necesitas algo más?",
+        "step": "main_menu"
+    })
+
+# ======================
+# RUTAS API
+# ======================
+@app.route("/api/alarmas", methods=["GET"])
+def buscar_alarmas_api():
     numero = request.args.get("numero", "").strip()
     elemento = request.args.get("elemento", "").strip()
-
-    if df.empty:
-        return jsonify({"error": "No hay datos cargados"}), 500
-
+    severidad = request.args.get("severidad", "").strip()
+    
     try:
-        resultados = df[
-            (df.iloc[:, 0].str.contains(numero, case=False, na=False)) &
-            (df.iloc[:, 1].str.contains(elemento, case=False, na=False))
-        ]
-        return jsonify(resultados.to_dict(orient="records"))
+        resultados = buscar_alarmas(numero=numero, elemento=elemento, severidad=severidad)
+        return jsonify({
+            "success": True,
+            "count": len(resultados),
+            "alarmas": formatear_alarmas(resultados)
+        })
     except Exception as e:
-        logger.error(f"Error en búsqueda: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error en API búsqueda: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@app.route("/api/alarmas/<alarma_id>", methods=["GET"])
+def detalle_alarma(alarma_id):
+    try:
+        alarma = df[df['numero_alarma'].str.contains(alarma_id, case=False, na=False)]
+        if alarma.empty:
+            return jsonify({"success": False, "error": "Alarma no encontrada"}), 404
+            
+        return jsonify({
+            "success": True,
+            "alarma": alarma.iloc[0].to_dict()
+        })
+    except Exception as e:
+        logger.error(f"Error obteniendo alarma {alarma_id}: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/instructivo/<nombre>")
 def obtener_instructivo(nombre):
@@ -201,14 +334,21 @@ def obtener_instructivo(nombre):
     ruta = INSTRUCTIVOS_DIR / archivo
 
     if ruta.exists():
-        return send_from_directory(INSTRUCTIVOS_DIR, archivo)
-    else:
-        return jsonify({"error": "Instructivo no encontrado"}), 404
+        return send_from_directory(INSTRUCTIVOS_DIR, archivo, as_attachment=False)
+    return jsonify({"error": "Instructivo no encontrado"}), 404
 
 @app.route("/health")
 def health():
-    return "OK", 200
+    return jsonify({
+        "status": "OK",
+        "alarmas_cargadas": len(df),
+        "servicio": "Chatbot Alarmas Claro"
+    })
 
+# ======================
+# INICIO DE LA APLICACIÓN
+# ======================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug)
