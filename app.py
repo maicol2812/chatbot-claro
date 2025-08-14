@@ -69,6 +69,13 @@ def obtener_instructivo(nombre):
         return jsonify({"error": "Instructivo no encontrado"}), 404
 
 # ======================
+# RUTA DE HEALTH CHECK
+# ======================
+@app.route("/health")
+def health():
+    return "OK", 200
+
+# ======================
 # MAIN
 # ======================
 if __name__ == "__main__":

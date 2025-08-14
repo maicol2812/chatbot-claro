@@ -1,62 +1,59 @@
-# ===========================
-# Archivos compilados de Python
-# ===========================
+# ============================
+# Compilados de Python
+# ============================
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
 
-# ===========================
+# ============================
 # Entornos virtuales
-# ===========================
+# ============================
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
 
-# ===========================
+# ============================
 # Archivos de bases de datos
-# ===========================
+# ============================
 *.sqlite3
 *.db
 
-# ===========================
+# ============================
 # Logs y temporales
-# ===========================
+# ============================
 *.log
 *.tmp
 
-# ===========================
+# ============================
 # Carpetas ignoradas
-# ===========================
+# ============================
 documentos_alarmas/
 instance/
 
-# ===========================
-# Datos estáticos
-# Ignorar todo en static/data excepto alarmasCMM.xlsx
-# ===========================
+# Ignorar todo el contenido de static/data excepto alarmasCMM.xlsx
 static/data/*
 !static/data/alarmasCMM.xlsx
 
-# ===========================
-# Archivos de instructivos
-# ===========================
+# ============================
+# Archivos estáticos pesados
+# ============================
 static/instructivos/*.pdf
 static/instructivos/*.docx
 static/instructivos/*.xlsx
 static/instructivos/*.pptx
 
-# ===========================
-# Archivos de sistema y configuración de IDE
-# ===========================
+# ============================
+# Archivos de sistema y editores
+# ============================
 .DS_Store
 .idea/
 .vscode/
 
-# ===========================
+# ============================
 # Variables de entorno
-# ===========================
+# ============================
 .env
