@@ -4,315 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatBot Alarmas Claro</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        :root {
-            --primary-color: #007bff;
-            --secondary-color: #6c757d;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
-            --success-color: #28a745;
-        }
-        
         body {
-            background-color: #f5f6fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
         }
         
         .chat-container {
-            height: 90vh;
             max-width: 800px;
-            background-color: white;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
         
-        .chat-header {
-            background: linear-gradient(135deg, var(--primary-color), #0062cc);
-        }
-        
-        .chat-messages {
+        #chat-box {
+            height: 500px;
+            padding: 20px;
             overflow-y: auto;
-            background-color: #fafafa;
-            flex-grow: 1;
         }
         
         .message {
-            max-width: 80%;
-            margin-bottom: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: 1rem;
+            max-width: 70%;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 18px;
             line-height: 1.4;
-            position: relative;
-            word-wrap: break-word;
-            animation: fadeIn 0.3s ease-out;
-        }
-        
-        .bot-message {
-            background-color: #e3f2fd;
-            align-self: flex-start;
-            border-bottom-left-radius: 0.25rem;
-            color: var(--dark-color);
         }
         
         .user-message {
-            background-color: var(--primary-color);
+            background: #007bff;
             color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 0.25rem;
+            margin-left: auto;
+        }
+        
+        .bot-message {
+            background: #e9ecef;
+            margin-right: auto;
         }
         
         .options-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
+            gap: 10px;
+            margin-top: 10px;
         }
         
-        .alarma-card {
-            background-color: white;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin: 0.5rem 0;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            border-left: 0.25rem solid var(--primary-color);
+        .options-container button {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 15px;
+            cursor: pointer;
         }
         
-        .alarma-title {
-            color: var(--primary-color);
-            font-weight: bold;
+        .alarms-container {
+            margin-top: 15px;
         }
         
-        .field-label {
-            font-weight: 600;
-            color: var(--secondary-color);
+        .alarm-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(0.5rem); }
-            to { opacity: 1; transform: translateY(0); }
+        .input-area {
+            display: flex;
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
         }
         
-        /* Custom scrollbar */
-        .chat-messages::-webkit-scrollbar {
-            width: 0.5rem;
+        #user-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
         }
         
-        .chat-messages::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 0.5rem;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 0.5rem;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .chat-container {
-                height: 100vh;
-                border-radius: 0;
-            }
-            
-            .message {
-                max-width: 90%;
-            }
+        #send-btn {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
         }
     </style>
 </head>
-<body class="d-flex justify-content-center align-items-center p-3">
-    <div class="container-fluid">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 col-md-10 col-12 p-0 shadow rounded-3 overflow-hidden chat-container d-flex flex-column">
-                <!-- Chat Header -->
-                <div class="chat-header text-white p-3 d-flex align-items-center gap-2">
-                    <i class="bi bi-robot fs-4"></i>
-                    <h1 class="fs-5 mb-0">ChatBot Alarmas Claro</h1>
-                </div>
-                
-                <!-- Chat Messages -->
-                <div id="chatMessages" class="chat-messages p-3 d-flex flex-column">
-                    <!-- Messages will appear here -->
-                </div>
-                
-                <!-- Chat Input -->
-                <div class="p-3 border-top bg-light">
-                    <div class="input-group">
-                        <input type="text" id="userInput" class="form-control rounded-pill" placeholder="Escribe tu mensaje..." autocomplete="off">
-                        <button id="sendBtn" class="btn btn-primary rounded-pill ms-2" onclick="sendMessage()">
-                            <i class="bi bi-send-fill"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+<body>
+    <div class="chat-container">
+        <div id="chat-box"></div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Escribe tu mensaje...">
+            <button id="send-btn">Enviar</button>
         </div>
     </div>
-
-    <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const chatMessages = document.getElementById("chatMessages");
-            const userInput = document.getElementById("userInput");
-            const sendBtn = document.getElementById("sendBtn");
-            let currentStep = 'main_menu';
-            
-            // Initialize chat
-            showWelcomeMessage();
-            
-            // Event listeners
-            userInput.addEventListener("keypress", function(e) {
-                if (e.key === "Enter") {
-                    sendMessage();
-                }
-            });
-            
-            // Functions
-            function showWelcomeMessage() {
-                addMessage("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar hoy?", "bot", [
-                    { text: "Alarmas de plataformas", value: "1", icon: "bi-alarm" },
-                    { text: "Documentación técnica", value: "2", icon: "bi-file-earmark-text" },
-                    { text: "Incidentes activos", value: "3", icon: "bi-exclamation-triangle" },
-                    { text: "Estado operativo", value: "4", icon: "bi-graph-up" },
-                    { text: "Cambios programados", value: "5", icon: "bi-calendar-check" },
-                    { text: "Contactar soporte", value: "6", icon: "bi-headset" }
-                ]);
-            }
-            
-            function addMessage(content, sender, options = []) {
-                const messageDiv = document.createElement("div");
-                messageDiv.className = `message ${sender}-message`;
-                
-                if (typeof content === "string") {
-                    messageDiv.innerHTML = content;
-                } else {
-                    messageDiv.appendChild(content);
-                }
-                
-                chatMessages.appendChild(messageDiv);
-                
-                if (options.length > 0) {
-                    const optionsDiv = document.createElement("div");
-                    optionsDiv.className = "options-container mt-2";
-                    
-                    options.forEach(option => {
-                        const btn = document.createElement("button");
-                        btn.className = "btn btn-outline-primary btn-sm rounded-pill";
-                        btn.innerHTML = option.icon ? 
-                            `<i class="bi ${option.icon} me-1"></i>${option.text}` : 
-                            option.text;
-                        btn.onclick = () => {
-                            userInput.value = option.value;
-                            sendMessage();
-                        };
-                        optionsDiv.appendChild(btn);
-                    });
-                    
-                    chatMessages.appendChild(optionsDiv);
-                }
-                
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-            
-            function showAlarmResults(alarmas) {
-                if (!alarmas || alarmas.length === 0) {
-                    addMessage("No se encontraron alarmas con esos criterios.", "bot");
-                    return;
-                }
-                
-                alarmas.forEach(alarma => {
-                    const card = document.createElement("div");
-                    card.className = "alarma-card";
-                    
-                    card.innerHTML = `
-                        <div class="alarma-title d-flex align-items-center gap-2 mb-2">
-                            <i class="bi bi-exclamation-octagon-fill text-danger"></i>
-                            <span>Alarma ${escapeHtml(alarma["Numero alarma"] || 'N/A')}</span>
-                        </div>
-                        <div class="mb-1"><span class="field-label">Elemento:</span> ${escapeHtml(alarma["Nombre del elemento"] || 'N/A')}</div>
-                        <div class="mb-1"><span class="field-label">Descripción:</span> ${escapeHtml(alarma["Descripción alarma"] || 'N/A')}</div>
-                        <div class="mb-1"><span class="field-label">Severidad:</span> <span class="badge ${getSeverityBadgeClass(alarma["Severidad"])}">${escapeHtml(alarma["Severidad"] || 'N/A')}</span></div>
-                        <div class="mb-1"><span class="field-label">Acciones:</span> ${escapeHtml(alarma["Acciones"] || 'N/A')}</div>
-                    `;
-                    
-                    chatMessages.appendChild(card);
-                });
-                
-                addMessage("¿Necesitas más información sobre alguna de estas alarmas?", "bot", [
-                    { text: "Sí", value: "sí", icon: "bi-check-circle" },
-                    { text: "No, volver al menú", value: "menu", icon: "bi-house-door" }
-                ]);
-            }
-            
-            function getSeverityBadgeClass(severity) {
-                if (!severity) return "bg-secondary";
-                severity = severity.toLowerCase();
-                
-                if (severity.includes("critic") || severity.includes("alta")) return "bg-danger";
-                if (severity.includes("medio") || severity.includes("media")) return "bg-warning text-dark";
-                if (severity.includes("baja")) return "bg-success";
-                return "bg-secondary";
-            }
-            
-            function escapeHtml(text) {
-                if (!text) return "";
-                const div = document.createElement("div");
-                div.textContent = text;
-                return div.innerHTML;
-            }
-            
-            async function sendMessage() {
-                const message = userInput.value.trim();
-                if (!message) return;
-                
-                addMessage(message, "user");
-                userInput.value = "";
-                
-                try {
-                    const response = await fetch('/api/chatbot', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            message: message,
-                            step: currentStep
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    currentStep = data.step || 'main_menu';
-                    
-                    if (data.alarmas) {
-                        showAlarmResults(data.alarmas);
-                    } else if (data.message) {
-                        if (data.options && data.options.length > 0) {
-                            addMessage(data.message, "bot", data.options);
-                        } else {
-                            addMessage(data.message, "bot");
-                        }
-                    }
-                } catch (error) {
-                    addMessage(`
-                        <div class="d-flex align-items-center gap-2 text-danger">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
-                            <span>Error de conexión con el servidor</span>
-                        </div>
-                    `, "bot");
-                    console.error("Error:", error);
-                }
-            }
-            
-            // Make function globally accessible
-            window.sendMessage = sendMessage;
-        });
-    </script>
+    <script src="static/js/main.js"></script>
 </body>
 </html>

@@ -1,107 +1,108 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const chatBox = document.getElementById("chat-box");
-  const userInput = document.getElementById("user-input");
-  const sendBtn = document.getElementById("send-btn");
-  let currentStep = 'main_menu'; // Para mantener el estado de la conversación
+document.addEventListener("DOMContentLoaded", function() {
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    let currentStep = 'main_menu';
 
-  // Función para escapar HTML
-  function escapeHtml(text) {
-    if (!text) return "";
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  }
+    // Mostrar mensaje de bienvenida
+    addMessage("Buen día, ¿qué deseas consultar hoy?", "bot");
+    showOptions([
+        {text: "Alarmas", value: "1"},
+        {text: "Documentación", value: "2"},
+        {text: "Incidentes", value: "3"},
+        {text: "Estado operativo", value: "4"},
+        {text: "Cambios programados", value: "5"},
+        {text: "Contactar soporte", value: "6"}
+    ]);
 
-  // Función para añadir mensajes al chat
-  function addMessage(content, sender, options = []) {
-    const messageElem = document.createElement("div");
-    messageElem.classList.add("message", sender);
+    // Función para enviar mensajes
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+        
+        addMessage(text, "user");
+        userInput.value = "";
 
-    if (typeof content === "string") {
-      messageElem.innerHTML = `<p>${content}</p>`;
-    } else {
-      messageElem.appendChild(content);
+        try {
+            const response = await fetch('/api/chatbot', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: text, step: currentStep})
+            });
+
+            const data = await response.json();
+            currentStep = data.step;
+
+            // Mostrar respuesta
+            addMessage(data.message, "bot");
+            
+            // Mostrar alarmas si existen
+            if (data.alarmas && data.alarmas.length > 0) {
+                showAlarms(data.alarmas);
+            }
+            
+            // Mostrar opciones si existen
+            if (data.options && data.options.length > 0) {
+                showOptions(data.options);
+            }
+        } catch (error) {
+            addMessage("Error de conexión", "bot");
+            console.error(error);
+        }
     }
 
-    chatBox.appendChild(messageElem);
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    if (options.length > 0) {
-      const btnContainer = document.createElement("div");
-      btnContainer.classList.add("button-container");
-      options.forEach((opt) => {
-        const btn = document.createElement("button");
-        btn.textContent = opt.text;
-        btn.addEventListener("click", () => handleOption(opt.value));
-        btnContainer.appendChild(btn);
-      });
-      chatBox.appendChild(btnContainer);
-      chatBox.scrollTop = chatBox.scrollHeight;
+    // Función para mostrar alarmas
+    function showAlarms(alarmas) {
+        const container = document.createElement('div');
+        container.className = 'alarms-container';
+        
+        alarmas.forEach(alarma => {
+            const alarmDiv = document.createElement('div');
+            alarmDiv.className = 'alarm-card';
+            alarmDiv.innerHTML = `
+                <h4>Alarma ${alarma['Numero alarma'] || 'N/A'}</h4>
+                <p><strong>Elemento:</strong> ${alarma['Nombre del elemento'] || 'N/A'}</p>
+                <p><strong>Descripción:</strong> ${alarma['Descripción alarma'] || 'N/A'}</p>
+                <p><strong>Severidad:</strong> ${alarma['Severidad'] || 'N/A'}</p>
+            `;
+            container.appendChild(alarmDiv);
+        });
+        
+        chatBox.appendChild(container);
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
-  }
 
-  // Función para manejar opciones del menú
-  function handleOption(value) {
-    userInput.value = value;
-    sendMessage();
-  }
-
-  // Función para enviar mensajes al backend
-  async function sendMessage() {
-    const text = userInput.value.trim();
-    if (!text) return;
-    
-    addMessage(text, "user");
-    userInput.value = "";
-
-    try {
-      const response = await fetch('/api/chatbot', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: text,
-          step: currentStep
-        })
-      });
-
-      const data = await response.json();
-      currentStep = data.step || 'main_menu';
-
-      // Procesar la respuesta del backend
-      if (data.options && data.options.length > 0) {
-        // Mostrar mensaje con opciones de botones
-        addMessage(data.message, "bot", data.options.map(opt => ({
-          text: opt.text,
-          value: opt.value
-        })));
-      } else {
-        // Mostrar mensaje simple
-        addMessage(data.message, "bot");
-      }
-    } catch (error) {
-      addMessage("❌ Error de conexión con el servidor", "bot");
-      console.error("Error:", error);
+    // Función para mostrar opciones
+    function showOptions(options) {
+        const container = document.createElement('div');
+        container.className = 'options-container';
+        
+        options.forEach(option => {
+            const btn = document.createElement('button');
+            btn.textContent = option.text;
+            btn.onclick = () => {
+                userInput.value = option.value;
+                sendMessage();
+            };
+            container.appendChild(btn);
+        });
+        
+        chatBox.appendChild(container);
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
-  }
 
-  // Event listeners
-  sendBtn.addEventListener("click", sendMessage);
-  userInput.addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-      sendMessage();
+    // Función para agregar mensajes
+    function addMessage(text, sender) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${sender}-message`;
+        msgDiv.textContent = text;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
-  });
 
-  // Iniciar conversación
-  addMessage("Buen día, hablemos de nuestras plataformas de Core. ¿Qué te gustaría consultar el día de hoy?", "bot", [
-    { text: "Alarmas de plataformas", value: "1" },
-    { text: "Documentación de las plataformas", value: "2" },
-    { text: "Incidentes activos", value: "3" },
-    { text: "Estado operativo", value: "4" },
-    { text: "Cambios activos", value: "5" },
-    { text: "Hablar con administrador", value: "6" }
-  ]);
+    // Event listeners
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
 });
