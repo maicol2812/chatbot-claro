@@ -5,10 +5,8 @@ document.addEventListener("DOMContentLoaded", function() {
     let currentStep = 'main_menu';
     let currentAlarmData = null;
 
-    // Initialize chat
     showWelcomeMessage();
 
-    // Event listeners
     sendBtn.addEventListener('click', processUserInput);
     userInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') processUserInput();
@@ -17,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function() {
     async function processUserInput() {
         const text = userInput.value.trim();
         if (!text) return;
-        
+
         addMessage(text, "user");
         userInput.value = "";
 
@@ -32,9 +30,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 })
             });
 
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
             const data = await response.json();
             handleBotResponse(data);
-            
+
         } catch (error) {
             showError("Error de conexión con el servidor");
             console.error("Chatbot error:", error);
@@ -43,29 +43,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function handleBotResponse(response) {
         currentStep = response.step || 'main_menu';
-        
-        // Store alarm data if present
+
         if (response.alarm_data) {
             currentAlarmData = response.alarm_data;
         }
 
-        // Show main message
-        addMessage(response.message, "bot");
-        
-        // Show alarms if available
-        if (response.alarmas) {
-            showAlarms(response.alarmas);
-        }
-        
-        // Show options if available
-        if (response.options) {
-            showOptions(response.options);
-        }
-        
-        // Show quick actions if available
-        if (response.quick_actions) {
-            showQuickActions(response.quick_actions);
-        }
+        if (response.message) addMessage(response.message, "bot");
+        if (response.alarmas) showAlarms(response.alarmas);
+        if (response.options) showOptions(response.options);
+        if (response.quick_actions) showQuickActions(response.quick_actions);
     }
 
     function showWelcomeMessage() {
@@ -83,17 +69,16 @@ document.addEventListener("DOMContentLoaded", function() {
     function showAlarms(alarmas) {
         const container = document.createElement('div');
         container.className = 'alarms-container';
-        
+
         alarmas.forEach(alarma => {
             const alarmDiv = document.createElement('div');
             alarmDiv.className = 'alarm-card';
-            
-            // Determine severity color
-            const severity = alarma['Severidad'] ? alarma['Severidad'].toLowerCase() : '';
+
+            const severity = (alarma['Severidad'] || '').toLowerCase();
             let severityClass = 'severity-medium';
             if (severity.includes('critic') || severity.includes('alta')) severityClass = 'severity-high';
             if (severity.includes('baja')) severityClass = 'severity-low';
-            
+
             alarmDiv.innerHTML = `
                 <div class="alarm-header">
                     <span class="alarm-id">Alarma #${alarma['Numero alarma'] || 'N/A'}</span>
@@ -109,14 +94,13 @@ document.addEventListener("DOMContentLoaded", function() {
                     <button class="action-btn" data-action="documentation" data-alarm="${alarma['Numero alarma']}">Documentación</button>
                 </div>
             `;
-            
+
             container.appendChild(alarmDiv);
         });
-        
+
         chatBox.appendChild(container);
         chatBox.scrollTop = chatBox.scrollHeight;
-        
-        // Add event listeners to action buttons
+
         document.querySelectorAll('.action-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const action = e.target.getAttribute('data-action');
@@ -142,6 +126,7 @@ document.addEventListener("DOMContentLoaded", function() {
     async function fetchAlarmDetails(alarmId) {
         try {
             const response = await fetch(`/api/alarmas/${alarmId}/detalles`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
             showAlarmDetails(data);
         } catch (error) {
@@ -150,13 +135,13 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function showAlarmDetails(details) {
-        // Implementation for showing detailed alarm information
+        // Mostrar detalles
     }
 
     function showOptions(options) {
         const container = document.createElement('div');
         container.className = 'options-container';
-        
+
         options.forEach(option => {
             const btn = document.createElement('button');
             btn.className = `option-btn ${option.type || ''}`;
@@ -167,13 +152,13 @@ document.addEventListener("DOMContentLoaded", function() {
             };
             container.appendChild(btn);
         });
-        
+
         chatBox.appendChild(container);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     function showQuickActions(actions) {
-        // Implementation for quick action buttons
+        // Implementación si se requiere
     }
 
     function showError(message) {
