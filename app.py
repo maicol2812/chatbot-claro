@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, send_from_directory, jsonify
 import pandas as pd
-import os
 import logging
 from pathlib import Path
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -35,7 +34,6 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 # CARGAR XLSX DE ALARMAS
 # ======================
 try:
-    # --- CAMBIO MINIMO: intentamos primero en la raíz y luego en static/data ---
     xlsx_primary = BASE_DIR / "CatalogoAlarmas.xlsx"
     xlsx_fallback = BASE_DIR / "static" / "data" / "alarmasCMM.xlsx"
 
@@ -48,13 +46,10 @@ try:
 
     if xlsx_path is not None:
         logger.info(f"Cargando XLSX desde: {xlsx_path}")
-        # Usamos openpyxl (ya lo tienes en requirements)
         df_alarmas = pd.read_excel(xlsx_path, engine="openpyxl")
         logger.info(f"XLSX cargado correctamente con {len(df_alarmas)} registros.")
     else:
-        logger.warning(
-            f"No se encontró el archivo XLSX en {xlsx_primary} ni en {xlsx_fallback}."
-        )
+        logger.warning("No se encontró el archivo XLSX.")
         df_alarmas = pd.DataFrame()
 except Exception as e:
     logger.error(f"Error cargando el XLSX: {e}")
@@ -72,23 +67,22 @@ def index():
 # ======================
 @app.route("/buscar", methods=["GET"])
 def buscar():
-    numero_alarma = request.args.get("numero")
-    elemento = request.args.get("elemento")
+    numero_alarma = request.args.get("numero", "").strip()
+    elemento = request.args.get("elemento", "").strip()
     logger.info(f"Buscando alarma: {numero_alarma}, elemento: {elemento}")
 
     if df_alarmas.empty:
         return jsonify({"error": "Base de datos no cargada"}), 500
 
     resultado = df_alarmas[
-        (df_alarmas["NUMERO"].astype(str) == str(numero_alarma)) &
-        (df_alarmas["ELEMENTO"].str.contains(str(elemento), case=False, na=False))
+        (df_alarmas["NUMERO"].astype(str) == numero_alarma) &
+        (df_alarmas["ELEMENTO"].str.contains(elemento, case=False, na=False))
     ]
 
     if resultado.empty:
         return jsonify({"mensaje": "No se encontraron coincidencias"}), 404
 
-    datos = resultado.to_dict(orient="records")
-    return jsonify(datos)
+    return jsonify(resultado.to_dict(orient="records"))
 
 # ======================
 # DESCARGAR PDF POR NOMBRE
@@ -106,8 +100,8 @@ def descargar_pdf(nombre):
 # ======================
 @app.route("/traducir", methods=["POST"])
 def traducir():
-    data = request.get_json()
-    texto = data.get("texto", "")
+    data = request.get_json(force=True)
+    texto = data.get("texto", "").strip()
     idioma_destino = data.get("idioma", "en")
 
     if not texto:
@@ -139,9 +133,7 @@ def procesar_pdf():
     try:
         with open(filepath, "rb") as pdf_file:
             reader = PyPDF2.PdfReader(pdf_file)
-            texto = ""
-            for page in reader.pages:
-                texto += page.extract_text() + "\n"
+            texto = "".join(page.extract_text() + "\n" for page in reader.pages)
         return jsonify({"texto": texto})
     except Exception as e:
         logger.error(f"Error procesando PDF: {e}")
@@ -161,8 +153,8 @@ def analizar_texto():
     if nlp is None:
         return jsonify({"error": "Modelo NLP no cargado"}), 500
 
-    data = request.get_json()
-    texto = data.get("texto", "")
+    data = request.get_json(force=True)
+    texto = data.get("texto", "").strip()
 
     if not texto:
         return jsonify({"error": "Texto vacío"}), 400
