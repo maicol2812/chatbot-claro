@@ -1,35 +1,71 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="utf-8" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buscador de Alarmas</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-      body { font-family: system-ui, sans-serif; margin: 24px; }
-      .row { display:flex; gap:12px; margin-bottom:12px; flex-wrap: wrap; }
-      input { padding:8px; }
-      button { padding:8px 14px; cursor:pointer; }
-      table { border-collapse: collapse; width:100%; margin-top:16px; }
-      th, td { border:1px solid #ddd; padding:8px; }
-      th { background:#f4f4f4; text-align:left; }
-      .muted { color:#666; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+        .contenedor {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #resultado {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        a {
+            color: #28a745;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
     </style>
-  </head>
-  <body>
-    <h1>Buscador de Alarmas (.xlsx)</h1>
+</head>
+<body>
+    <h1>Buscador de Alarmas</h1>
+    <div class="contenedor">
+        <label for="numero">Número de Alarma:</label>
+        <input type="text" id="numero" placeholder="Ej: 1234">
 
-    <div class="row">
-      <input id="numero" placeholder="Número de alarma" />
-      <input id="elemento" placeholder="Elemento" />
-      <button id="btnBuscar">Buscar</button>
+        <label for="elemento">Elemento:</label>
+        <input type="text" id="elemento" placeholder="Ej: Radio">
+
+        <button id="buscarBtn">Buscar</button>
+
+        <div id="resultado"></div>
     </div>
 
-    <div id="estado" class="muted">Listo.</div>
-    <table id="tabla" style="display:none">
-      <thead id="thead"></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-
-    <script src="/static/js/main.js"></script>
-  </body>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
 </html>

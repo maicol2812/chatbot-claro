@@ -1,41 +1,49 @@
-# Archivos y carpetas de Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.env
-.env
-.venv
+# Entornos virtuales
 venv/
+env/
 ENV/
 
-# Archivos de configuración locales
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos temporales y caché
 *.log
+*.tmp
+*.swp
+*.swo
+*.DS_Store
+
+# Archivos de configuración local
+.env
+.env.local
+.env.development
+.env.production
+
+# Archivos de base de datos locales
+*.db
 *.sqlite3
 
-# Archivos del sistema
-.DS_Store
-Thumbs.db
-
-# Entornos virtuales y dependencias locales
-*.egg-info/
-.eggs/
-pip-wheel-metadata/
-
-# Archivos temporales
-*.tmp
-*.temp
-
-# Archivos de datos locales (como tu Excel grande)
-*.xlsx
-*.xls
-*.csv
-
-# Node.js (por si tienes frontend React)
+# Carpeta de dependencias Node.js
 node_modules/
+
+# Archivos de build de frontend
 build/
 dist/
 
-# Configuración de editor
-.vscode/
-.idea/
+# Archivos del sistema operativo
+Thumbs.db
+.DS_Store
+
+# PDFs y Excel grandes (opcional si no quieres subirlos)
+*.pdf
+*.xlsx
+*.xls
+
+# Archivos multimedia
+*.mp4
+*.jpg
+*.jpeg
+*.png
+*.gif
