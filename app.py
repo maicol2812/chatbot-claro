@@ -35,12 +35,26 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 # CARGAR XLSX DE ALARMAS
 # ======================
 try:
-    xlsx_path = BASE_DIR / "CatalogoAlarmas.xlsx"
-    if xlsx_path.exists():
+    # --- CAMBIO MINIMO: intentamos primero en la raíz y luego en static/data ---
+    xlsx_primary = BASE_DIR / "CatalogoAlarmas.xlsx"
+    xlsx_fallback = BASE_DIR / "static" / "data" / "alarmasCMM.xlsx"
+
+    if xlsx_primary.exists():
+        xlsx_path = xlsx_primary
+    elif xlsx_fallback.exists():
+        xlsx_path = xlsx_fallback
+    else:
+        xlsx_path = None
+
+    if xlsx_path is not None:
+        logger.info(f"Cargando XLSX desde: {xlsx_path}")
+        # Usamos openpyxl (ya lo tienes en requirements)
         df_alarmas = pd.read_excel(xlsx_path, engine="openpyxl")
         logger.info(f"XLSX cargado correctamente con {len(df_alarmas)} registros.")
     else:
-        logger.warning(f"No se encontró {xlsx_path}")
+        logger.warning(
+            f"No se encontró el archivo XLSX en {xlsx_primary} ni en {xlsx_fallback}."
+        )
         df_alarmas = pd.DataFrame()
 except Exception as e:
     logger.error(f"Error cargando el XLSX: {e}")
